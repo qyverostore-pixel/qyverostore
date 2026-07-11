@@ -92,19 +92,20 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       {
         property: "og:description",
         content:
-          "A modern men's lifestyle brand built for quality, style and everyday essentials.",
+          "QYVERO is a modern men's lifestyle brand built for quality, style and everyday essentials.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "QYVERO — Own Your Style." },
       {
         name: "twitter:description",
-        content: "Premium essentials for the modern gentleman.",
+        content: "QYVERO is a modern men's lifestyle brand built for quality, style and everyday essentials.",
       },
+      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/ssOqc5b86yePsdrhmD9rbIJcCPl2/social-images/social-1783812691813-WhatsApp_Image_2026-07-11_at_21.26.09_(7).webp" },
+      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/ssOqc5b86yePsdrhmD9rbIJcCPl2/social-images/social-1783812691813-WhatsApp_Image_2026-07-11_at_21.26.09_(7).webp" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
-      { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       {
         rel: "preconnect",
