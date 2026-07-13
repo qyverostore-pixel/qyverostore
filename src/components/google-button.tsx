@@ -1,14 +1,34 @@
 import type { ButtonHTMLAttributes } from "react";
+import { useState } from "react";
+import { toast } from "sonner";
+import { supabase } from "@/lib/supabase";
 
 export function GoogleButton(
   props: ButtonHTMLAttributes<HTMLButtonElement> & { label?: string },
 ) {
   const { label = "Continue with Google", className = "", ...rest } = props;
+  const [signingIn, setSigningIn] = useState(false);
+
+  async function signInWithGoogle() {
+    setSigningIn(true);
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo: window.location.origin },
+    });
+
+    if (error) {
+      setSigningIn(false);
+      toast.error("Unable to continue with Google", { description: error.message });
+    }
+  }
+
   return (
     <button
-      type="button"
-      className={`group inline-flex w-full items-center justify-center gap-3 rounded-xl border border-white/15 bg-white/[0.04] px-4 py-3 text-sm font-medium text-foreground transition-all hover:border-white/30 hover:bg-white/[0.08] active:scale-[0.99] ${className}`}
       {...rest}
+      type="button"
+      onClick={() => void signInWithGoogle()}
+      disabled={signingIn || rest.disabled}
+      className={`group inline-flex w-full items-center justify-center gap-3 rounded-xl border border-white/15 bg-white/[0.04] px-4 py-3 text-sm font-medium text-foreground transition-all hover:border-white/30 hover:bg-white/[0.08] active:scale-[0.99] ${className}`}
     >
       <svg viewBox="0 0 24 24" className="h-4.5 w-4.5" aria-hidden>
         <path

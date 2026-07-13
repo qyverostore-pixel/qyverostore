@@ -3,6 +3,7 @@ import {
   Outlet,
   Link,
   createRootRouteWithContext,
+  useNavigate,
   useRouter,
   useRouterState,
   HeadContent,
@@ -13,7 +14,7 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { Toaster } from "@/components/ui/sonner";
 import { PageTransition } from "@/components/ui/page-transition";
-import { AuthProvider } from "@/providers/AuthProvider";
+import { AuthProvider, useAuth } from "@/providers/AuthProvider";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
@@ -151,6 +152,7 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
+        <PostLoginRedirect />
         {!hideChrome && <Navbar />}
         {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
         <PageTransition><Outlet /></PageTransition>
@@ -159,4 +161,18 @@ function RootComponent() {
       </AuthProvider>
     </QueryClientProvider>
   );
+}
+
+function PostLoginRedirect() {
+  const navigate = useNavigate();
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
+  const { user, profile, loading } = useAuth();
+
+  useEffect(() => {
+    if (!loading && user && profile?.role === "admin" && pathname === "/") {
+      navigate({ to: "/admin", replace: true });
+    }
+  }, [loading, navigate, pathname, profile?.role, user]);
+
+  return null;
 }
