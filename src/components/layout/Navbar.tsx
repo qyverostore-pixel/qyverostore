@@ -11,20 +11,22 @@ import {
 } from "lucide-react";
 import { BrandMark } from "@/components/brand-mark";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/providers/AuthProvider";
+import { toast } from "sonner";
 
 const NAV_LINKS = [
   { to: "/", label: "Home" },
-  { to: "/categories", label: "Categories" },
+  { to: "/", hash: "categories", label: "Categories" },
   { to: "/products", label: "Products" },
   { to: "/about", label: "About" },
   { to: "/contact", label: "Contact" },
 ] as const;
 
 const SOCIALS = [
-  { href: "#", label: "Instagram", Icon: Instagram },
-  { href: "#", label: "Facebook", Icon: Facebook },
+  { href: "https://www.instagram.com/qyverostore", label: "Instagram", Icon: Instagram },
+  { href: "https://www.facebook.com/share/1JiGemJjBM/", label: "Facebook", Icon: Facebook },
   {
-    href: "#",
+    href: "https://www.tiktok.com/@qyvero.store",
     label: "TikTok",
     Icon: (props: React.SVGProps<SVGSVGElement>) => (
       <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
@@ -33,7 +35,7 @@ const SOCIALS = [
     ),
   },
   {
-    href: "#",
+    href: "https://wa.me/201505967144",
     label: "WhatsApp",
     Icon: (props: React.SVGProps<SVGSVGElement>) => (
       <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
@@ -43,13 +45,14 @@ const SOCIALS = [
   },
 ];
 
-function NavItem({ to, label }: { to: string; label: string }) {
+function NavItem({ to, hash, label }: { to: string; hash?: string; label: string }) {
   return (
     <Link
       to={to}
+      hash={hash}
       activeProps={{ className: "text-foreground" }}
       inactiveProps={{ className: "text-foreground/70" }}
-      activeOptions={{ exact: to === "/" }}
+      activeOptions={{ exact: to === "/" && !hash }}
       className="group relative text-sm font-medium tracking-wide transition-colors hover:text-foreground"
     >
       {label}
@@ -79,6 +82,20 @@ function IconButton({
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
+  const { user, profile, signOut } = useAuth();
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      toast.success("Signed out successfully");
+    } catch (error) {
+      toast.error("Unable to sign out", { description: error instanceof Error ? error.message : "Please try again." });
+    }
+  };
+
+  const navLinks = [
+    ...NAV_LINKS,
+    ...(user && profile?.role === "admin" ? [{ to: "/admin" as const, label: "Admin" }] : []),
+  ];
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12);
@@ -112,8 +129,8 @@ export function Navbar() {
 
           {/* Center: Nav */}
           <nav className="hidden items-center gap-8 lg:flex">
-            {NAV_LINKS.map((l) => (
-              <NavItem key={l.to} to={l.to} label={l.label} />
+            {navLinks.map((l) => (
+              <NavItem key={l.label} to={l.to} hash={"hash" in l ? l.hash : undefined} label={l.label} />
             ))}
           </nav>
 
@@ -132,18 +149,37 @@ export function Navbar() {
             </div>
 
             <div className="ml-1 hidden items-center gap-2 lg:flex">
-              <Link
-                to="/auth/signin"
-                className="rounded-full px-4 py-2 text-sm font-medium text-foreground/80 transition hover:text-foreground"
-              >
-                Sign In
-              </Link>
-              <Link
-                to="/auth/signup"
-                className="rounded-full bg-foreground px-4 py-2 text-sm font-semibold text-background transition hover:bg-foreground/90"
-              >
-                Create Account
-              </Link>
+              {user ? (
+                <>
+                  <Link
+                    to="/profile"
+                    className="rounded-full px-4 py-2 text-sm font-medium text-foreground/80 transition hover:text-foreground"
+                  >
+                    Profile
+                  </Link>
+                  <button
+                    onClick={() => void handleSignOut()}
+                    className="rounded-full bg-foreground px-4 py-2 text-sm font-semibold text-background transition hover:bg-foreground/90 cursor-pointer"
+                  >
+                    Logout
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link
+                    to="/auth/signin"
+                    className="rounded-full px-4 py-2 text-sm font-medium text-foreground/80 transition hover:text-foreground"
+                  >
+                    Sign In
+                  </Link>
+                  <Link
+                    to="/auth/signup"
+                    className="rounded-full bg-foreground px-4 py-2 text-sm font-semibold text-background transition hover:bg-foreground/90"
+                  >
+                    Create Account
+                  </Link>
+                </>
+              )}
             </div>
 
             <button
@@ -196,12 +232,13 @@ export function Navbar() {
           </div>
 
           <nav className="flex flex-1 flex-col gap-1 px-4 pt-6">
-            {NAV_LINKS.map((l, i) => (
+            {navLinks.map((l, i) => (
               <Link
-                key={l.to}
+                key={l.label}
                 to={l.to}
+                hash={"hash" in l ? l.hash : undefined}
                 onClick={() => setOpen(false)}
-                activeOptions={{ exact: l.to === "/" }}
+                activeOptions={{ exact: l.to === "/" && !("hash" in l) }}
                 activeProps={{ className: "text-foreground bg-white/5" }}
                 inactiveProps={{ className: "text-foreground/80" }}
                 className="rounded-2xl px-4 py-4 text-text-display text-lg font-medium tracking-wide transition-colors hover:bg-white/5"
@@ -217,20 +254,43 @@ export function Navbar() {
           </nav>
 
           <div className="grid grid-cols-2 gap-3 px-6 pb-6 pt-4">
-            <Link
-              to="/auth/signin"
-              onClick={() => setOpen(false)}
-              className="rounded-full border border-white/15 px-4 py-3 text-center text-sm font-medium text-foreground transition hover:border-white/30"
-            >
-              Sign In
-            </Link>
-            <Link
-              to="/auth/signup"
-              onClick={() => setOpen(false)}
-              className="rounded-full bg-foreground px-4 py-3 text-center text-sm font-semibold text-background transition hover:bg-foreground/90"
-            >
-              Create Account
-            </Link>
+            {user ? (
+              <>
+                <Link
+                  to="/profile"
+                  onClick={() => setOpen(false)}
+                  className="rounded-full border border-white/15 px-4 py-3 text-center text-sm font-medium text-foreground transition hover:border-white/30"
+                >
+                  Profile
+                </Link>
+                <button
+                  onClick={() => {
+                    setOpen(false);
+                    void handleSignOut();
+                  }}
+                  className="rounded-full bg-foreground px-4 py-3 text-center text-sm font-semibold text-background transition hover:bg-foreground/90 cursor-pointer"
+                >
+                  Logout
+                </button>
+              </>
+            ) : (
+              <>
+                <Link
+                  to="/auth/signin"
+                  onClick={() => setOpen(false)}
+                  className="rounded-full border border-white/15 px-4 py-3 text-center text-sm font-medium text-foreground transition hover:border-white/30"
+                >
+                  Sign In
+                </Link>
+                <Link
+                  to="/auth/signup"
+                  onClick={() => setOpen(false)}
+                  className="rounded-full bg-foreground px-4 py-3 text-center text-sm font-semibold text-background transition hover:bg-foreground/90"
+                >
+                  Create Account
+                </Link>
+              </>
+            )}
           </div>
 
           <div className="border-t border-white/10 px-6 py-6">
@@ -242,8 +302,10 @@ export function Navbar() {
                 <a
                   key={label}
                   href={href}
+                  target="_blank"
+                  rel="noreferrer"
                   aria-label={label}
-                  className="grid h-10 w-10 place-items-center rounded-full border border-white/10 text-foreground/80 transition hover:border-white/30 hover:text-foreground"
+                  className="grid h-10 w-10 place-items-center rounded-full border border-white/15 text-foreground/80 transition hover:border-white/30 hover:text-foreground"
                 >
                   <Icon className="h-4 w-4" />
                 </a>

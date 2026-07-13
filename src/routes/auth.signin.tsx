@@ -1,9 +1,12 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useState, type FormEvent } from "react";
+import { useState, type FormEvent, useEffect } from "react";
 import { Mail, Lock } from "lucide-react";
 import { AuthLayout, AuthSideVisual } from "@/components/auth-layout";
 import { TextField } from "@/components/text-field";
 import { GoogleButton } from "@/components/google-button";
+import { supabase } from "@/lib/supabase";
+import { toast } from "sonner";
+import { useAuth } from "@/providers/AuthProvider";
 
 export const Route = createFileRoute("/auth/signin")({
   head: () => ({
@@ -25,9 +28,20 @@ export const Route = createFileRoute("/auth/signin")({
 
 function SignInPage() {
   const navigate = useNavigate();
+  const { user, profile, loading } = useAuth();
   const [form, setForm] = useState({ email: "", password: "", remember: true });
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
   const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (!loading && user) {
+      if (profile?.role === "admin") {
+        navigate({ to: "/admin", replace: true });
+      } else {
+        navigate({ to: "/", replace: true });
+      }
+    }
+  }, [loading, navigate, user, profile]);
 
   async function onSubmit(ev: FormEvent) {
     ev.preventDefault();
@@ -37,11 +51,27 @@ function SignInPage() {
     if (form.password.length < 8) e.password = "At least 8 characters";
     setErrors(e);
     if (Object.keys(e).length) return;
+
     setSubmitting(true);
-    // TODO: connect Supabase auth here
-    await new Promise((r) => setTimeout(r, 600));
-    setSubmitting(false);
-    navigate({ to: "/" });
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email: form.email,
+        password: form.password,
+      });
+      if (error) {
+        toast.error("Unable to sign in", { description: error.message });
+        return;
+      }
+      toast.success("Signed in successfully");
+    } catch (error) {
+      toast.error("Unable to sign in", { description: error instanceof Error ? error.message : "Please try again." });
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  if (!loading && user) {
+    return null;
   }
 
   return (
@@ -111,18 +141,18 @@ function SignInPage() {
               />
               Remember me
             </label>
-            <a
-              href="#"
+            <Link
+              to="/auth/forgot-password"
               className="text-foreground/80 underline-offset-4 hover:text-foreground hover:underline"
             >
               Forgot password?
-            </a>
+            </Link>
           </div>
 
           <button
             type="submit"
             disabled={submitting}
-            className="mt-2 inline-flex items-center justify-center rounded-xl bg-foreground px-4 py-3.5 text-sm font-semibold uppercase tracking-[0.2em] text-background transition-all hover:bg-foreground/90 active:scale-[0.99] disabled:opacity-60"
+            className="mt-2 inline-flex items-center justify-center rounded-xl bg-foreground px-4 py-3.5 text-sm font-semibold uppercase tracking-[0.2em] text-background transition-all hover:bg-foreground/90 active:scale-[0.99] disabled:opacity-60 cursor-pointer"
           >
             {submitting ? "Signing in…" : "Login"}
           </button>

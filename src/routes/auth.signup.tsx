@@ -1,9 +1,12 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useState, type FormEvent } from "react";
+import { useState, type FormEvent, useEffect } from "react";
 import { Mail, Lock, User, AtSign, Phone } from "lucide-react";
 import { AuthLayout, AuthSideVisual } from "@/components/auth-layout";
 import { TextField } from "@/components/text-field";
 import { GoogleButton } from "@/components/google-button";
+import { supabase } from "@/lib/supabase";
+import { toast } from "sonner";
+import { useAuth } from "@/providers/AuthProvider";
 
 export const Route = createFileRoute("/auth/signup")({
   head: () => ({
@@ -40,6 +43,7 @@ type Errors = Partial<
 
 function SignUpPage() {
   const navigate = useNavigate();
+  const { user, profile, loading } = useAuth();
   const [form, setForm] = useState({
     firstName: "",
     lastName: "",
@@ -52,6 +56,16 @@ function SignUpPage() {
   });
   const [errors, setErrors] = useState<Errors>({});
   const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (!loading && user) {
+      if (profile?.role === "admin") {
+        navigate({ to: "/admin", replace: true });
+      } else {
+        navigate({ to: "/", replace: true });
+      }
+    }
+  }, [loading, navigate, user, profile]);
 
   const update =
     <K extends keyof typeof form>(k: K) =>
@@ -80,10 +94,31 @@ function SignUpPage() {
     setErrors(e);
     if (Object.keys(e).length) return;
     setSubmitting(true);
-    // TODO: connect Supabase auth here
-    await new Promise((r) => setTimeout(r, 700));
-    setSubmitting(false);
-    navigate({ to: "/" });
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email: form.email,
+        password: form.password,
+        options: { data: { first_name: form.firstName, last_name: form.lastName, username: form.username, phone: form.phone } },
+      });
+      if (error) {
+        toast.error("Unable to create account", { description: error.message });
+        return;
+      }
+      if (data.session) {
+        toast.success("Account created successfully");
+        return;
+      }
+      toast.success("Check your email to confirm your account");
+      navigate({ to: "/auth/signin" });
+    } catch (error) {
+      toast.error("Unable to create account", { description: error instanceof Error ? error.message : "Please try again." });
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  if (!loading && user) {
+    return null;
   }
 
   return (
@@ -147,8 +182,9 @@ function SignUpPage() {
           onChange={(e) => update("username")(e.target.value)}
           error={errors.username}
         />
+
         <TextField
-          label="Email address"
+          label="Email"
           type="email"
           placeholder="you@qyvero.com"
           autoComplete="email"
@@ -157,68 +193,66 @@ function SignUpPage() {
           onChange={(e) => update("email")(e.target.value)}
           error={errors.email}
         />
+
         <TextField
           label="Phone number"
-          type="tel"
-          placeholder="+20 150 596 7144"
+          placeholder="+20 123 456 789"
           autoComplete="tel"
           icon={<Phone />}
           value={form.phone}
           onChange={(e) => update("phone")(e.target.value)}
           error={errors.phone}
         />
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <TextField
-            label="Password"
-            type="password"
-            placeholder="••••••••"
-            autoComplete="new-password"
-            icon={<Lock />}
-            value={form.password}
-            onChange={(e) => update("password")(e.target.value)}
-            error={errors.password}
-          />
-          <TextField
-            label="Confirm"
-            type="password"
-            placeholder="••••••••"
-            autoComplete="new-password"
-            icon={<Lock />}
-            value={form.confirm}
-            onChange={(e) => update("confirm")(e.target.value)}
-            error={errors.confirm}
-          />
-        </div>
 
-        <label className="mt-1 flex items-start gap-3 text-sm text-muted-foreground">
+        <TextField
+          label="Password"
+          type="password"
+          placeholder="••••••••"
+          autoComplete="new-password"
+          icon={<Lock />}
+          value={form.password}
+          onChange={(e) => update("password")(e.target.value)}
+          error={errors.password}
+        />
+
+        <TextField
+          label="Confirm password"
+          type="password"
+          placeholder="••••••••"
+          autoComplete="new-password"
+          icon={<Lock />}
+          value={form.confirm}
+          onChange={(e) => update("confirm")(e.target.value)}
+          error={errors.confirm}
+        />
+
+        <label className="mt-2 flex items-start gap-3 text-sm text-muted-foreground select-none cursor-pointer">
           <input
             type="checkbox"
             checked={form.terms}
             onChange={(e) => update("terms")(e.target.checked)}
-            className="mt-0.5 h-4 w-4 shrink-0 rounded border-white/20 bg-white/5 accent-[color:var(--color-teal)]"
+            className="mt-1 h-4 w-4 rounded border-white/20 bg-white/5 accent-[color:var(--color-teal)]"
           />
-          <span>
+          <span className="leading-tight">
             I agree to the{" "}
-            <a className="text-foreground underline-offset-4 hover:underline" href="#">
-              Terms
-            </a>{" "}
-            &{" "}
-            <a className="text-foreground underline-offset-4 hover:underline" href="#">
+            <Link to="/" className="text-foreground underline underline-offset-2">
+              Terms of Service
+            </Link>{" "}
+            and{" "}
+            <Link to="/" className="text-foreground underline underline-offset-2">
               Privacy Policy
-            </a>
+            </Link>
             .
           </span>
         </label>
-        {errors.terms && (
-          <p className="-mt-2 text-xs text-destructive">{errors.terms}</p>
-        )}
+        {errors.terms && <p className="text-[11px] text-red-500">{errors.terms}</p>}
 
         <button
           type="submit"
           disabled={submitting}
-          className="mt-2 inline-flex items-center justify-center rounded-xl bg-foreground px-4 py-3.5 text-sm font-semibold uppercase tracking-[0.2em] text-background transition-all hover:bg-foreground/90 active:scale-[0.99] disabled:opacity-60"
+          className="mt-2 inline-flex items-center justify-center rounded-xl bg-foreground px-4 py-3.5 text-sm font-semibold uppercase tracking-[0.2em] text-background transition-all hover:bg-foreground/90 active:scale-[0.99] disabled:opacity-60 cursor-pointer"
         >
-          {submitting ? "Creating…" : "Create account"}
+          {submitting ? "Creating account…" : "Create account"}
         </button>
 
         <div className="my-1 flex items-center gap-3 text-[10px] uppercase tracking-[0.3em] text-muted-foreground/70">

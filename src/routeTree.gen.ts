@@ -9,14 +9,89 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TermsAndConditionsRouteImport } from './routes/terms-and-conditions'
+import { Route as ShippingPolicyRouteImport } from './routes/shipping-policy'
+import { Route as ReturnPolicyRouteImport } from './routes/return-policy'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as ProductsRouteImport } from './routes/products'
+import { Route as PrivacyPolicyRouteImport } from './routes/privacy-policy'
+import { Route as ContactRouteImport } from './routes/contact'
+import { Route as AdminRouteImport } from './routes/admin'
+import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ProductsProductIdRouteImport } from './routes/products.$productId'
 import { Route as AuthSignupRouteImport } from './routes/auth.signup'
 import { Route as AuthSigninRouteImport } from './routes/auth.signin'
+import { Route as AuthForgotPasswordRouteImport } from './routes/auth.forgot-password'
+import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
+import { Route as AdminProductsRouteImport } from './routes/admin.products'
+import { Route as AdminOrdersRouteImport } from './routes/admin.orders'
+import { Route as AdminMessagesRouteImport } from './routes/admin.messages'
+import { Route as AdminCustomersRouteImport } from './routes/admin.customers'
+import { Route as AdminCategoriesRouteImport } from './routes/admin.categories'
+import { Route as AdminProductsNewRouteImport } from './routes/admin.products.new'
+import { Route as AdminProductsProductIdEditRouteImport } from './routes/admin.products.$productId.edit'
 
+const TermsAndConditionsRoute = TermsAndConditionsRouteImport.update({
+  id: '/terms-and-conditions',
+  path: '/terms-and-conditions',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ShippingPolicyRoute = ShippingPolicyRouteImport.update({
+  id: '/shipping-policy',
+  path: '/shipping-policy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReturnPolicyRoute = ReturnPolicyRouteImport.update({
+  id: '/return-policy',
+  path: '/return-policy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProfileRoute = ProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProductsRoute = ProductsRouteImport.update({
+  id: '/products',
+  path: '/products',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyPolicyRoute = PrivacyPolicyRouteImport.update({
+  id: '/privacy-policy',
+  path: '/privacy-policy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ContactRoute = ContactRouteImport.update({
+  id: '/contact',
+  path: '/contact',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AboutRoute = AboutRouteImport.update({
+  id: '/about',
+  path: '/about',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const ProductsProductIdRoute = ProductsProductIdRouteImport.update({
+  id: '/$productId',
+  path: '/$productId',
+  getParentRoute: () => ProductsRoute,
 } as any)
 const AuthSignupRoute = AuthSignupRouteImport.update({
   id: '/auth/signup',
@@ -28,45 +103,309 @@ const AuthSigninRoute = AuthSigninRouteImport.update({
   path: '/auth/signin',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthForgotPasswordRoute = AuthForgotPasswordRouteImport.update({
+  id: '/auth/forgot-password',
+  path: '/auth/forgot-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminSettingsRoute = AdminSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminProductsRoute = AdminProductsRouteImport.update({
+  id: '/products',
+  path: '/products',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminOrdersRoute = AdminOrdersRouteImport.update({
+  id: '/orders',
+  path: '/orders',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminMessagesRoute = AdminMessagesRouteImport.update({
+  id: '/messages',
+  path: '/messages',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminCustomersRoute = AdminCustomersRouteImport.update({
+  id: '/customers',
+  path: '/customers',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminCategoriesRoute = AdminCategoriesRouteImport.update({
+  id: '/categories',
+  path: '/categories',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminProductsNewRoute = AdminProductsNewRouteImport.update({
+  id: '/new',
+  path: '/new',
+  getParentRoute: () => AdminProductsRoute,
+} as any)
+const AdminProductsProductIdEditRoute =
+  AdminProductsProductIdEditRouteImport.update({
+    id: '/$productId/edit',
+    path: '/$productId/edit',
+    getParentRoute: () => AdminProductsRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
+  '/admin': typeof AdminRouteWithChildren
+  '/contact': typeof ContactRoute
+  '/privacy-policy': typeof PrivacyPolicyRoute
+  '/products': typeof ProductsRouteWithChildren
+  '/profile': typeof ProfileRoute
+  '/reset-password': typeof ResetPasswordRoute
+  '/return-policy': typeof ReturnPolicyRoute
+  '/shipping-policy': typeof ShippingPolicyRoute
+  '/terms-and-conditions': typeof TermsAndConditionsRoute
+  '/admin/categories': typeof AdminCategoriesRoute
+  '/admin/customers': typeof AdminCustomersRoute
+  '/admin/messages': typeof AdminMessagesRoute
+  '/admin/orders': typeof AdminOrdersRoute
+  '/admin/products': typeof AdminProductsRouteWithChildren
+  '/admin/settings': typeof AdminSettingsRoute
+  '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/signin': typeof AuthSigninRoute
   '/auth/signup': typeof AuthSignupRoute
+  '/products/$productId': typeof ProductsProductIdRoute
+  '/admin/products/new': typeof AdminProductsNewRoute
+  '/admin/products/$productId/edit': typeof AdminProductsProductIdEditRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
+  '/admin': typeof AdminRouteWithChildren
+  '/contact': typeof ContactRoute
+  '/privacy-policy': typeof PrivacyPolicyRoute
+  '/products': typeof ProductsRouteWithChildren
+  '/profile': typeof ProfileRoute
+  '/reset-password': typeof ResetPasswordRoute
+  '/return-policy': typeof ReturnPolicyRoute
+  '/shipping-policy': typeof ShippingPolicyRoute
+  '/terms-and-conditions': typeof TermsAndConditionsRoute
+  '/admin/categories': typeof AdminCategoriesRoute
+  '/admin/customers': typeof AdminCustomersRoute
+  '/admin/messages': typeof AdminMessagesRoute
+  '/admin/orders': typeof AdminOrdersRoute
+  '/admin/products': typeof AdminProductsRouteWithChildren
+  '/admin/settings': typeof AdminSettingsRoute
+  '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/signin': typeof AuthSigninRoute
   '/auth/signup': typeof AuthSignupRoute
+  '/products/$productId': typeof ProductsProductIdRoute
+  '/admin/products/new': typeof AdminProductsNewRoute
+  '/admin/products/$productId/edit': typeof AdminProductsProductIdEditRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
+  '/admin': typeof AdminRouteWithChildren
+  '/contact': typeof ContactRoute
+  '/privacy-policy': typeof PrivacyPolicyRoute
+  '/products': typeof ProductsRouteWithChildren
+  '/profile': typeof ProfileRoute
+  '/reset-password': typeof ResetPasswordRoute
+  '/return-policy': typeof ReturnPolicyRoute
+  '/shipping-policy': typeof ShippingPolicyRoute
+  '/terms-and-conditions': typeof TermsAndConditionsRoute
+  '/admin/categories': typeof AdminCategoriesRoute
+  '/admin/customers': typeof AdminCustomersRoute
+  '/admin/messages': typeof AdminMessagesRoute
+  '/admin/orders': typeof AdminOrdersRoute
+  '/admin/products': typeof AdminProductsRouteWithChildren
+  '/admin/settings': typeof AdminSettingsRoute
+  '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/signin': typeof AuthSigninRoute
   '/auth/signup': typeof AuthSignupRoute
+  '/products/$productId': typeof ProductsProductIdRoute
+  '/admin/products/new': typeof AdminProductsNewRoute
+  '/admin/products/$productId/edit': typeof AdminProductsProductIdEditRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth/signin' | '/auth/signup'
+  fullPaths:
+    | '/'
+    | '/about'
+    | '/admin'
+    | '/contact'
+    | '/privacy-policy'
+    | '/products'
+    | '/profile'
+    | '/reset-password'
+    | '/return-policy'
+    | '/shipping-policy'
+    | '/terms-and-conditions'
+    | '/admin/categories'
+    | '/admin/customers'
+    | '/admin/messages'
+    | '/admin/orders'
+    | '/admin/products'
+    | '/admin/settings'
+    | '/auth/forgot-password'
+    | '/auth/signin'
+    | '/auth/signup'
+    | '/products/$productId'
+    | '/admin/products/new'
+    | '/admin/products/$productId/edit'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth/signin' | '/auth/signup'
-  id: '__root__' | '/' | '/auth/signin' | '/auth/signup'
+  to:
+    | '/'
+    | '/about'
+    | '/admin'
+    | '/contact'
+    | '/privacy-policy'
+    | '/products'
+    | '/profile'
+    | '/reset-password'
+    | '/return-policy'
+    | '/shipping-policy'
+    | '/terms-and-conditions'
+    | '/admin/categories'
+    | '/admin/customers'
+    | '/admin/messages'
+    | '/admin/orders'
+    | '/admin/products'
+    | '/admin/settings'
+    | '/auth/forgot-password'
+    | '/auth/signin'
+    | '/auth/signup'
+    | '/products/$productId'
+    | '/admin/products/new'
+    | '/admin/products/$productId/edit'
+  id:
+    | '__root__'
+    | '/'
+    | '/about'
+    | '/admin'
+    | '/contact'
+    | '/privacy-policy'
+    | '/products'
+    | '/profile'
+    | '/reset-password'
+    | '/return-policy'
+    | '/shipping-policy'
+    | '/terms-and-conditions'
+    | '/admin/categories'
+    | '/admin/customers'
+    | '/admin/messages'
+    | '/admin/orders'
+    | '/admin/products'
+    | '/admin/settings'
+    | '/auth/forgot-password'
+    | '/auth/signin'
+    | '/auth/signup'
+    | '/products/$productId'
+    | '/admin/products/new'
+    | '/admin/products/$productId/edit'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AboutRoute: typeof AboutRoute
+  AdminRoute: typeof AdminRouteWithChildren
+  ContactRoute: typeof ContactRoute
+  PrivacyPolicyRoute: typeof PrivacyPolicyRoute
+  ProductsRoute: typeof ProductsRouteWithChildren
+  ProfileRoute: typeof ProfileRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
+  ReturnPolicyRoute: typeof ReturnPolicyRoute
+  ShippingPolicyRoute: typeof ShippingPolicyRoute
+  TermsAndConditionsRoute: typeof TermsAndConditionsRoute
+  AuthForgotPasswordRoute: typeof AuthForgotPasswordRoute
   AuthSigninRoute: typeof AuthSigninRoute
   AuthSignupRoute: typeof AuthSignupRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/terms-and-conditions': {
+      id: '/terms-and-conditions'
+      path: '/terms-and-conditions'
+      fullPath: '/terms-and-conditions'
+      preLoaderRoute: typeof TermsAndConditionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/shipping-policy': {
+      id: '/shipping-policy'
+      path: '/shipping-policy'
+      fullPath: '/shipping-policy'
+      preLoaderRoute: typeof ShippingPolicyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/return-policy': {
+      id: '/return-policy'
+      path: '/return-policy'
+      fullPath: '/return-policy'
+      preLoaderRoute: typeof ReturnPolicyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/profile': {
+      id: '/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/products': {
+      id: '/products'
+      path: '/products'
+      fullPath: '/products'
+      preLoaderRoute: typeof ProductsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy-policy': {
+      id: '/privacy-policy'
+      path: '/privacy-policy'
+      fullPath: '/privacy-policy'
+      preLoaderRoute: typeof PrivacyPolicyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/contact': {
+      id: '/contact'
+      path: '/contact'
+      fullPath: '/contact'
+      preLoaderRoute: typeof ContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/about': {
+      id: '/about'
+      path: '/about'
+      fullPath: '/about'
+      preLoaderRoute: typeof AboutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/products/$productId': {
+      id: '/products/$productId'
+      path: '/$productId'
+      fullPath: '/products/$productId'
+      preLoaderRoute: typeof ProductsProductIdRouteImport
+      parentRoute: typeof ProductsRoute
     }
     '/auth/signup': {
       id: '/auth/signup'
@@ -82,14 +421,144 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthSigninRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/auth/forgot-password': {
+      id: '/auth/forgot-password'
+      path: '/auth/forgot-password'
+      fullPath: '/auth/forgot-password'
+      preLoaderRoute: typeof AuthForgotPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/settings': {
+      id: '/admin/settings'
+      path: '/settings'
+      fullPath: '/admin/settings'
+      preLoaderRoute: typeof AdminSettingsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/products': {
+      id: '/admin/products'
+      path: '/products'
+      fullPath: '/admin/products'
+      preLoaderRoute: typeof AdminProductsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/orders': {
+      id: '/admin/orders'
+      path: '/orders'
+      fullPath: '/admin/orders'
+      preLoaderRoute: typeof AdminOrdersRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/messages': {
+      id: '/admin/messages'
+      path: '/messages'
+      fullPath: '/admin/messages'
+      preLoaderRoute: typeof AdminMessagesRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/customers': {
+      id: '/admin/customers'
+      path: '/customers'
+      fullPath: '/admin/customers'
+      preLoaderRoute: typeof AdminCustomersRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/categories': {
+      id: '/admin/categories'
+      path: '/categories'
+      fullPath: '/admin/categories'
+      preLoaderRoute: typeof AdminCategoriesRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/products/new': {
+      id: '/admin/products/new'
+      path: '/new'
+      fullPath: '/admin/products/new'
+      preLoaderRoute: typeof AdminProductsNewRouteImport
+      parentRoute: typeof AdminProductsRoute
+    }
+    '/admin/products/$productId/edit': {
+      id: '/admin/products/$productId/edit'
+      path: '/$productId/edit'
+      fullPath: '/admin/products/$productId/edit'
+      preLoaderRoute: typeof AdminProductsProductIdEditRouteImport
+      parentRoute: typeof AdminProductsRoute
+    }
   }
 }
 
+interface AdminProductsRouteChildren {
+  AdminProductsNewRoute: typeof AdminProductsNewRoute
+  AdminProductsProductIdEditRoute: typeof AdminProductsProductIdEditRoute
+}
+
+const AdminProductsRouteChildren: AdminProductsRouteChildren = {
+  AdminProductsNewRoute: AdminProductsNewRoute,
+  AdminProductsProductIdEditRoute: AdminProductsProductIdEditRoute,
+}
+
+const AdminProductsRouteWithChildren = AdminProductsRoute._addFileChildren(
+  AdminProductsRouteChildren,
+)
+
+interface AdminRouteChildren {
+  AdminCategoriesRoute: typeof AdminCategoriesRoute
+  AdminCustomersRoute: typeof AdminCustomersRoute
+  AdminMessagesRoute: typeof AdminMessagesRoute
+  AdminOrdersRoute: typeof AdminOrdersRoute
+  AdminProductsRoute: typeof AdminProductsRouteWithChildren
+  AdminSettingsRoute: typeof AdminSettingsRoute
+}
+
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminCategoriesRoute: AdminCategoriesRoute,
+  AdminCustomersRoute: AdminCustomersRoute,
+  AdminMessagesRoute: AdminMessagesRoute,
+  AdminOrdersRoute: AdminOrdersRoute,
+  AdminProductsRoute: AdminProductsRouteWithChildren,
+  AdminSettingsRoute: AdminSettingsRoute,
+}
+
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
+
+interface ProductsRouteChildren {
+  ProductsProductIdRoute: typeof ProductsProductIdRoute
+}
+
+const ProductsRouteChildren: ProductsRouteChildren = {
+  ProductsProductIdRoute: ProductsProductIdRoute,
+}
+
+const ProductsRouteWithChildren = ProductsRoute._addFileChildren(
+  ProductsRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AboutRoute: AboutRoute,
+  AdminRoute: AdminRouteWithChildren,
+  ContactRoute: ContactRoute,
+  PrivacyPolicyRoute: PrivacyPolicyRoute,
+  ProductsRoute: ProductsRouteWithChildren,
+  ProfileRoute: ProfileRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
+  ReturnPolicyRoute: ReturnPolicyRoute,
+  ShippingPolicyRoute: ShippingPolicyRoute,
+  TermsAndConditionsRoute: TermsAndConditionsRoute,
+  AuthForgotPasswordRoute: AuthForgotPasswordRoute,
   AuthSigninRoute: AuthSigninRoute,
   AuthSignupRoute: AuthSignupRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

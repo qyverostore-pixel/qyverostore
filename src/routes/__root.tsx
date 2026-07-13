@@ -11,26 +11,31 @@ import {
 import { useEffect, type ReactNode } from "react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
+import { Toaster } from "@/components/ui/sonner";
+import { PageTransition } from "@/components/ui/page-transition";
+import { AuthProvider } from "@/providers/AuthProvider";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 
 function NotFoundComponent() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <div className="max-w-md text-center">
-        <h1 className="text-7xl font-bold text-foreground">404</h1>
-        <h2 className="mt-4 text-xl font-semibold text-foreground">Page not found</h2>
-        <p className="mt-2 text-sm text-muted-foreground">
+    <div className="bg-noise flex min-h-screen items-center justify-center px-6">
+      <div className="glass-card max-w-lg rounded-[2rem] p-9 text-center sm:p-12">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.4em] text-teal">Lost in the collection</p>
+        <h1 className="text-display mt-5 text-7xl font-light text-foreground sm:text-8xl">404</h1>
+        <h2 className="text-display mt-4 text-2xl font-medium text-foreground">This page is not here.</h2>
+        <p className="mt-3 text-sm leading-6 text-muted-foreground">
           The page you're looking for doesn't exist or has been moved.
         </p>
-        <div className="mt-6">
+        <div className="mt-8 flex flex-wrap justify-center gap-3">
           <Link
             to="/"
-            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+            className="inline-flex items-center justify-center rounded-full bg-foreground px-5 py-2.5 text-sm font-medium text-background transition hover:bg-foreground/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal"
           >
-            Go home
+            Back to home
           </Link>
+          <Link to="/products" className="inline-flex items-center justify-center rounded-full border border-white/15 px-5 py-2.5 text-sm font-medium transition hover:border-teal hover:text-teal focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal">Browse products</Link>
         </div>
       </div>
     </div>
@@ -141,14 +146,17 @@ function RootShell({ children }: { children: ReactNode }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const hideChrome = pathname.startsWith("/auth");
+  const hideChrome = pathname.startsWith("/auth") || pathname.startsWith("/admin");
 
   return (
     <QueryClientProvider client={queryClient}>
-      {!hideChrome && <Navbar />}
-      {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-      <Outlet />
-      {!hideChrome && <Footer />}
+      <AuthProvider>
+        {!hideChrome && <Navbar />}
+        {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+        <PageTransition><Outlet /></PageTransition>
+        {!hideChrome && <Footer />}
+        <Toaster richColors position="top-right" />
+      </AuthProvider>
     </QueryClientProvider>
   );
 }

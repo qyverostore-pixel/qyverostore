@@ -10,7 +10,7 @@ import { BrandMark } from "@/components/brand-mark";
 const QUICK_LINKS = [
   { to: "/", label: "Home" },
   { to: "/products", label: "Products" },
-  { to: "/categories", label: "Categories" },
+  { to: "/products", label: "Categories" },
   { to: "/about", label: "About" },
   { to: "/contact", label: "Contact" },
   { to: "/auth/signin", label: "Sign In" },
@@ -73,7 +73,7 @@ export function Footer() {
             <ColumnHeading>Quick Links</ColumnHeading>
             <ul className="flex flex-col gap-3">
               {QUICK_LINKS.map((l) => (
-                <li key={l.to}>
+                <li key={l.label}>
                   <Link
                     to={l.to}
                     className="group inline-flex items-center gap-2 text-sm text-foreground/75 transition-colors hover:text-foreground"
@@ -92,13 +92,13 @@ export function Footer() {
             <ul className="flex flex-col gap-3">
               {CATEGORIES.map((c) => (
                 <li key={c}>
-                  <a
-                    href="#"
+                  <Link
+                    to="/products"
                     className="group inline-flex items-center gap-2 text-sm text-foreground/75 transition-colors hover:text-foreground"
                   >
                     <span className="h-px w-4 bg-white/20 transition-all duration-300 group-hover:w-6 group-hover:bg-teal" />
                     {c}
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>

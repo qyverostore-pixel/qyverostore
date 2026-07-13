@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { BrandMark } from "@/components/brand-mark";
+import { getSocialLink } from "@/data/social";
 
 /* ---------- shared bits ---------- */
 
@@ -68,11 +69,11 @@ function SectionHeading({
 
 function Hero() {
   const socials = [
-    { label: "Instagram", Icon: Instagram },
-    { label: "Facebook", Icon: Facebook },
-    { label: "TikTok", Icon: TikTokIcon },
-    { label: "WhatsApp", Icon: MessageCircle },
-    { label: "Email", Icon: Mail },
+    { label: "Instagram", Icon: Instagram, href: getSocialLink("Instagram").href },
+    { label: "Facebook", Icon: Facebook, href: getSocialLink("Facebook").href },
+    { label: "TikTok", Icon: TikTokIcon, href: getSocialLink("TikTok").href },
+    { label: "WhatsApp", Icon: MessageCircle, href: getSocialLink("WhatsApp").href },
+    { label: "Email", Icon: Mail, href: getSocialLink("Email").href },
   ];
 
   return (
@@ -115,14 +116,14 @@ function Hero() {
           style={{ animationDelay: "0.3s" }}
         >
           <Link
-            to="/"
+            to="/products"
             className="group inline-flex items-center gap-2 rounded-full bg-foreground px-6 py-3 text-sm font-semibold uppercase tracking-[0.2em] text-background transition hover:bg-foreground/90"
           >
             Explore Collection
             <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
           </Link>
           <Link
-            to="/"
+            to="/contact"
             className="inline-flex items-center gap-2 rounded-full border border-white/15 px-6 py-3 text-sm font-medium text-foreground transition hover:border-white/30 hover:bg-white/5"
           >
             Contact Us
@@ -133,10 +134,12 @@ function Hero() {
           className="animate-fade-up mt-14 flex items-center gap-2"
           style={{ animationDelay: "0.4s" }}
         >
-          {socials.map(({ label, Icon }) => (
+          {socials.map(({ label, Icon, href }) => (
             <a
               key={label}
-              href="#"
+              href={href}
+              target="_blank"
+              rel="noreferrer"
               aria-label={label}
               className="grid h-10 w-10 place-items-center rounded-full border border-white/10 text-foreground/80 transition hover:-translate-y-0.5 hover:border-teal hover:text-teal"
             >
@@ -173,7 +176,7 @@ const CATEGORIES = [
 
 function Categories() {
   return (
-    <section className="relative py-24 sm:py-32">
+    <section id="categories" className="relative py-24 sm:py-32">
       <div className="mx-auto w-full max-w-7xl px-6">
         <SectionHeading
           eyebrow="Featured Categories"
@@ -183,9 +186,9 @@ function Categories() {
 
         <div className="mt-16 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
           {CATEGORIES.map(({ name, Icon, soon }) => (
-            <a
+            <Link
               key={name}
-              href="#"
+              to="/products"
               className="group relative overflow-hidden rounded-3xl border border-white/10 bg-white/[0.02] p-6 transition-all duration-500 hover:-translate-y-1 hover:border-white/25 hover:bg-white/[0.04] active:scale-[0.98]"
             >
               <div
@@ -206,7 +209,7 @@ function Categories() {
                   {soon ? "Coming Soon" : "Shop Collection"}
                 </p>
               </div>
-            </a>
+            </Link>
           ))}
         </div>
       </div>
@@ -272,14 +275,17 @@ function ProductCard({ product }: { product: Product }) {
         </div>
 
         <div className="mt-auto flex flex-col gap-2">
-          <button
-            type="button"
-            className="inline-flex items-center justify-center gap-2 rounded-full bg-foreground px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.2em] text-background transition hover:bg-foreground/90"
+          <Link
+            to="/products/$productId"
+            params={{ productId: String(product.id) }}
+            className="inline-flex items-center justify-center gap-2 rounded-full bg-foreground px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.2em] text-background transition hover:bg-foreground/90 text-center"
           >
             View Details
-          </button>
+          </Link>
           <a
-            href="#"
+            href={`https://wa.me/201505967144?text=${encodeURIComponent(`Hello QYVERO, I'm interested in the ${product.name}.`)}`}
+            target="_blank"
+            rel="noreferrer"
             className="inline-flex items-center justify-center gap-2 rounded-full border border-white/15 px-4 py-2.5 text-xs font-medium text-foreground transition hover:border-teal hover:text-teal"
           >
             <MessageCircle className="h-3.5 w-3.5" />
@@ -302,13 +308,13 @@ function FeaturedProducts() {
             description="A tight edit of pieces we're proud to put our name on."
             align="left"
           />
-          <a
-            href="#"
+          <Link
+            to="/products"
             className="group inline-flex items-center gap-2 text-sm font-medium text-foreground/80 transition hover:text-foreground"
           >
             View all
             <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-          </a>
+          </Link>
         </div>
 
         <div className="mt-14 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
@@ -403,13 +409,13 @@ function BrandStory() {
                 trend.
               </p>
             </div>
-            <a
-              href="#"
+            <Link
+              to="/about"
               className="mt-10 inline-flex items-center gap-2 rounded-full border border-white/15 px-6 py-3 text-sm font-medium text-foreground transition hover:border-teal hover:text-teal"
             >
               Read Our Story
               <ArrowRight className="h-4 w-4" />
-            </a>
+            </Link>
           </div>
 
           <div className="relative min-h-[320px] overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-neutral-900 via-neutral-950 to-black">
@@ -458,7 +464,9 @@ function InstagramPreview() {
           {tiles.map((tone, i) => (
             <a
               key={i}
-              href="#"
+              href={getSocialLink("Instagram").href}
+              target="_blank"
+              rel="noreferrer"
               className={`group relative aspect-square overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br ${tone} transition-all duration-500 hover:-translate-y-1 hover:border-white/25`}
             >
               <div
@@ -479,7 +487,9 @@ function InstagramPreview() {
         </div>
         <div className="mt-10 flex justify-center">
           <a
-            href="#"
+            href={getSocialLink("Instagram").href}
+            target="_blank"
+            rel="noreferrer"
             className="inline-flex items-center gap-2 rounded-full bg-foreground px-6 py-3 text-sm font-semibold uppercase tracking-[0.2em] text-background transition hover:bg-foreground/90"
           >
             <Instagram className="h-4 w-4" />
