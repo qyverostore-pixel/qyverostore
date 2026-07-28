@@ -1,0 +1,9 @@
+project_id = "kysnaortzvvxutqwgukq"
+
+# Meta cannot present a Supabase JWT. The function validates Meta's HMAC signature itself.
+[functions.whatsapp-webhook]
+verify_jwt = false
+
+# JWT verification is performed in the function so CORS preflight can succeed; it then requires a QYVERO admin.
+[functions.send-whatsapp-message]
+verify_jwt = false
