@@ -25,7 +25,9 @@ function ProductGallery({ product }: { product: StoreProduct }) {
             fetchPriority="high"
             decoding="async"
             sizes="(min-width: 1024px) 55vw, 100vw"
-            onError={(event) => { event.currentTarget.style.display = "none"; }}
+            onError={(event) => {
+              event.currentTarget.style.display = "none";
+            }}
             className="h-full w-full object-cover transition duration-700 ease-out group-hover:scale-110"
           />
         ) : (
@@ -56,7 +58,9 @@ function ProductGallery({ product }: { product: StoreProduct }) {
               alt=""
               loading="lazy"
               decoding="async"
-              onError={(event) => { event.currentTarget.style.display = "none"; }}
+              onError={(event) => {
+                event.currentTarget.style.display = "none";
+              }}
               className="h-full w-full object-cover"
             />
           </button>
@@ -127,7 +131,20 @@ function OrderActions({
   const inStock = product.stock > 0;
   return (
     <div className={cn("grid gap-3", compact ? "grid-cols-1" : "sm:grid-cols-[1fr_auto]")}>
-      {inStock ? <Link to="/checkout" onClick={addToCheckout} className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-foreground px-6 text-xs font-semibold uppercase tracking-[0.18em] text-background transition hover:bg-foreground/90"><MessageCircle className="h-4 w-4" />Checkout</Link> : <span className="inline-flex h-12 cursor-not-allowed items-center justify-center gap-2 rounded-full bg-white/10 px-6 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">Out of Stock</span>}
+      {inStock ? (
+        <Link
+          to="/checkout"
+          onClick={addToCheckout}
+          className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-foreground px-6 text-xs font-semibold uppercase tracking-[0.18em] text-background transition hover:bg-foreground/90"
+        >
+          <MessageCircle className="h-4 w-4" />
+          Checkout
+        </Link>
+      ) : (
+        <span className="inline-flex h-12 cursor-not-allowed items-center justify-center gap-2 rounded-full bg-white/10 px-6 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+          Out of Stock
+        </span>
+      )}
       {!compact && (
         <WishlistButton
           product={product}
@@ -219,7 +236,9 @@ function RelatedCard({ product }: { product: StoreProduct }) {
             loading="lazy"
             decoding="async"
             sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw"
-            onError={(event) => { event.currentTarget.style.display = "none"; }}
+            onError={(event) => {
+              event.currentTarget.style.display = "none";
+            }}
             className="h-full w-full object-cover"
           />
         )}
@@ -269,7 +288,27 @@ export function ProductDetailsPage({ productId }: { productId: string }) {
     );
   return (
     <main className="min-h-screen bg-noise pb-32 pt-8 sm:pt-12">
-      <Seo input={{ title: product.meta_title || product.name, description: product.meta_description || product.description || product.short_description || `${product.name} by QYVERO.`, path: `/products/${product.slug}`, image: product.images[0]?.image_url, keywords: `${product.name}, ${product.category?.name ?? "men's lifestyle"}, ${product.brand ?? "QYVERO"}`, structuredData: [productSchema(product), breadcrumbSchema([{ name: "Home", path: "/" }, { name: "Products", path: "/products" }, { name: product.name, path: `/products/${product.slug}` }])] }} />
+      <Seo
+        input={{
+          title: product.meta_title || product.name,
+          description:
+            product.meta_description ||
+            product.description ||
+            product.short_description ||
+            `${product.name} by QYVERO.`,
+          path: `/products/${product.slug}`,
+          image: product.images[0]?.image_url,
+          keywords: `${product.name}, ${product.category?.name ?? "men's lifestyle"}, ${product.brand ?? "QYVERO"}`,
+          structuredData: [
+            productSchema(product),
+            breadcrumbSchema([
+              { name: "Home", path: "/" },
+              { name: "Products", path: "/products" },
+              { name: product.name, path: `/products/${product.slug}` },
+            ]),
+          ],
+        }}
+      />
       <div className="mx-auto w-full max-w-7xl px-6">
         <nav
           aria-label="Breadcrumb"
@@ -310,9 +349,22 @@ export function ProductDetailsPage({ productId }: { productId: string }) {
               )}
             </div>
             <div className="mt-7 flex items-center gap-2 border-y border-white/10 py-4 text-sm">
-              <span className={cn("h-2 w-2 rounded-full", product.stock === 0 ? "bg-red-400" : product.stock <= product.low_stock_threshold ? "bg-amber-300" : "bg-teal shadow-[0_0_12px_var(--color-teal)]")} />
+              <span
+                className={cn(
+                  "h-2 w-2 rounded-full",
+                  product.stock === 0
+                    ? "bg-red-400"
+                    : product.stock <= product.low_stock_threshold
+                      ? "bg-amber-300"
+                      : "bg-teal shadow-[0_0_12px_var(--color-teal)]",
+                )}
+              />
               <span className="font-medium text-foreground">
-                {product.stock === 0 ? "Out of Stock" : product.stock <= product.low_stock_threshold ? `Only ${product.stock} left` : "In Stock"}
+                {product.stock === 0
+                  ? "Out of Stock"
+                  : product.stock <= product.low_stock_threshold
+                    ? `Only ${product.stock} left`
+                    : "In Stock"}
               </span>
               <span className="text-muted-foreground">— ready to dispatch</span>
             </div>
@@ -335,7 +387,11 @@ export function ProductDetailsPage({ productId }: { productId: string }) {
                   Quantity
                 </p>
                 <div className="mt-3">
-                  <QuantitySelector quantity={quantity} max={Math.max(1, product.stock)} onChange={setQuantity} />
+                  <QuantitySelector
+                    quantity={quantity}
+                    max={Math.max(1, product.stock)}
+                    onChange={setQuantity}
+                  />
                 </div>
               </div>
               <div className="hidden items-center gap-2 text-xs text-muted-foreground sm:flex">

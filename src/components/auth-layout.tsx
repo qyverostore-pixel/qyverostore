@@ -23,15 +23,11 @@ export function AuthLayout({
           <div className="relative z-10 flex h-full flex-col justify-between p-10">
             <BrandMark size="md" showTagline />
             <div className="max-w-md">
-              <p className="text-[11px] uppercase tracking-[0.4em] text-teal">
-                {eyebrow}
-              </p>
+              <p className="text-[11px] uppercase tracking-[0.4em] text-teal">{eyebrow}</p>
               <h2 className="mt-4 text-display text-4xl font-light leading-tight text-white xl:text-5xl">
                 {title}
               </h2>
-              <p className="mt-4 max-w-sm text-sm leading-relaxed text-white/60">
-                {subtitle}
-              </p>
+              <p className="mt-4 max-w-sm text-sm leading-relaxed text-white/60">{subtitle}</p>
               <div className="mt-10 flex items-center gap-6 text-[11px] uppercase tracking-[0.28em] text-white/50">
                 <span>Premium</span>
                 <span className="h-px w-8 bg-white/20" />
@@ -71,7 +67,9 @@ export function AuthSideVisual({ variant }: { variant: "signup" | "signin" }) {
           <div className="h-[560px] w-[560px] rounded-full border-[3px] border-white/8" />
           <span
             className="absolute bottom-16 right-24 block h-4 w-24 rotate-[-25deg] rounded-[2px] bg-teal/70"
-            style={{ boxShadow: "0 0 60px color-mix(in oklab, var(--color-teal) 50%, transparent)" }}
+            style={{
+              boxShadow: "0 0 60px color-mix(in oklab, var(--color-teal) 50%, transparent)",
+            }}
           />
         </div>
       </div>

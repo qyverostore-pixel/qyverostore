@@ -14,11 +14,20 @@ export type CreateOrderInput = {
   coupon_code?: string | null;
 };
 
-export type CreateOrderResult = { orderId: string; orderNumber: string; paymentStatus: PaymentStatus };
+export type CreateOrderResult = {
+  orderId: string;
+  orderNumber: string;
+  paymentStatus: PaymentStatus;
+};
 
 type OrderItemCount = { count: number };
 type PaymentProof = { id: string; image_url: string; storage_path: string };
-type OrderPayment = { id: string; status: AdminPaymentStatus; method: string; proofs: PaymentProof[] };
+type OrderPayment = {
+  id: string;
+  status: AdminPaymentStatus;
+  method: string;
+  proofs: PaymentProof[];
+};
 
 export type ShippingAddress = {
   country?: string | null;
@@ -32,7 +41,16 @@ export type ShippingAddress = {
   estimated_delivery_days?: number | null;
 };
 
-export type MyOrder = Pick<AdminOrder, "id" | "order_number" | "status" | "payment_method" | "payment_status" | "total_amount" | "created_at"> & {
+export type MyOrder = Pick<
+  AdminOrder,
+  | "id"
+  | "order_number"
+  | "status"
+  | "payment_method"
+  | "payment_status"
+  | "total_amount"
+  | "created_at"
+> & {
   items_count: number;
 };
 
@@ -54,7 +72,9 @@ export type MyOrderDetail = MyOrder & {
     quantity: number;
     unit_price: number;
     total_price: number;
-    product: { images: Array<{ image_url: string; is_primary: boolean; sort_order: number }> } | null;
+    product: {
+      images: Array<{ image_url: string; is_primary: boolean; sort_order: number }>;
+    } | null;
   }>;
   payments: OrderPayment[];
 };
@@ -97,7 +117,8 @@ async function currentCustomerId() {
 
 const numberValue = (value: unknown) => Number(value ?? 0);
 const itemCount = (items: OrderItemCount[] | null | undefined) => numberValue(items?.[0]?.count);
-const orderDetailFields = "id,order_number,status,payment_method,payment_status,customer_name,full_name,phone,total_amount,subtotal,shipping_cost,coupon_code,discount_amount,governorate,city,address,created_at,items:order_items(id,product_name,quantity,unit_price,total_price,product:products(images:product_images(image_url,is_primary,sort_order))),payments(id,status,method,proofs:payment_proofs(id,image_url,storage_path))";
+const orderDetailFields =
+  "id,order_number,status,payment_method,payment_status,customer_name,full_name,phone,total_amount,subtotal,shipping_cost,coupon_code,discount_amount,governorate,city,address,created_at,items:order_items(id,product_name,quantity,unit_price,total_price,product:products(images:product_images(image_url,is_primary,sort_order))),payments(id,status,method,proofs:payment_proofs(id,image_url,storage_path))";
 
 const isMissingShippingAddressColumn = (error: { code?: string; message: string } | null) =>
   error?.code === "42703" || Boolean(error?.message.toLowerCase().includes("shipping_address"));
@@ -106,31 +127,39 @@ export async function getMyOrders(): Promise<MyOrder[]> {
   const customerId = await currentCustomerId();
   const { data, error } = await supabase
     .from("orders")
-    .select("id,order_number,status,payment_method,payment_status,total_amount,created_at,items:order_items(count)")
+    .select(
+      "id,order_number,status,payment_method,payment_status,total_amount,created_at,items:order_items(count)",
+    )
     .eq("customer_id", customerId)
     .order("created_at", { ascending: false });
   fail(error);
 
   return (data ?? []).map((order) => {
-    const source = order as Omit<MyOrder, "items_count" | "total_amount"> & { total_amount: unknown; items?: OrderItemCount[] | null };
-    return { ...source, total_amount: numberValue(source.total_amount), items_count: itemCount(source.items) };
+    const source = order as Omit<MyOrder, "items_count" | "total_amount"> & {
+      total_amount: unknown;
+      items?: OrderItemCount[] | null;
+    };
+    return {
+      ...source,
+      total_amount: numberValue(source.total_amount),
+      items_count: itemCount(source.items),
+    };
   });
 }
 
 export async function getOrderById(id: string): Promise<MyOrderDetail> {
   const customerId = await currentCustomerId();
-  const query = (fields: string) => supabase
-    .from("orders")
-    .select(fields)
-    .eq("id", id)
-    .eq("customer_id", customerId)
-    .maybeSingle();
+  const query = (fields: string) =>
+    supabase.from("orders").select(fields).eq("id", id).eq("customer_id", customerId).maybeSingle();
   let { data, error } = await query(`${orderDetailFields},shipping_address`);
   if (isMissingShippingAddressColumn(error)) ({ data, error } = await query(orderDetailFields));
   fail(error);
   if (!data) throw new Error("This order could not be found.");
 
-  const source = data as unknown as Omit<MyOrderDetail, "items_count" | "total_amount" | "subtotal" | "shipping_cost" | "items" | "payments"> & {
+  const source = data as unknown as Omit<
+    MyOrderDetail,
+    "items_count" | "total_amount" | "subtotal" | "shipping_cost" | "items" | "payments"
+  > & {
     total_amount: unknown;
     subtotal: unknown;
     shipping_cost: unknown;
@@ -159,9 +188,12 @@ export async function getOrderById(id: string): Promise<MyOrderDetail> {
       quantity: numberValue(item.quantity),
       unit_price: numberValue(item.unit_price),
       total_price: numberValue(item.total_price),
-      product: Array.isArray(item.product) ? item.product[0] ?? null : item.product,
+      product: Array.isArray(item.product) ? (item.product[0] ?? null) : item.product,
     })),
-    items_count: (source.items ?? []).reduce((total, item) => total + numberValue(item.quantity), 0),
+    items_count: (source.items ?? []).reduce(
+      (total, item) => total + numberValue(item.quantity),
+      0,
+    ),
     payments: source.payments ?? [],
     shipping_address: source.shipping_address ?? legacyShippingAddress,
   };

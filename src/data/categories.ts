@@ -15,4 +15,6 @@ export const productCategoryFilters: Array<Category | "All Products"> = [
   ...categories.map(({ name }) => name),
 ];
 
-export const footerCategories = categories.map(({ name, soon }) => `${name}${soon ? " — Coming Soon" : ""}`);
+export const footerCategories = categories.map(
+  ({ name, soon }) => `${name}${soon ? " — Coming Soon" : ""}`,
+);

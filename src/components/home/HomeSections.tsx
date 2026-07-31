@@ -47,25 +47,15 @@ function SectionHeading({
   align?: "center" | "left";
 }) {
   return (
-    <div
-      className={
-        align === "center"
-          ? "mx-auto max-w-2xl text-center"
-          : "max-w-2xl text-left"
-      }
-    >
+    <div className={align === "center" ? "mx-auto max-w-2xl text-center" : "max-w-2xl text-left"}>
       {eyebrow && (
-        <p className="text-[11px] font-semibold uppercase tracking-[0.4em] text-teal">
-          {eyebrow}
-        </p>
+        <p className="text-[11px] font-semibold uppercase tracking-[0.4em] text-teal">{eyebrow}</p>
       )}
       <h2 className="mt-4 text-display text-3xl font-light leading-[1.1] text-foreground sm:text-4xl md:text-5xl">
         {title}
       </h2>
       {description && (
-        <p className="mt-4 text-base leading-relaxed text-muted-foreground">
-          {description}
-        </p>
+        <p className="mt-4 text-base leading-relaxed text-muted-foreground">{description}</p>
       )}
     </div>
   );
@@ -86,10 +76,7 @@ function Hero() {
   return (
     <section className="bg-noise relative isolate overflow-hidden">
       {/* geometric shapes */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 -z-10"
-      >
+      <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
         <div className="absolute left-1/2 top-1/2 h-[520px] w-[520px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/5" />
         <div className="absolute left-1/2 top-1/2 h-[720px] w-[720px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/[0.04]" />
         <div className="absolute left-1/2 top-1/2 h-[920px] w-[920px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/[0.03]" />
@@ -114,8 +101,8 @@ function Hero() {
           className="animate-fade-up mt-6 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg"
           style={{ animationDelay: "0.2s" }}
         >
-          Premium men's accessories, tech essentials and lifestyle products
-          designed for modern everyday life.
+          Premium men's accessories, tech essentials and lifestyle products designed for modern
+          everyday life.
         </p>
 
         <div
@@ -251,9 +238,7 @@ function Categories() {
                 <ArrowUpRight className="h-5 w-5 text-foreground/40 transition-all duration-500 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-teal" />
               </div>
               <div className="mt-10">
-                <p className="text-display text-lg font-medium text-foreground">
-                  {name}
-                </p>
+                <p className="text-display text-lg font-medium text-foreground">{name}</p>
                 <p className="mt-1 text-xs uppercase tracking-[0.25em] text-muted-foreground">
                   {soon ? "Coming Soon" : "Shop Collection"}
                 </p>
@@ -272,9 +257,7 @@ function ProductCard({ product }: { product: StoreProduct }) {
   const settings = useStorefrontSettings();
   return (
     <article className="group flex flex-col overflow-hidden rounded-3xl border border-white/10 bg-white/[0.02] transition-all duration-500 hover:-translate-y-1 hover:border-white/25">
-      <div
-        className="relative aspect-square overflow-hidden bg-gradient-to-br from-neutral-800 to-neutral-950"
-      >
+      <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-neutral-800 to-neutral-950">
         <div
           aria-hidden
           className="absolute inset-0 opacity-40"
@@ -291,9 +274,7 @@ function ProductCard({ product }: { product: StoreProduct }) {
           />
         ) : (
           <div className="absolute inset-0 grid place-items-center">
-            <span className="text-display text-6xl font-light text-white/10">
-              QY
-            </span>
+            <span className="text-display text-6xl font-light text-white/10">QY</span>
           </div>
         )}
         <span className="absolute left-4 top-4 rounded-full border border-white/15 bg-black/30 px-3 py-1 text-[10px] uppercase tracking-[0.3em] text-foreground/90 backdrop-blur">
@@ -307,9 +288,7 @@ function ProductCard({ product }: { product: StoreProduct }) {
             <h3 className="text-display truncate text-base font-medium text-foreground">
               {product.name}
             </h3>
-            <p className="mt-1 text-sm font-semibold text-teal">
-              ${Number(product.price)}
-            </p>
+            <p className="mt-1 text-sm font-semibold text-teal">${Number(product.price)}</p>
           </div>
         </div>
 
@@ -322,7 +301,10 @@ function ProductCard({ product }: { product: StoreProduct }) {
             View Details
           </Link>
           <a
-            href={whatsappUrl(settings.whatsapp, `Hello QYVERO, I'm interested in the ${product.name}.`)}
+            href={whatsappUrl(
+              settings.whatsapp,
+              `Hello QYVERO, I'm interested in the ${product.name}.`,
+            )}
             target="_blank"
             rel="noreferrer"
             className="inline-flex items-center justify-center gap-2 rounded-full border border-white/15 px-4 py-2.5 text-xs font-medium text-foreground transition hover:border-teal hover:text-teal"
@@ -399,10 +381,7 @@ function WhyQyvero() {
   return (
     <section className="relative py-24 sm:py-32">
       <div className="mx-auto w-full max-w-7xl px-6">
-        <SectionHeading
-          eyebrow="Why QYVERO"
-          title="Built on standards, not shortcuts."
-        />
+        <SectionHeading eyebrow="Why QYVERO" title="Built on standards, not shortcuts." />
 
         <div className="mt-16 grid grid-cols-1 gap-5 md:grid-cols-3">
           {items.map(({ Icon, title, desc }) => (
@@ -417,12 +396,8 @@ function WhyQyvero() {
               <span className="grid h-14 w-14 place-items-center rounded-2xl border border-white/10 bg-white/[0.03] text-teal">
                 <Icon className="h-6 w-6" />
               </span>
-              <h3 className="text-display mt-8 text-xl font-medium text-foreground">
-                {title}
-              </h3>
-              <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-                {desc}
-              </p>
+              <h3 className="text-display mt-8 text-xl font-medium text-foreground">{title}</h3>
+              <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{desc}</p>
             </div>
           ))}
         </div>
@@ -447,14 +422,13 @@ function BrandStory() {
             </h2>
             <div className="mt-8 space-y-5 text-base leading-relaxed text-muted-foreground">
               <p>
-                QYVERO started with one simple vision — to build a premium
-                men's lifestyle brand where fashion meets technology.
+                QYVERO started with one simple vision — to build a premium men's lifestyle brand
+                where fashion meets technology.
               </p>
               <p>
-                Instead of creating another online store, we chose to build a
-                brand people can trust: thoughtful essentials, honest
-                materials, and a design language that lasts longer than a
-                trend.
+                Instead of creating another online store, we chose to build a brand people can
+                trust: thoughtful essentials, honest materials, and a design language that lasts
+                longer than a trend.
               </p>
             </div>
             <Link
@@ -511,7 +485,9 @@ function InstagramPreview() {
           </span>
 
           <p className="mt-8 text-[11px] font-semibold uppercase tracking-[0.4em] text-teal">
-            {settings.instagram.replace(/^https?:\/\/(www\.)?instagram\.com\//i, "@").replace(/\/$/, "") || "Instagram"}
+            {settings.instagram
+              .replace(/^https?:\/\/(www\.)?instagram\.com\//i, "@")
+              .replace(/\/$/, "") || "Instagram"}
           </p>
           <h2 className="text-display mt-4 text-3xl font-light leading-[1.1] text-foreground sm:text-4xl md:text-5xl">
             Follow the brand on Instagram

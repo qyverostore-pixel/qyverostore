@@ -88,7 +88,15 @@ export function Navbar() {
   const { count } = useCart();
   const { data: wishlist = [] } = useWishlist(Boolean(user));
   const settings = useStorefrontSettings();
-  const socials = socialIcons.map((item) => ({ ...item, href: item.key === "whatsapp" ? whatsappUrl(settings.whatsapp) : externalUrl(settings[item.key as "instagram" | "facebook" | "tiktok"]) })).filter((item) => item.href);
+  const socials = socialIcons
+    .map((item) => ({
+      ...item,
+      href:
+        item.key === "whatsapp"
+          ? whatsappUrl(settings.whatsapp)
+          : externalUrl(settings[item.key as "instagram" | "facebook" | "tiktok"]),
+    }))
+    .filter((item) => item.href);
   const handleSignOut = async () => {
     try {
       await signOut();

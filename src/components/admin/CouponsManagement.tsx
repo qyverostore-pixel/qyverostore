@@ -6,16 +6,412 @@ import { AdminLayout } from "@/components/admin/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { useCoupons, couponKeys } from "@/hooks/use-coupons";
-import { createCoupon, deleteCoupon, updateCoupon, type Coupon, type CouponInput } from "@/services/coupons";
+import {
+  createCoupon,
+  deleteCoupon,
+  updateCoupon,
+  type Coupon,
+  type CouponInput,
+} from "@/services/coupons";
 
-type CouponForm = { code: string; description: string; discount_type: "percentage" | "fixed"; discount_value: number; minimum_order: number; maximum_discount: string; usage_limit: string; starts_at: string; expires_at: string; is_active: boolean };
-const blank: CouponForm = { code: "", description: "", discount_type: "percentage", discount_value: 10, minimum_order: 0, maximum_discount: "", usage_limit: "", starts_at: "", expires_at: "", is_active: true };
+type CouponForm = {
+  code: string;
+  description: string;
+  discount_type: "percentage" | "fixed";
+  discount_value: number;
+  minimum_order: number;
+  maximum_discount: string;
+  usage_limit: string;
+  starts_at: string;
+  expires_at: string;
+  is_active: boolean;
+};
+const blank: CouponForm = {
+  code: "",
+  description: "",
+  discount_type: "percentage",
+  discount_value: 10,
+  minimum_order: 0,
+  maximum_discount: "",
+  usage_limit: "",
+  starts_at: "",
+  expires_at: "",
+  is_active: true,
+};
 const money = (value: number) => `${value.toLocaleString()} EGP`;
-function values(form: CouponForm): CouponInput { return { code: form.code, description: form.description || null, discount_type: form.discount_type, discount_value: Number(form.discount_value), minimum_order: Number(form.minimum_order), maximum_discount: form.maximum_discount === "" ? null : Number(form.maximum_discount), usage_limit: form.usage_limit === "" ? null : Number(form.usage_limit), starts_at: form.starts_at ? new Date(form.starts_at).toISOString() : null, expires_at: form.expires_at ? new Date(form.expires_at).toISOString() : null, is_active: form.is_active }; }
-function formOf(coupon: Coupon): CouponForm { return { code: coupon.code, description: coupon.description ?? "", discount_type: coupon.discount_type, discount_value: coupon.discount_value, minimum_order: coupon.minimum_order, maximum_discount: coupon.maximum_discount?.toString() ?? "", usage_limit: coupon.usage_limit?.toString() ?? "", starts_at: coupon.starts_at?.slice(0, 16) ?? "", expires_at: coupon.expires_at?.slice(0, 16) ?? "", is_active: coupon.is_active }; }
+function values(form: CouponForm): CouponInput {
+  return {
+    code: form.code,
+    description: form.description || null,
+    discount_type: form.discount_type,
+    discount_value: Number(form.discount_value),
+    minimum_order: Number(form.minimum_order),
+    maximum_discount: form.maximum_discount === "" ? null : Number(form.maximum_discount),
+    usage_limit: form.usage_limit === "" ? null : Number(form.usage_limit),
+    starts_at: form.starts_at ? new Date(form.starts_at).toISOString() : null,
+    expires_at: form.expires_at ? new Date(form.expires_at).toISOString() : null,
+    is_active: form.is_active,
+  };
+}
+function formOf(coupon: Coupon): CouponForm {
+  return {
+    code: coupon.code,
+    description: coupon.description ?? "",
+    discount_type: coupon.discount_type,
+    discount_value: coupon.discount_value,
+    minimum_order: coupon.minimum_order,
+    maximum_discount: coupon.maximum_discount?.toString() ?? "",
+    usage_limit: coupon.usage_limit?.toString() ?? "",
+    starts_at: coupon.starts_at?.slice(0, 16) ?? "",
+    expires_at: coupon.expires_at?.slice(0, 16) ?? "",
+    is_active: coupon.is_active,
+  };
+}
 
-export function CouponsManagement() { const client = useQueryClient(); const { data: coupons = [], isLoading } = useCoupons(); const [search, setSearch] = useState(""); const [filter, setFilter] = useState("all"); const [editing, setEditing] = useState<Coupon | null>(null); const [form, setForm] = useState(blank); const refresh = () => client.invalidateQueries({ queryKey: couponKeys.all }); const save = useMutation({ mutationFn: async () => editing ? updateCoupon(editing.id, values(form)) : createCoupon(values(form)), onSuccess: () => { void refresh(); setEditing(null); setForm(blank); toast.success(editing ? "Coupon updated" : "Coupon created"); }, onError: (error) => toast.error("Unable to save coupon", { description: error.message }) }); const remove = useMutation({ mutationFn: deleteCoupon, onMutate: async (id) => { await client.cancelQueries({ queryKey: couponKeys.all }); const previous = client.getQueryData<Coupon[]>(couponKeys.list); client.setQueryData<Coupon[]>(couponKeys.list, (old = []) => old.filter((coupon) => coupon.id !== id)); return { previous }; }, onError: (error, _id, context) => { client.setQueryData(couponKeys.list, context?.previous); toast.error("Unable to delete coupon", { description: error.message }); }, onSuccess: () => toast.success("Coupon deleted"), onSettled: refresh }); const toggle = useMutation({ mutationFn: ({ coupon, is_active }: { coupon: Coupon; is_active: boolean }) => updateCoupon(coupon.id, { is_active }), onMutate: async ({ coupon, is_active }) => { await client.cancelQueries({ queryKey: couponKeys.all }); const previous = client.getQueryData<Coupon[]>(couponKeys.list); client.setQueryData<Coupon[]>(couponKeys.list, (old = []) => old.map((item) => item.id === coupon.id ? { ...item, is_active } : item)); return { previous }; }, onError: (error, _variables, context) => { client.setQueryData(couponKeys.list, context?.previous); toast.error("Unable to update coupon", { description: error.message }); }, onSettled: refresh }); const filtered = useMemo(() => coupons.filter((coupon) => (filter === "all" || (filter === "active" ? coupon.is_active : !coupon.is_active)) && `${coupon.code} ${coupon.description ?? ""}`.toLowerCase().includes(search.toLowerCase())), [coupons, filter, search]); const submit = (event: FormEvent) => { event.preventDefault(); const input = values(form); if (!input.code.trim() || !Number.isFinite(input.discount_value) || input.discount_value <= 0 || !Number.isFinite(input.minimum_order) || input.minimum_order < 0 || (input.discount_type === "percentage" && input.discount_value > 100)) { toast.error("Enter valid coupon details"); return; } save.mutate(); }; return <AdminLayout title="Coupons" description="Create and manage discount codes" actions={<Button type="button" onClick={() => { setEditing(null); setForm(blank); }}><Plus />New coupon</Button>}><form onSubmit={submit} className="mb-7 rounded-xl border border-white/10 bg-white/[0.025] p-5"><div className="flex items-center justify-between"><h2 className="font-medium">{editing ? `Edit ${editing.code}` : "Create coupon"}</h2>{editing && <Button type="button" variant="ghost" size="sm" onClick={() => { setEditing(null); setForm(blank); }}>Cancel</Button>}</div><div className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-4"><div><Label>Code</Label><Input className="mt-2 uppercase" value={form.code} onChange={(event) => setForm((current) => ({ ...current, code: event.target.value.toUpperCase() }))} placeholder="SUMMER10" /></div><div><Label>Discount type</Label><Select value={form.discount_type} onValueChange={(discount_type: "percentage" | "fixed") => setForm((current) => ({ ...current, discount_type }))}><SelectTrigger className="mt-2"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="percentage">Percentage</SelectItem><SelectItem value="fixed">Fixed amount</SelectItem></SelectContent></Select></div><div><Label>Value</Label><Input className="mt-2" type="number" min="0" step="0.01" value={form.discount_value} onChange={(event) => setForm((current) => ({ ...current, discount_value: Number(event.target.value) }))} /></div><div><Label>Minimum order</Label><Input className="mt-2" type="number" min="0" step="0.01" value={form.minimum_order} onChange={(event) => setForm((current) => ({ ...current, minimum_order: Number(event.target.value) }))} /></div><div><Label>Maximum discount</Label><Input className="mt-2" type="number" min="0" step="0.01" value={form.maximum_discount} onChange={(event) => setForm((current) => ({ ...current, maximum_discount: event.target.value }))} /></div><div><Label>Usage limit</Label><Input className="mt-2" type="number" min="1" value={form.usage_limit} onChange={(event) => setForm((current) => ({ ...current, usage_limit: event.target.value }))} /></div><div><Label>Starts at</Label><Input className="mt-2" type="datetime-local" value={form.starts_at} onChange={(event) => setForm((current) => ({ ...current, starts_at: event.target.value }))} /></div><div><Label>Expires at</Label><Input className="mt-2" type="datetime-local" value={form.expires_at} onChange={(event) => setForm((current) => ({ ...current, expires_at: event.target.value }))} /></div><div className="sm:col-span-2 xl:col-span-3"><Label>Description</Label><Textarea className="mt-2 min-h-10" value={form.description} onChange={(event) => setForm((current) => ({ ...current, description: event.target.value }))} /></div><div className="flex items-end justify-between gap-3"><div><Label>Active</Label><div className="mt-3"><Switch checked={form.is_active} onCheckedChange={(is_active) => setForm((current) => ({ ...current, is_active }))} /></div></div><Button type="submit" disabled={save.isPending}>{save.isPending ? "Saving…" : editing ? "Save changes" : "Create coupon"}</Button></div></div></form><div className="mb-5 flex flex-col gap-3 sm:flex-row"><div className="relative flex-1"><Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" /><Input className="pl-9" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search coupons" /></div><Select value={filter} onValueChange={setFilter}><SelectTrigger className="w-full sm:w-40"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="all">All statuses</SelectItem><SelectItem value="active">Active</SelectItem><SelectItem value="inactive">Inactive</SelectItem></SelectContent></Select></div><div className="space-y-3">{isLoading ? <p className="text-sm text-muted-foreground">Loading coupons…</p> : filtered.length === 0 ? <p className="rounded-xl border border-white/10 p-5 text-sm text-muted-foreground">No coupons found.</p> : filtered.map((coupon) => <article key={coupon.id} className="rounded-xl border border-white/10 bg-white/[0.025] p-5"><div className="flex flex-wrap items-start justify-between gap-4"><div><div className="flex items-center gap-3"><p className="font-mono font-semibold text-teal">{coupon.code}</p><span className={`rounded-full px-2 py-0.5 text-xs ${coupon.is_active ? "bg-teal/15 text-teal" : "bg-white/10 text-muted-foreground"}`}>{coupon.is_active ? "Active" : "Disabled"}</span></div><p className="mt-2 text-sm text-muted-foreground">{coupon.discount_type === "percentage" ? `${coupon.discount_value}% off` : `${money(coupon.discount_value)} off`} · Used {coupon.used_count}{coupon.usage_limit != null ? ` / ${coupon.usage_limit}` : ""} · Expires {coupon.expires_at ? new Date(coupon.expires_at).toLocaleDateString() : "Never"}</p>{coupon.description && <p className="mt-2 text-sm text-white/80">{coupon.description}</p>}</div><div className="flex items-center gap-1"><Switch checked={coupon.is_active} disabled={toggle.isPending} onCheckedChange={(is_active) => toggle.mutate({ coupon, is_active })} /><Button type="button" variant="ghost" size="icon" aria-label="Edit coupon" onClick={() => { setEditing(coupon); setForm(formOf(coupon)); }}><Edit3 className="size-4" /></Button><Button type="button" variant="ghost" size="icon" className="text-red-300" aria-label="Delete coupon" disabled={remove.isPending} onClick={() => remove.mutate(coupon.id)}><Trash2 className="size-4" /></Button></div></div></article>)}</div></AdminLayout>; }
+export function CouponsManagement() {
+  const client = useQueryClient();
+  const { data: coupons = [], isLoading } = useCoupons();
+  const [search, setSearch] = useState("");
+  const [filter, setFilter] = useState("all");
+  const [editing, setEditing] = useState<Coupon | null>(null);
+  const [form, setForm] = useState(blank);
+  const refresh = () => client.invalidateQueries({ queryKey: couponKeys.all });
+  const save = useMutation({
+    mutationFn: async () =>
+      editing ? updateCoupon(editing.id, values(form)) : createCoupon(values(form)),
+    onSuccess: () => {
+      void refresh();
+      setEditing(null);
+      setForm(blank);
+      toast.success(editing ? "Coupon updated" : "Coupon created");
+    },
+    onError: (error) => toast.error("Unable to save coupon", { description: error.message }),
+  });
+  const remove = useMutation({
+    mutationFn: deleteCoupon,
+    onMutate: async (id) => {
+      await client.cancelQueries({ queryKey: couponKeys.all });
+      const previous = client.getQueryData<Coupon[]>(couponKeys.list);
+      client.setQueryData<Coupon[]>(couponKeys.list, (old = []) =>
+        old.filter((coupon) => coupon.id !== id),
+      );
+      return { previous };
+    },
+    onError: (error, _id, context) => {
+      client.setQueryData(couponKeys.list, context?.previous);
+      toast.error("Unable to delete coupon", { description: error.message });
+    },
+    onSuccess: () => toast.success("Coupon deleted"),
+    onSettled: refresh,
+  });
+  const toggle = useMutation({
+    mutationFn: ({ coupon, is_active }: { coupon: Coupon; is_active: boolean }) =>
+      updateCoupon(coupon.id, { is_active }),
+    onMutate: async ({ coupon, is_active }) => {
+      await client.cancelQueries({ queryKey: couponKeys.all });
+      const previous = client.getQueryData<Coupon[]>(couponKeys.list);
+      client.setQueryData<Coupon[]>(couponKeys.list, (old = []) =>
+        old.map((item) => (item.id === coupon.id ? { ...item, is_active } : item)),
+      );
+      return { previous };
+    },
+    onError: (error, _variables, context) => {
+      client.setQueryData(couponKeys.list, context?.previous);
+      toast.error("Unable to update coupon", { description: error.message });
+    },
+    onSettled: refresh,
+  });
+  const filtered = useMemo(
+    () =>
+      coupons.filter(
+        (coupon) =>
+          (filter === "all" || (filter === "active" ? coupon.is_active : !coupon.is_active)) &&
+          `${coupon.code} ${coupon.description ?? ""}`.toLowerCase().includes(search.toLowerCase()),
+      ),
+    [coupons, filter, search],
+  );
+  const submit = (event: FormEvent) => {
+    event.preventDefault();
+    const input = values(form);
+    if (
+      !input.code.trim() ||
+      !Number.isFinite(input.discount_value) ||
+      input.discount_value <= 0 ||
+      !Number.isFinite(input.minimum_order) ||
+      input.minimum_order < 0 ||
+      (input.discount_type === "percentage" && input.discount_value > 100)
+    ) {
+      toast.error("Enter valid coupon details");
+      return;
+    }
+    save.mutate();
+  };
+  return (
+    <AdminLayout
+      title="Coupons"
+      description="Create and manage discount codes"
+      actions={
+        <Button
+          type="button"
+          onClick={() => {
+            setEditing(null);
+            setForm(blank);
+          }}
+        >
+          <Plus />
+          New coupon
+        </Button>
+      }
+    >
+      <form
+        onSubmit={submit}
+        className="mb-7 rounded-xl border border-white/10 bg-white/[0.025] p-5"
+      >
+        <div className="flex items-center justify-between">
+          <h2 className="font-medium">{editing ? `Edit ${editing.code}` : "Create coupon"}</h2>
+          {editing && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setEditing(null);
+                setForm(blank);
+              }}
+            >
+              Cancel
+            </Button>
+          )}
+        </div>
+        <div className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <div>
+            <Label>Code</Label>
+            <Input
+              className="mt-2 uppercase"
+              value={form.code}
+              onChange={(event) =>
+                setForm((current) => ({ ...current, code: event.target.value.toUpperCase() }))
+              }
+              placeholder="SUMMER10"
+            />
+          </div>
+          <div>
+            <Label>Discount type</Label>
+            <Select
+              value={form.discount_type}
+              onValueChange={(discount_type: "percentage" | "fixed") =>
+                setForm((current) => ({ ...current, discount_type }))
+              }
+            >
+              <SelectTrigger className="mt-2">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="percentage">Percentage</SelectItem>
+                <SelectItem value="fixed">Fixed amount</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label>Value</Label>
+            <Input
+              className="mt-2"
+              type="number"
+              min="0"
+              step="0.01"
+              value={form.discount_value}
+              onChange={(event) =>
+                setForm((current) => ({ ...current, discount_value: Number(event.target.value) }))
+              }
+            />
+          </div>
+          <div>
+            <Label>Minimum order</Label>
+            <Input
+              className="mt-2"
+              type="number"
+              min="0"
+              step="0.01"
+              value={form.minimum_order}
+              onChange={(event) =>
+                setForm((current) => ({ ...current, minimum_order: Number(event.target.value) }))
+              }
+            />
+          </div>
+          <div>
+            <Label>Maximum discount</Label>
+            <Input
+              className="mt-2"
+              type="number"
+              min="0"
+              step="0.01"
+              value={form.maximum_discount}
+              onChange={(event) =>
+                setForm((current) => ({ ...current, maximum_discount: event.target.value }))
+              }
+            />
+          </div>
+          <div>
+            <Label>Usage limit</Label>
+            <Input
+              className="mt-2"
+              type="number"
+              min="1"
+              value={form.usage_limit}
+              onChange={(event) =>
+                setForm((current) => ({ ...current, usage_limit: event.target.value }))
+              }
+            />
+          </div>
+          <div>
+            <Label>Starts at</Label>
+            <Input
+              className="mt-2"
+              type="datetime-local"
+              value={form.starts_at}
+              onChange={(event) =>
+                setForm((current) => ({ ...current, starts_at: event.target.value }))
+              }
+            />
+          </div>
+          <div>
+            <Label>Expires at</Label>
+            <Input
+              className="mt-2"
+              type="datetime-local"
+              value={form.expires_at}
+              onChange={(event) =>
+                setForm((current) => ({ ...current, expires_at: event.target.value }))
+              }
+            />
+          </div>
+          <div className="sm:col-span-2 xl:col-span-3">
+            <Label>Description</Label>
+            <Textarea
+              className="mt-2 min-h-10"
+              value={form.description}
+              onChange={(event) =>
+                setForm((current) => ({ ...current, description: event.target.value }))
+              }
+            />
+          </div>
+          <div className="flex items-end justify-between gap-3">
+            <div>
+              <Label>Active</Label>
+              <div className="mt-3">
+                <Switch
+                  checked={form.is_active}
+                  onCheckedChange={(is_active) => setForm((current) => ({ ...current, is_active }))}
+                />
+              </div>
+            </div>
+            <Button type="submit" disabled={save.isPending}>
+              {save.isPending ? "Saving…" : editing ? "Save changes" : "Create coupon"}
+            </Button>
+          </div>
+        </div>
+      </form>
+      <div className="mb-5 flex flex-col gap-3 sm:flex-row">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            className="pl-9"
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder="Search coupons"
+          />
+        </div>
+        <Select value={filter} onValueChange={setFilter}>
+          <SelectTrigger className="w-full sm:w-40">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All statuses</SelectItem>
+            <SelectItem value="active">Active</SelectItem>
+            <SelectItem value="inactive">Inactive</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+      <div className="space-y-3">
+        {isLoading ? (
+          <p className="text-sm text-muted-foreground">Loading coupons…</p>
+        ) : filtered.length === 0 ? (
+          <p className="rounded-xl border border-white/10 p-5 text-sm text-muted-foreground">
+            No coupons found.
+          </p>
+        ) : (
+          filtered.map((coupon) => (
+            <article
+              key={coupon.id}
+              className="rounded-xl border border-white/10 bg-white/[0.025] p-5"
+            >
+              <div className="flex flex-wrap items-start justify-between gap-4">
+                <div>
+                  <div className="flex items-center gap-3">
+                    <p className="font-mono font-semibold text-teal">{coupon.code}</p>
+                    <span
+                      className={`rounded-full px-2 py-0.5 text-xs ${coupon.is_active ? "bg-teal/15 text-teal" : "bg-white/10 text-muted-foreground"}`}
+                    >
+                      {coupon.is_active ? "Active" : "Disabled"}
+                    </span>
+                  </div>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    {coupon.discount_type === "percentage"
+                      ? `${coupon.discount_value}% off`
+                      : `${money(coupon.discount_value)} off`}{" "}
+                    · Used {coupon.used_count}
+                    {coupon.usage_limit != null ? ` / ${coupon.usage_limit}` : ""} · Expires{" "}
+                    {coupon.expires_at ? new Date(coupon.expires_at).toLocaleDateString() : "Never"}
+                  </p>
+                  {coupon.description && (
+                    <p className="mt-2 text-sm text-white/80">{coupon.description}</p>
+                  )}
+                </div>
+                <div className="flex items-center gap-1">
+                  <Switch
+                    checked={coupon.is_active}
+                    disabled={toggle.isPending}
+                    onCheckedChange={(is_active) => toggle.mutate({ coupon, is_active })}
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    aria-label="Edit coupon"
+                    onClick={() => {
+                      setEditing(coupon);
+                      setForm(formOf(coupon));
+                    }}
+                  >
+                    <Edit3 className="size-4" />
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="text-red-300"
+                    aria-label="Delete coupon"
+                    disabled={remove.isPending}
+                    onClick={() => remove.mutate(coupon.id)}
+                  >
+                    <Trash2 className="size-4" />
+                  </Button>
+                </div>
+              </div>
+            </article>
+          ))
+        )}
+      </div>
+    </AdminLayout>
+  );
+}

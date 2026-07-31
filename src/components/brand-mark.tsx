@@ -28,13 +28,9 @@ export function BrandMark({
         />
       </div>
       <div className="flex flex-col leading-none">
-        <span className={`text-display font-medium tracking-[0.28em] ${sizes.text}`}>
-          QYVERO
-        </span>
+        <span className={`text-display font-medium tracking-[0.28em] ${sizes.text}`}>QYVERO</span>
         {showTagline && (
-          <span
-            className={`mt-1.5 tracking-[0.4em] text-teal ${sizes.tag} uppercase`}
-          >
+          <span className={`mt-1.5 tracking-[0.4em] text-teal ${sizes.tag} uppercase`}>
             Own your style.
           </span>
         )}

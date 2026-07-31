@@ -116,21 +116,16 @@ function Story() {
           </div>
         </div>
         <div>
-          <SectionHeading
-            eyebrow="Our beginning"
-            title="One vision, one standard."
-            align="left"
-          />
+          <SectionHeading eyebrow="Our beginning" title="One vision, one standard." align="left" />
           <div className="mt-8 space-y-5 text-base leading-relaxed text-muted-foreground">
             <p>
-              QYVERO began with two Computer Science students who saw the same gap in the things
-              men use every day: too much noise, too little intention.
+              QYVERO began with two Computer Science students who saw the same gap in the things men
+              use every day: too much noise, too little intention.
             </p>
             <p>
-              The vision was simple: fashion and technology should speak the same
-              language—clean, purposeful, and quietly capable. What started as late-night ideas
-              about design, branding, and everyday carry evolved into a premium men's lifestyle
-              brand.
+              The vision was simple: fashion and technology should speak the same language—clean,
+              purposeful, and quietly capable. What started as late-night ideas about design,
+              branding, and everyday carry evolved into a premium men's lifestyle brand.
             </p>
             <p>
               Today, QYVERO selects accessories and essentials with the precision of a product team
@@ -290,9 +285,7 @@ function FounderCard({ role, name, tone, image, bio }: FounderCardProps) {
       </div>
 
       <div className="p-7">
-        <p className="text-[10px] font-semibold uppercase tracking-[0.3em] text-teal">
-          {role}
-        </p>
+        <p className="text-[10px] font-semibold uppercase tracking-[0.3em] text-teal">{role}</p>
 
         <h3 className="text-display mt-3 text-2xl font-medium">{name}</h3>
 

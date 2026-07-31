@@ -24,7 +24,14 @@ async function currentCustomerId() {
 
 const normalize = (item: WishlistItem): WishlistItem => ({
   ...item,
-  product: item.product ? { ...item.product, images: [...(item.product.images ?? [])].sort((a, b) => Number(b.is_primary) - Number(a.is_primary) || a.sort_order - b.sort_order) } : null,
+  product: item.product
+    ? {
+        ...item.product,
+        images: [...(item.product.images ?? [])].sort(
+          (a, b) => Number(b.is_primary) - Number(a.is_primary) || a.sort_order - b.sort_order,
+        ),
+      }
+    : null,
 });
 
 export async function getWishlist(): Promise<WishlistItem[]> {
@@ -40,7 +47,12 @@ export async function getWishlist(): Promise<WishlistItem[]> {
 
 export async function addToWishlist(productId: string) {
   const customerId = await currentCustomerId();
-  const { error } = await supabase.from("wishlist").upsert({ customer_id: customerId, product_id: productId }, { onConflict: "customer_id,product_id", ignoreDuplicates: true });
+  const { error } = await supabase
+    .from("wishlist")
+    .upsert(
+      { customer_id: customerId, product_id: productId },
+      { onConflict: "customer_id,product_id", ignoreDuplicates: true },
+    );
   fail(error);
 }
 
@@ -59,7 +71,12 @@ export async function removeFromWishlist(productId: string): Promise<WishlistRec
 
 export async function isWishlisted(productId: string) {
   const customerId = await currentCustomerId();
-  const { data, error } = await supabase.from("wishlist").select("id").eq("customer_id", customerId).eq("product_id", productId).maybeSingle();
+  const { data, error } = await supabase
+    .from("wishlist")
+    .select("id")
+    .eq("customer_id", customerId)
+    .eq("product_id", productId)
+    .maybeSingle();
   fail(error);
   return Boolean(data);
 }

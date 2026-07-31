@@ -11,7 +11,11 @@ const paymentMethodLabel = (method: string | null) => {
   return labels[method ?? ""] ?? method ?? "Not specified";
 };
 
-export function createWhatsAppOrderUrl(order: MyOrderDetail, whatsappNumber: string, brandName: string) {
+export function createWhatsAppOrderUrl(
+  order: MyOrderDetail,
+  whatsappNumber: string,
+  brandName: string,
+) {
   const customerName = order.customer_name ?? order.full_name ?? "Not specified";
   const address = order.shipping_address;
   const orderReference = order.order_number || order.id;
@@ -30,7 +34,9 @@ export function createWhatsAppOrderUrl(order: MyOrderDetail, whatsappNumber: str
     paymentMethodLabel(order.payment_method),
     "",
     "Items:",
-    ...order.items.map((item) => `- ${item.product_name} x ${item.quantity} - ${money(item.unit_price)}`),
+    ...order.items.map(
+      (item) => `- ${item.product_name} x ${item.quantity} - ${money(item.unit_price)}`,
+    ),
     "",
     `Subtotal: ${money(order.subtotal)}`,
     `Shipping: ${money(order.shipping_cost)}`,

@@ -29,14 +29,7 @@ export const Route = createFileRoute("/auth/signup")({
 
 type Errors = Partial<
   Record<
-    | "firstName"
-    | "lastName"
-    | "username"
-    | "email"
-    | "phone"
-    | "password"
-    | "confirm"
-    | "terms",
+    "firstName" | "lastName" | "username" | "email" | "phone" | "password" | "confirm" | "terms",
     string
   >
 >;
@@ -78,10 +71,8 @@ function SignUpPage() {
     if (form.lastName.trim().length < 2) e.lastName = "Enter your last name";
     if (!/^[a-zA-Z0-9_.]{3,20}$/.test(form.username))
       e.username = "3–20 chars, letters, numbers, . or _";
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email))
-      e.email = "Enter a valid email";
-    if (!/^[+\d][\d\s-]{6,}$/.test(form.phone))
-      e.phone = "Enter a valid phone number";
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) e.email = "Enter a valid email";
+    if (!/^[+\d][\d\s-]{6,}$/.test(form.phone)) e.phone = "Enter a valid phone number";
     if (form.password.length < 8) e.password = "At least 8 characters";
     if (form.confirm !== form.password) e.confirm = "Passwords do not match";
     if (!form.terms) e.terms = "You must accept to continue";
@@ -98,7 +89,14 @@ function SignUpPage() {
       const { data, error } = await supabase.auth.signUp({
         email: form.email,
         password: form.password,
-        options: { data: { first_name: form.firstName, last_name: form.lastName, username: form.username, phone: form.phone } },
+        options: {
+          data: {
+            first_name: form.firstName,
+            last_name: form.lastName,
+            username: form.username,
+            phone: form.phone,
+          },
+        },
       });
       if (error) {
         toast.error("Unable to create account", { description: error.message });
@@ -111,7 +109,9 @@ function SignUpPage() {
       toast.success("Check your email to confirm your account");
       navigate({ to: "/auth/signin" });
     } catch (error) {
-      toast.error("Unable to create account", { description: error instanceof Error ? error.message : "Please try again." });
+      toast.error("Unable to create account", {
+        description: error instanceof Error ? error.message : "Please try again.",
+      });
     } finally {
       setSubmitting(false);
     }
@@ -133,18 +133,11 @@ function SignUpPage() {
       side={<AuthSideVisual variant="signup" />}
     >
       <div className="mb-8">
-        <p className="text-[11px] uppercase tracking-[0.4em] text-teal">
-          Create account
-        </p>
-        <h1 className="mt-3 text-display text-3xl font-light text-foreground">
-          Own your style.
-        </h1>
+        <p className="text-[11px] uppercase tracking-[0.4em] text-teal">Create account</p>
+        <h1 className="mt-3 text-display text-3xl font-light text-foreground">Own your style.</h1>
         <p className="mt-2 text-sm text-muted-foreground">
           Already have an account?{" "}
-          <Link
-            to="/auth/signin"
-            className="text-foreground underline-offset-4 hover:underline"
-          >
+          <Link to="/auth/signin" className="text-foreground underline-offset-4 hover:underline">
             Sign in
           </Link>
           .

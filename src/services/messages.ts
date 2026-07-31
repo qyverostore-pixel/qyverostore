@@ -19,9 +19,7 @@ const fail = (error: { message: string } | null) => {
 };
 
 export async function createMessage(input: ContactMessageInput) {
-  const { error } = await supabase
-    .from("messages")
-    .insert({ ...input, status: "new" });
+  const { error } = await supabase.from("messages").insert({ ...input, status: "new" });
 
   fail(error);
 }
@@ -38,19 +36,13 @@ export async function getMessages() {
 }
 
 export async function markMessageRead(id: string) {
-  const { error } = await supabase
-    .from("messages")
-    .update({ status: "read" })
-    .eq("id", id);
+  const { error } = await supabase.from("messages").update({ status: "read" }).eq("id", id);
 
   fail(error);
 }
 
 export async function deleteMessage(id: string) {
-  const { error } = await supabase
-    .from("messages")
-    .delete()
-    .eq("id", id);
+  const { error } = await supabase.from("messages").delete().eq("id", id);
 
   fail(error);
 }

@@ -42,10 +42,14 @@ function ForgotPasswordPage() {
         toast.error("Unable to send recovery email", { description: resetError.message });
         return;
       }
-      toast.success("Recovery link sent", { description: "Please check your inbox to reset your password." });
+      toast.success("Recovery link sent", {
+        description: "Please check your inbox to reset your password.",
+      });
       setEmail("");
     } catch (error) {
-      toast.error("Unable to send recovery email", { description: error instanceof Error ? error.message : "Please try again." });
+      toast.error("Unable to send recovery email", {
+        description: error instanceof Error ? error.message : "Please try again.",
+      });
     } finally {
       setSubmitting(false);
     }
@@ -60,9 +64,7 @@ function ForgotPasswordPage() {
     >
       <div className="glass-card rounded-3xl p-8 sm:p-10">
         <div className="mb-8">
-          <p className="text-[11px] uppercase tracking-[0.4em] text-teal">
-            Recovery
-          </p>
+          <p className="text-[11px] uppercase tracking-[0.4em] text-teal">Recovery</p>
           <h1 className="mt-3 text-display text-3xl font-light text-foreground">
             Forgot Password?
           </h1>

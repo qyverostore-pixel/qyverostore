@@ -24,7 +24,11 @@ export function OrderSuccessPage({ orderId }: { orderId?: string }) {
         <div className="mt-8 flex flex-wrap justify-center gap-3">
           {order && settings.whatsapp && (
             <Button asChild>
-              <a href={createWhatsAppOrderUrl(order, settings.whatsapp, "QYVERO")} target="_blank" rel="noreferrer">
+              <a
+                href={createWhatsAppOrderUrl(order, settings.whatsapp, "QYVERO")}
+                target="_blank"
+                rel="noreferrer"
+              >
                 <MessageCircle />
                 Contact QYVERO on WhatsApp
               </a>

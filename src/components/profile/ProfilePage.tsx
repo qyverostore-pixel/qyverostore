@@ -12,7 +12,10 @@ export function ProfilePage() {
   const [profileForm, setProfileForm] = useState({ fullName: "", phone: "" });
   const [passwordForm, setPasswordForm] = useState({ password: "", confirmPassword: "" });
   const [profileErrors, setProfileErrors] = useState<{ fullName?: string; phone?: string }>({});
-  const [passwordErrors, setPasswordErrors] = useState<{ password?: string; confirmPassword?: string }>({});
+  const [passwordErrors, setPasswordErrors] = useState<{
+    password?: string;
+    confirmPassword?: string;
+  }>({});
   const [savingProfile, setSavingProfile] = useState(false);
   const [savingPassword, setSavingPassword] = useState(false);
 
@@ -73,7 +76,8 @@ export function ProfilePage() {
     event.preventDefault();
     const errors: typeof passwordErrors = {};
     if (passwordForm.password.length < 8) errors.password = "Use at least 8 characters";
-    if (passwordForm.confirmPassword !== passwordForm.password) errors.confirmPassword = "Passwords do not match";
+    if (passwordForm.confirmPassword !== passwordForm.password)
+      errors.confirmPassword = "Passwords do not match";
     setPasswordErrors(errors);
     if (Object.keys(errors).length) return;
 
@@ -145,9 +149,7 @@ export function ProfilePage() {
                   <h2 className="text-display text-2xl font-medium text-foreground truncate">
                     {profile?.full_name || "QYVERO Member"}
                   </h2>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    Logged in as {user.email}
-                  </p>
+                  <p className="mt-1 text-sm text-muted-foreground">Logged in as {user.email}</p>
                 </div>
               </div>
 
@@ -157,7 +159,9 @@ export function ProfilePage() {
                     <User className="h-5 w-5" />
                   </span>
                   <div>
-                    <p className="text-xs uppercase tracking-wider text-muted-foreground">Full Name</p>
+                    <p className="text-xs uppercase tracking-wider text-muted-foreground">
+                      Full Name
+                    </p>
                     <p className="mt-1 text-sm font-medium text-foreground">
                       {profile?.full_name || "Not specified"}
                     </p>
@@ -169,7 +173,9 @@ export function ProfilePage() {
                     <Mail className="h-5 w-5" />
                   </span>
                   <div className="min-w-0">
-                    <p className="text-xs uppercase tracking-wider text-muted-foreground">Email Address</p>
+                    <p className="text-xs uppercase tracking-wider text-muted-foreground">
+                      Email Address
+                    </p>
                     <p className="mt-1 text-sm font-medium text-foreground truncate">
                       {user.email}
                     </p>
@@ -181,7 +187,9 @@ export function ProfilePage() {
                     <Phone className="h-5 w-5" />
                   </span>
                   <div>
-                    <p className="text-xs uppercase tracking-wider text-muted-foreground">Phone Number</p>
+                    <p className="text-xs uppercase tracking-wider text-muted-foreground">
+                      Phone Number
+                    </p>
                     <p className="mt-1 text-sm font-medium text-foreground">
                       {profile?.phone || "Not specified"}
                     </p>
@@ -193,7 +201,9 @@ export function ProfilePage() {
                     <Shield className="h-5 w-5" />
                   </span>
                   <div>
-                    <p className="text-xs uppercase tracking-wider text-muted-foreground">Account Role</p>
+                    <p className="text-xs uppercase tracking-wider text-muted-foreground">
+                      Account Role
+                    </p>
                     <p className="mt-1 text-sm font-medium capitalize text-foreground">
                       {profile?.role || "Customer"}
                     </p>
@@ -206,7 +216,7 @@ export function ProfilePage() {
             <div className="flex flex-col gap-6">
               <div className="rounded-[2rem] border border-white/10 bg-white/[0.02] p-6 space-y-6">
                 <h3 className="text-display text-lg font-medium">Overview</h3>
-                
+
                 <div className="flex gap-3 items-center text-sm text-muted-foreground">
                   <Calendar className="h-4 w-4 text-teal" />
                   <span>Joined {joinDate}</span>
@@ -257,7 +267,9 @@ export function ProfilePage() {
             <form onSubmit={handleProfileUpdate} className="glass-card rounded-[2rem] p-6 sm:p-8">
               <div className="mb-6">
                 <h2 className="text-display text-xl font-medium text-foreground">Edit Profile</h2>
-                <p className="mt-1 text-sm text-muted-foreground">Keep your account details up to date.</p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Keep your account details up to date.
+                </p>
               </div>
               <div className="space-y-4">
                 <TextField
@@ -265,7 +277,9 @@ export function ProfilePage() {
                   autoComplete="name"
                   icon={<User />}
                   value={profileForm.fullName}
-                  onChange={(event) => setProfileForm((current) => ({ ...current, fullName: event.target.value }))}
+                  onChange={(event) =>
+                    setProfileForm((current) => ({ ...current, fullName: event.target.value }))
+                  }
                   error={profileErrors.fullName}
                 />
                 <TextField
@@ -274,7 +288,9 @@ export function ProfilePage() {
                   autoComplete="tel"
                   icon={<Phone />}
                   value={profileForm.phone}
-                  onChange={(event) => setProfileForm((current) => ({ ...current, phone: event.target.value }))}
+                  onChange={(event) =>
+                    setProfileForm((current) => ({ ...current, phone: event.target.value }))
+                  }
                   error={profileErrors.phone}
                 />
                 <button
@@ -287,10 +303,17 @@ export function ProfilePage() {
               </div>
             </form>
 
-            <form onSubmit={handlePasswordUpdate} className="rounded-[2rem] border border-white/10 bg-white/[0.02] p-6 sm:p-8">
+            <form
+              onSubmit={handlePasswordUpdate}
+              className="rounded-[2rem] border border-white/10 bg-white/[0.02] p-6 sm:p-8"
+            >
               <div className="mb-6">
-                <h2 className="text-display text-xl font-medium text-foreground">Change Password</h2>
-                <p className="mt-1 text-sm text-muted-foreground">Use at least 8 characters to secure your account.</p>
+                <h2 className="text-display text-xl font-medium text-foreground">
+                  Change Password
+                </h2>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Use at least 8 characters to secure your account.
+                </p>
               </div>
               <div className="space-y-4">
                 <TextField
@@ -299,7 +322,9 @@ export function ProfilePage() {
                   autoComplete="new-password"
                   icon={<Lock />}
                   value={passwordForm.password}
-                  onChange={(event) => setPasswordForm((current) => ({ ...current, password: event.target.value }))}
+                  onChange={(event) =>
+                    setPasswordForm((current) => ({ ...current, password: event.target.value }))
+                  }
                   error={passwordErrors.password}
                 />
                 <TextField
@@ -308,7 +333,12 @@ export function ProfilePage() {
                   autoComplete="new-password"
                   icon={<Lock />}
                   value={passwordForm.confirmPassword}
-                  onChange={(event) => setPasswordForm((current) => ({ ...current, confirmPassword: event.target.value }))}
+                  onChange={(event) =>
+                    setPasswordForm((current) => ({
+                      ...current,
+                      confirmPassword: event.target.value,
+                    }))
+                  }
                   error={passwordErrors.confirmPassword}
                 />
                 <button

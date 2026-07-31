@@ -125,11 +125,31 @@ export function AnalyticsDashboard() {
               value={String(stats?.totalOrders ?? 0)}
               icon={ShoppingBag}
             />
-            <Metric title="Pending Orders" value={String(stats?.pendingOrders ?? 0)} icon={TrendingUp} />
-            <Metric title="Completed Orders" value={String(stats?.completedOrders ?? 0)} icon={TrendingUp} />
-            <Metric title="Cancelled Orders" value={String(stats?.cancelledOrders ?? 0)} icon={TrendingUp} />
-            <Metric title="Total Customers" value={String(stats?.totalCustomers ?? 0)} icon={Users} />
-            <Metric title="Returning Customers" value={String(stats?.returningCustomers ?? 0)} icon={Users} />
+            <Metric
+              title="Pending Orders"
+              value={String(stats?.pendingOrders ?? 0)}
+              icon={TrendingUp}
+            />
+            <Metric
+              title="Completed Orders"
+              value={String(stats?.completedOrders ?? 0)}
+              icon={TrendingUp}
+            />
+            <Metric
+              title="Cancelled Orders"
+              value={String(stats?.cancelledOrders ?? 0)}
+              icon={TrendingUp}
+            />
+            <Metric
+              title="Total Customers"
+              value={String(stats?.totalCustomers ?? 0)}
+              icon={Users}
+            />
+            <Metric
+              title="Returning Customers"
+              value={String(stats?.returningCustomers ?? 0)}
+              icon={Users}
+            />
             <Metric
               title="Conversion Rate"
               value={`${stats?.conversionRate ?? 0}%`}

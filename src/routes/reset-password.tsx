@@ -47,10 +47,14 @@ function ResetPasswordPage() {
         toast.error("Unable to update password", { description: error.message });
         return;
       }
-      toast.success("Password updated successfully", { description: "You can now sign in with your new password." });
+      toast.success("Password updated successfully", {
+        description: "You can now sign in with your new password.",
+      });
       navigate({ to: "/auth/signin" });
     } catch (error) {
-      toast.error("Unable to update password", { description: error instanceof Error ? error.message : "Please try again." });
+      toast.error("Unable to update password", {
+        description: error instanceof Error ? error.message : "Please try again.",
+      });
     } finally {
       setSubmitting(false);
     }
@@ -65,15 +69,9 @@ function ResetPasswordPage() {
     >
       <div className="glass-card rounded-3xl p-8 sm:p-10">
         <div className="mb-8">
-          <p className="text-[11px] uppercase tracking-[0.4em] text-teal">
-            Security
-          </p>
-          <h1 className="mt-3 text-display text-3xl font-light text-foreground">
-            Reset Password
-          </h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Enter your new password below.
-          </p>
+          <p className="text-[11px] uppercase tracking-[0.4em] text-teal">Security</p>
+          <h1 className="mt-3 text-display text-3xl font-light text-foreground">Reset Password</h1>
+          <p className="mt-2 text-sm text-muted-foreground">Enter your new password below.</p>
         </div>
 
         <form onSubmit={onSubmit} className="flex flex-col gap-4" noValidate>

@@ -5,4 +5,7 @@ export const navigationLinks = [
   { to: "/contact", label: "Contact" },
 ] as const;
 
-export const footerNavigationLinks = [...navigationLinks, { to: "/auth/signin", label: "Sign In" }] as const;
+export const footerNavigationLinks = [
+  ...navigationLinks,
+  { to: "/auth/signin", label: "Sign In" },
+] as const;

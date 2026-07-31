@@ -4,5 +4,10 @@ import { seoHead } from "@/lib/seo";
 
 export const Route = createFileRoute("/contact")({
   component: ContactPage,
-  head: () => seoHead({ title: "Contact QYVERO", description: "Contact QYVERO for product, order, and customer support enquiries.", path: "/contact" }),
+  head: () =>
+    seoHead({
+      title: "Contact QYVERO",
+      description: "Contact QYVERO for product, order, and customer support enquiries.",
+      path: "/contact",
+    }),
 });

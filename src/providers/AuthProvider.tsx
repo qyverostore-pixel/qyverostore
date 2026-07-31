@@ -37,7 +37,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const fetchProfile = async (user: User, version: number) => {
     const { data, error } = await supabase
       .from("profiles")
-      .select("id, full_name, phone, avatar_url, role, is_active, created_at, updated_at, last_login")
+      .select(
+        "id, full_name, phone, avatar_url, role, is_active, created_at, updated_at, last_login",
+      )
       .eq("id", user.id)
       .maybeSingle();
 
@@ -97,7 +99,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     mounted.current = true;
-    let subscription: ReturnType<typeof supabase.auth.onAuthStateChange>["data"]["subscription"] | undefined;
+    let subscription:
+      ReturnType<typeof supabase.auth.onAuthStateChange>["data"]["subscription"] | undefined;
 
     void supabase.auth
       .getSession()
@@ -105,11 +108,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (error) throw error;
         if (!mounted.current) return;
         syncSession(data.session);
-        subscription = supabase.auth.onAuthStateChange((_event, nextSession) => syncSession(nextSession)).data.subscription;
+        subscription = supabase.auth.onAuthStateChange((_event, nextSession) =>
+          syncSession(nextSession),
+        ).data.subscription;
       })
       .catch((cause: unknown) => {
         if (!mounted.current) return;
-        const sessionError = cause instanceof Error ? cause : new Error("Unable to restore the authentication session.");
+        const sessionError =
+          cause instanceof Error
+            ? cause
+            : new Error("Unable to restore the authentication session.");
         console.error(sessionError);
         setSession(null);
         setProfile(null);
@@ -129,7 +137,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (error) throw error;
   };
 
-  return <AuthContext.Provider value={{ user: session?.user ?? null, session, profile, loading, error, refreshProfile, signOut }}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider
+      value={{
+        user: session?.user ?? null,
+        session,
+        profile,
+        loading,
+        error,
+        refreshProfile,
+        signOut,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
 }
 
 export function useAuth() {

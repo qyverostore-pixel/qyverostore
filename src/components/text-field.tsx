@@ -32,9 +32,7 @@ export const TextField = forwardRef<HTMLInputElement, Props>(function TextField(
         }`}
       >
         {icon && (
-          <span className="pl-3.5 text-muted-foreground [&>svg]:h-4 [&>svg]:w-4">
-            {icon}
-          </span>
+          <span className="pl-3.5 text-muted-foreground [&>svg]:h-4 [&>svg]:w-4">{icon}</span>
         )}
         <input
           ref={ref}

@@ -46,8 +46,7 @@ function SignInPage() {
   async function onSubmit(ev: FormEvent) {
     ev.preventDefault();
     const e: typeof errors = {};
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email))
-      e.email = "Enter a valid email";
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) e.email = "Enter a valid email";
     if (form.password.length < 8) e.password = "At least 8 characters";
     setErrors(e);
     if (Object.keys(e).length) return;
@@ -64,7 +63,9 @@ function SignInPage() {
       }
       toast.success("Signed in successfully");
     } catch (error) {
-      toast.error("Unable to sign in", { description: error instanceof Error ? error.message : "Please try again." });
+      toast.error("Unable to sign in", {
+        description: error instanceof Error ? error.message : "Please try again.",
+      });
     } finally {
       setSubmitting(false);
     }
@@ -87,18 +88,11 @@ function SignInPage() {
     >
       <div className="glass-card rounded-3xl p-8 sm:p-10">
         <div className="mb-8">
-          <p className="text-[11px] uppercase tracking-[0.4em] text-teal">
-            Sign in
-          </p>
-          <h1 className="mt-3 text-display text-3xl font-light text-foreground">
-            Welcome back.
-          </h1>
+          <p className="text-[11px] uppercase tracking-[0.4em] text-teal">Sign in</p>
+          <h1 className="mt-3 text-display text-3xl font-light text-foreground">Welcome back.</h1>
           <p className="mt-2 text-sm text-muted-foreground">
             New to QYVERO?{" "}
-            <Link
-              to="/auth/signup"
-              className="text-foreground underline-offset-4 hover:underline"
-            >
+            <Link to="/auth/signup" className="text-foreground underline-offset-4 hover:underline">
               Create one
             </Link>
             .
@@ -123,9 +117,7 @@ function SignInPage() {
             autoComplete="current-password"
             icon={<Lock />}
             value={form.password}
-            onChange={(e) =>
-              setForm((f) => ({ ...f, password: e.target.value }))
-            }
+            onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
             error={errors.password}
           />
 
@@ -134,9 +126,7 @@ function SignInPage() {
               <input
                 type="checkbox"
                 checked={form.remember}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, remember: e.target.checked }))
-                }
+                onChange={(e) => setForm((f) => ({ ...f, remember: e.target.checked }))}
                 className="h-4 w-4 rounded border-white/20 bg-white/5 accent-[color:var(--color-teal)]"
               />
               Remember me

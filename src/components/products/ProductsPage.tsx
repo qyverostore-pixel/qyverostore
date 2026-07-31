@@ -31,7 +31,9 @@ function ProductMedia({ product }: { product: StoreProduct }) {
           loading="lazy"
           decoding="async"
           sizes="(min-width: 1280px) 25vw, (min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
-          onError={(event) => { event.currentTarget.style.display = "none"; }}
+          onError={(event) => {
+            event.currentTarget.style.display = "none";
+          }}
           className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
         />
       ) : (
@@ -56,8 +58,21 @@ function ProductCard({ product }: { product: StoreProduct }) {
       />
       <ProductMedia product={product} />
       <div className="flex flex-1 flex-col p-5">
-        <p className={cn("text-xs font-medium", product.stock === 0 ? "text-red-300" : product.stock <= product.low_stock_threshold ? "text-amber-300" : "text-teal")}>
-          {product.stock === 0 ? "Out of Stock" : product.stock <= product.low_stock_threshold ? `Only ${product.stock} left` : "In Stock"}
+        <p
+          className={cn(
+            "text-xs font-medium",
+            product.stock === 0
+              ? "text-red-300"
+              : product.stock <= product.low_stock_threshold
+                ? "text-amber-300"
+                : "text-teal",
+          )}
+        >
+          {product.stock === 0
+            ? "Out of Stock"
+            : product.stock <= product.low_stock_threshold
+              ? `Only ${product.stock} left`
+              : "In Stock"}
         </p>
         <div className="flex items-center gap-1 text-xs text-amber-300">
           <Star className="h-3.5 w-3.5 fill-current" />
@@ -75,7 +90,10 @@ function ProductCard({ product }: { product: StoreProduct }) {
             View Details
           </Link>
           <a
-            href={whatsappUrl(settings.whatsapp, `Hi QYVERO, I'm interested in the ${product.name}.`)}
+            href={whatsappUrl(
+              settings.whatsapp,
+              `Hi QYVERO, I'm interested in the ${product.name}.`,
+            )}
             target="_blank"
             rel="noreferrer"
             className="inline-flex items-center justify-center gap-1.5 rounded-full border border-white/15 px-3 py-2.5 text-center text-xs font-medium text-foreground transition hover:border-teal hover:text-teal"
@@ -125,10 +143,25 @@ export function ProductsPage() {
   const categoryNames = ["All Products", ...categories.map((item) => item.name)];
   const selectedCategory = categories.find((item) => item.slug === categorySlug);
   const seoTitle = selectedCategory ? `${selectedCategory.name} Collection` : "Shop the Collection";
-  const seoDescription = selectedCategory ? `Shop QYVERO ${selectedCategory.name}: refined essentials for modern everyday distinction.` : "Shop QYVERO's curated collection of modern men's lifestyle essentials and accessories.";
+  const seoDescription = selectedCategory
+    ? `Shop QYVERO ${selectedCategory.name}: refined essentials for modern everyday distinction.`
+    : "Shop QYVERO's curated collection of modern men's lifestyle essentials and accessories.";
   return (
     <main className="min-h-screen bg-noise pb-24 pt-12 sm:pb-32 sm:pt-20">
-      <Seo input={{ title: seoTitle, description: seoDescription, path: selectedCategory ? `/products?category=${selectedCategory.slug}` : "/products", structuredData: breadcrumbSchema([{ name: "Home", path: "/" }, { name: selectedCategory?.name ?? "Products", path: selectedCategory ? `/products?category=${selectedCategory.slug}` : "/products" }]) }} />
+      <Seo
+        input={{
+          title: seoTitle,
+          description: seoDescription,
+          path: selectedCategory ? `/products?category=${selectedCategory.slug}` : "/products",
+          structuredData: breadcrumbSchema([
+            { name: "Home", path: "/" },
+            {
+              name: selectedCategory?.name ?? "Products",
+              path: selectedCategory ? `/products?category=${selectedCategory.slug}` : "/products",
+            },
+          ]),
+        }}
+      />
       <div className="mx-auto w-full max-w-7xl px-6">
         <div className="mx-auto max-w-2xl text-center">
           <p className="text-[11px] font-semibold uppercase tracking-[0.4em] text-teal">

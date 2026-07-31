@@ -62,14 +62,20 @@ Deno.serve(async (request) => {
     });
 
     if (!adminResponse.ok || !(await adminResponse.json())) {
-      return Response.json({ error: "Admin access required" }, { status: 403, headers: corsHeaders });
+      return Response.json(
+        { error: "Admin access required" },
+        { status: 403, headers: corsHeaders },
+      );
     }
 
     const { type, recipient } = (await request.json()) as SendEmailRequest;
     const normalizedRecipient = recipient?.trim().toLowerCase();
 
     if (!normalizedRecipient || !isValidEmail(normalizedRecipient)) {
-      return Response.json({ error: "A valid recipient email is required" }, { status: 400, headers: corsHeaders });
+      return Response.json(
+        { error: "A valid recipient email is required" },
+        { status: 400, headers: corsHeaders },
+      );
     }
 
     const settingsResponse = await fetch(
@@ -101,18 +107,29 @@ Deno.serve(async (request) => {
         });
 
         if (!resendResponse.ok) {
-          throw new Error(`Resend request failed: ${resendResponse.status} ${await resendResponse.text()}`);
+          throw new Error(
+            `Resend request failed: ${resendResponse.status} ${await resendResponse.text()}`,
+          );
         }
 
-        return Response.json({ sent: true, id: (await resendResponse.json()).id }, { headers: corsHeaders });
+        return Response.json(
+          { sent: true, id: (await resendResponse.json()).id },
+          { headers: corsHeaders },
+        );
       }
       case "order_confirmation":
       case "order_shipped":
       case "newsletter":
       case "contact":
-        return Response.json({ error: `Email type \"${type}\" is not implemented` }, { status: 501, headers: corsHeaders });
+        return Response.json(
+          { error: `Email type \"${type}\" is not implemented` },
+          { status: 501, headers: corsHeaders },
+        );
       default:
-        return Response.json({ error: "Unsupported email type" }, { status: 400, headers: corsHeaders });
+        return Response.json(
+          { error: "Unsupported email type" },
+          { status: 400, headers: corsHeaders },
+        );
     }
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unable to send email";

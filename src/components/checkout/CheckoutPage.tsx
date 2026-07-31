@@ -30,8 +30,16 @@ const methods: Array<{ id: PaymentMethod; label: string; description: string }> 
     label: "Cash on Delivery",
     description: "Pay when your order arrives.",
   },
-  { id: "vodafone_cash", label: "Vodafone Cash", description: "Payment instructions will be shared on WhatsApp." },
-  { id: "instapay", label: "InstaPay", description: "Payment instructions will be shared on WhatsApp." },
+  {
+    id: "vodafone_cash",
+    label: "Vodafone Cash",
+    description: "Payment instructions will be shared on WhatsApp.",
+  },
+  {
+    id: "instapay",
+    label: "InstaPay",
+    description: "Payment instructions will be shared on WhatsApp.",
+  },
 ];
 const money = (value: number) => `${value.toLocaleString()} EGP`;
 
@@ -54,11 +62,28 @@ export function CheckoutPage() {
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cash_on_delivery");
   const [couponCode, setCouponCode] = useState("");
   const [coupon, setCoupon] = useState<CouponValidation | null>(null);
-  const { data: shippingQuote, isLoading: isLoadingShipping } = useShippingQuote(shipping.governorate, shipping.city);
+  const { data: shippingQuote, isLoading: isLoadingShipping } = useShippingQuote(
+    shipping.governorate,
+    shipping.city,
+  );
   const shippingCost = Number(shippingQuote?.rate?.shipping_cost ?? 0);
   const discount = coupon?.valid ? coupon.discountAmount : 0;
-  const total = useMemo(() => Math.max(0, subtotal - discount) + shippingCost, [subtotal, discount, shippingCost]);
-  const couponMutation = useMutation({ mutationFn: () => validateCoupon(couponCode, subtotal), onSuccess: (result) => { setCoupon(result); if (!result.valid) toast.error(result.reason ?? "Coupon is invalid"); else toast.success("Coupon applied"); }, onError: (error) => toast.error("Unable to validate coupon", { description: error instanceof Error ? error.message : "Please try again." }) });
+  const total = useMemo(
+    () => Math.max(0, subtotal - discount) + shippingCost,
+    [subtotal, discount, shippingCost],
+  );
+  const couponMutation = useMutation({
+    mutationFn: () => validateCoupon(couponCode, subtotal),
+    onSuccess: (result) => {
+      setCoupon(result);
+      if (!result.valid) toast.error(result.reason ?? "Coupon is invalid");
+      else toast.success("Coupon applied");
+    },
+    onError: (error) =>
+      toast.error("Unable to validate coupon", {
+        description: error instanceof Error ? error.message : "Please try again.",
+      }),
+  });
   const selectedGovernorate = useMemo(
     () => egyptGovernorates.find((governorate) => governorate.name === shipping.governorate),
     [shipping.governorate],
@@ -202,9 +227,9 @@ export function CheckoutPage() {
                     <SelectValue placeholder="Select city" />
                   </SelectTrigger>
                   <SelectContent>
-                {selectedGovernorate?.cities.map((city) => (
-                  <SelectItem key={city.name} value={city.name}>
-                    {city.name}
+                    {selectedGovernorate?.cities.map((city) => (
+                      <SelectItem key={city.name} value={city.name}>
+                        {city.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -245,7 +270,42 @@ export function CheckoutPage() {
               ))}
             </div>
           </section>
-          <section className="rounded-3xl border border-white/10 bg-white/[0.02] p-6"><h2 className="font-medium">Coupon</h2><div className="mt-4 flex gap-2"><Input value={couponCode} onChange={(event) => { setCouponCode(event.target.value.toUpperCase()); setCoupon(null); }} placeholder="Enter coupon code" /><Button type="button" variant="outline" disabled={!couponCode.trim() || couponMutation.isPending} onClick={() => couponMutation.mutate()}>{couponMutation.isPending ? "Checking..." : "Apply"}</Button></div>{coupon?.valid && <div className="mt-3 flex items-center justify-between text-sm text-teal"><span>{couponCode} applied</span><button type="button" className="text-xs text-muted-foreground" onClick={() => { setCoupon(null); setCouponCode(""); }}>Remove</button></div>}</section>
+          <section className="rounded-3xl border border-white/10 bg-white/[0.02] p-6">
+            <h2 className="font-medium">Coupon</h2>
+            <div className="mt-4 flex gap-2">
+              <Input
+                value={couponCode}
+                onChange={(event) => {
+                  setCouponCode(event.target.value.toUpperCase());
+                  setCoupon(null);
+                }}
+                placeholder="Enter coupon code"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                disabled={!couponCode.trim() || couponMutation.isPending}
+                onClick={() => couponMutation.mutate()}
+              >
+                {couponMutation.isPending ? "Checking..." : "Apply"}
+              </Button>
+            </div>
+            {coupon?.valid && (
+              <div className="mt-3 flex items-center justify-between text-sm text-teal">
+                <span>{couponCode} applied</span>
+                <button
+                  type="button"
+                  className="text-xs text-muted-foreground"
+                  onClick={() => {
+                    setCoupon(null);
+                    setCouponCode("");
+                  }}
+                >
+                  Remove
+                </button>
+              </div>
+            )}
+          </section>
         </div>
         <aside className="h-fit rounded-3xl border border-white/10 bg-white/[0.02] p-6 lg:sticky lg:top-24">
           <div className="flex items-center gap-2">
@@ -289,7 +349,9 @@ export function CheckoutPage() {
                       Delete
                     </button>
                   </div>
-                  {item.quantity >= item.stock && <p className="mt-1 text-xs text-amber-300">Only {item.stock} available</p>}
+                  {item.quantity >= item.stock && (
+                    <p className="mt-1 text-xs text-amber-300">Only {item.stock} available</p>
+                  )}
                 </div>
                 <p className="text-sm font-medium">{money(item.price * item.quantity)}</p>
               </div>
@@ -302,16 +364,41 @@ export function CheckoutPage() {
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">Shipping</span>
-              <span>{shipping.governorate ? isLoadingShipping ? "Calculating..." : shippingQuote ? money(shippingCost) : "Unavailable" : "Select location"}</span>
+              <span>
+                {shipping.governorate
+                  ? isLoadingShipping
+                    ? "Calculating..."
+                    : shippingQuote
+                      ? money(shippingCost)
+                      : "Unavailable"
+                  : "Select location"}
+              </span>
             </div>
-            {discount > 0 && <div className="flex justify-between text-teal"><span>Coupon discount</span><span>-{money(discount)}</span></div>}
-            {shippingQuote && <div className="flex justify-between text-xs text-muted-foreground"><span>Estimated delivery</span><span>{shippingQuote.rate?.estimated_delivery_days} business day{shippingQuote.rate?.estimated_delivery_days === 1 ? "" : "s"}</span></div>}
+            {discount > 0 && (
+              <div className="flex justify-between text-teal">
+                <span>Coupon discount</span>
+                <span>-{money(discount)}</span>
+              </div>
+            )}
+            {shippingQuote && (
+              <div className="flex justify-between text-xs text-muted-foreground">
+                <span>Estimated delivery</span>
+                <span>
+                  {shippingQuote.rate?.estimated_delivery_days} business day
+                  {shippingQuote.rate?.estimated_delivery_days === 1 ? "" : "s"}
+                </span>
+              </div>
+            )}
             <div className="flex justify-between text-base font-semibold">
               <span>Total</span>
               <span className="text-teal">{money(total)}</span>
             </div>
           </div>
-          <Button type="submit" disabled={mutation.isPending || isLoadingShipping || !shippingQuote} className="mt-6 w-full rounded-full">
+          <Button
+            type="submit"
+            disabled={mutation.isPending || isLoadingShipping || !shippingQuote}
+            className="mt-6 w-full rounded-full"
+          >
             {mutation.isPending ? "Placing order..." : "Place order"}
           </Button>
         </aside>

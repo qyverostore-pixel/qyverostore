@@ -2,7 +2,8 @@ import type { ElementType, SVGProps } from "react";
 
 export type IconComponent = ElementType<SVGProps<SVGSVGElement>>;
 
-export type Category = "Wallets" | "Watches" | "Belts" | "Perfumes" | "Cross Bags" | "Accessories" | "Tech";
+export type Category =
+  "Wallets" | "Watches" | "Belts" | "Perfumes" | "Cross Bags" | "Accessories" | "Tech";
 
 export interface Product {
   id: number | string;

@@ -10,7 +10,12 @@ import {
 } from "lucide-react";
 import { BrandMark } from "@/components/brand-mark";
 import { useStorefrontSettings } from "@/providers/StorefrontSettingsProvider";
-import { emailUrl, externalUrl, whatsappUrl, type StorefrontSettings } from "@/services/store-settings";
+import {
+  emailUrl,
+  externalUrl,
+  whatsappUrl,
+  type StorefrontSettings,
+} from "@/services/store-settings";
 
 type Channel = {
   label: string;

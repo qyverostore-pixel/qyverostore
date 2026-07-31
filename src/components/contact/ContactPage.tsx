@@ -19,7 +19,12 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { useStorefrontSettings } from "@/providers/StorefrontSettingsProvider";
-import { emailUrl, externalUrl, whatsappUrl, type StorefrontSettings } from "@/services/store-settings";
+import {
+  emailUrl,
+  externalUrl,
+  whatsappUrl,
+  type StorefrontSettings,
+} from "@/services/store-settings";
 
 type ContactChannel = {
   name: string;
@@ -30,11 +35,31 @@ type ContactChannel = {
 
 function contactChannels(settings: StorefrontSettings): ContactChannel[] {
   return [
-    { name: "WhatsApp", handle: settings.whatsapp, href: whatsappUrl(settings.whatsapp), Icon: MessageCircle },
+    {
+      name: "WhatsApp",
+      handle: settings.whatsapp,
+      href: whatsappUrl(settings.whatsapp),
+      Icon: MessageCircle,
+    },
     { name: "Email", handle: settings.email, href: emailUrl(settings.email), Icon: Mail },
-    { name: "Instagram", handle: settings.instagram, href: externalUrl(settings.instagram), Icon: Instagram },
-    { name: "Facebook", handle: settings.facebook, href: externalUrl(settings.facebook), Icon: Facebook },
-    { name: "TikTok", handle: settings.tiktok, href: externalUrl(settings.tiktok), Icon: TikTokIcon },
+    {
+      name: "Instagram",
+      handle: settings.instagram,
+      href: externalUrl(settings.instagram),
+      Icon: Instagram,
+    },
+    {
+      name: "Facebook",
+      handle: settings.facebook,
+      href: externalUrl(settings.facebook),
+      Icon: Facebook,
+    },
+    {
+      name: "TikTok",
+      handle: settings.tiktok,
+      href: externalUrl(settings.tiktok),
+      Icon: TikTokIcon,
+    },
   ].filter((channel) => channel.href);
 }
 
@@ -157,8 +182,7 @@ function ContactForm() {
       });
     } catch (error) {
       toast.error("Unable to send message", {
-        description:
-          error instanceof Error ? error.message : "Please try again.",
+        description: error instanceof Error ? error.message : "Please try again.",
       });
     } finally {
       setSubmitting(false);

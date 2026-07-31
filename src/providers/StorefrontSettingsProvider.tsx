@@ -1,6 +1,11 @@
 import { createContext, useContext, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { defaultStorefrontSettings, getStorefrontSettings, storefrontSettingsKey, type StorefrontSettings } from "@/services/store-settings";
+import {
+  defaultStorefrontSettings,
+  getStorefrontSettings,
+  storefrontSettingsKey,
+  type StorefrontSettings,
+} from "@/services/store-settings";
 
 const StorefrontSettingsContext = createContext<StorefrontSettings>(defaultStorefrontSettings);
 
@@ -14,7 +19,11 @@ export function StorefrontSettingsProvider({ children }: { children: ReactNode }
   });
   const settings = data ?? defaultStorefrontSettings;
 
-  return <StorefrontSettingsContext.Provider value={settings}>{children}</StorefrontSettingsContext.Provider>;
+  return (
+    <StorefrontSettingsContext.Provider value={settings}>
+      {children}
+    </StorefrontSettingsContext.Provider>
+  );
 }
 
 export function useStorefrontSettings() {

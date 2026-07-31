@@ -39,8 +39,12 @@ export async function getStorefrontSettings(): Promise<StorefrontSettings> {
 export function whatsappUrl(value: string, message?: string) {
   const normalized = value.trim();
   if (!normalized) return "";
-  const base = /^https?:\/\//i.test(normalized) ? normalized : `https://wa.me/${normalized.replace(/\D/g, "")}`;
-  return message ? `${base}${base.includes("?") ? "&" : "?"}text=${encodeURIComponent(message)}` : base;
+  const base = /^https?:\/\//i.test(normalized)
+    ? normalized
+    : `https://wa.me/${normalized.replace(/\D/g, "")}`;
+  return message
+    ? `${base}${base.includes("?") ? "&" : "?"}text=${encodeURIComponent(message)}`
+    : base;
 }
 
 export function emailUrl(value: string) {

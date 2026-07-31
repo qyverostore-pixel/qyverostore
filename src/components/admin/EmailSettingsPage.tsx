@@ -66,23 +66,17 @@ export function EmailSettingsPage() {
 
       const csv = [
         "Email,Subscribed At,Active",
-        ...subscribers.map(
-          (item) =>
-            `${item.email},${item.subscribed_at},${item.is_active}`
-        ),
+        ...subscribers.map((item) => `${item.email},${item.subscribed_at},${item.is_active}`),
       ].join("\n");
 
       const link = document.createElement("a");
-      link.href = URL.createObjectURL(
-        new Blob([csv], { type: "text/csv" })
-      );
+      link.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
       link.download = "qyvero-newsletter-subscribers.csv";
       link.click();
       URL.revokeObjectURL(link.href);
     } catch (error) {
       toast.error("Unable to export subscribers", {
-        description:
-          error instanceof Error ? error.message : "Please try again.",
+        description: error instanceof Error ? error.message : "Please try again.",
       });
     }
   };
@@ -181,11 +175,7 @@ export function EmailSettingsPage() {
             {save.isPending ? "Saving..." : "Save settings"}
           </Button>
 
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => void exportSubscribers()}
-          >
+          <Button type="button" variant="outline" onClick={() => void exportSubscribers()}>
             <Download className="mr-2 h-4 w-4" />
             Export subscribers
           </Button>

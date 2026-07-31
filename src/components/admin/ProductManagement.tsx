@@ -1,5 +1,16 @@
 import { Link, useNavigate } from "@tanstack/react-router";
-import { CheckCircle2, Edit3, Eye, ImagePlus, Plus, Save, Search, Trash2, Upload, X } from "lucide-react";
+import {
+  CheckCircle2,
+  Edit3,
+  Eye,
+  ImagePlus,
+  Plus,
+  Save,
+  Search,
+  Trash2,
+  Upload,
+  X,
+} from "lucide-react";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -13,31 +24,505 @@ import { Switch } from "@/components/ui/switch";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import { useCategories, useProduct, useProducts, productKeys } from "@/hooks/use-products";
-import { createProduct, deleteProduct, deleteProductImages, updateProduct, type ProductInput, type ProductStatus } from "@/services/products";
+import {
+  createProduct,
+  deleteProduct,
+  deleteProductImages,
+  updateProduct,
+  type ProductInput,
+  type ProductStatus,
+} from "@/services/products";
 import { useAuth } from "@/providers/AuthProvider";
 
 const money = (value: number) => `$${Number(value).toLocaleString()}`;
-const empty = { name: "", slug: "", category_id: "", price: 0, compare_price: 0, stock: 0, low_stock_threshold: 5, sku: "", description: "", brand: "QYVERO", featured: false, status: "draft" as ProductStatus };
-const statusLabel = (status: ProductStatus) => status === "active" ? "Active" : status === "out_of_stock" ? "Out of stock" : "Draft";
-const createSlug = (name: string) => name.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+const empty = {
+  name: "",
+  slug: "",
+  category_id: "",
+  price: 0,
+  compare_price: 0,
+  stock: 0,
+  low_stock_threshold: 5,
+  sku: "",
+  description: "",
+  brand: "QYVERO",
+  featured: false,
+  status: "draft" as ProductStatus,
+};
+const statusLabel = (status: ProductStatus) =>
+  status === "active" ? "Active" : status === "out_of_stock" ? "Out of stock" : "Draft";
+const createSlug = (name: string) =>
+  name
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
 
 export function ProductsPage() {
   const { data: products = [], isLoading } = useProducts(true);
   const queryClient = useQueryClient();
-  const remove = async (id: string) => { const product = products.find((item) => item.id === id); if (!product) return; try { await deleteProduct(product); await queryClient.invalidateQueries({ queryKey: productKeys.all }); toast.success("Product deleted", { description: `${product.name} was removed from the catalog.` }); } catch (error) { toast.error("Unable to delete product", { description: error instanceof Error ? error.message : "Please try again." }); } };
-  return <AdminLayout title="Products" description="Manage your store catalog" actions={<Button asChild><Link to="/admin/products/new"><Plus />Add product</Link></Button>}><div className="mb-5 flex items-center gap-3"><div className="relative max-w-sm flex-1"><Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" /><Input className="pl-9" placeholder="Search products..." /></div><Button variant="outline">Filter</Button></div>{isLoading ? <AdminTableSkeleton /> : <AdminTable columns={["Product", "Category", "Price", "Stock", "Featured", "Status", "Actions"]}>{products.map((product) => <TableRow key={product.id}><TableCell className="min-w-56 px-4"><div className="flex items-center gap-3">{product.images[0] ? <img src={product.images[0].image_url} alt={product.images[0].alt_text ?? product.name} className="size-10 shrink-0 rounded-lg object-cover" /> : <div className="size-10 shrink-0 rounded-lg bg-gradient-to-br from-neutral-700 to-neutral-950" />}<div><p className="font-medium">{product.name}</p><p className="text-xs text-muted-foreground">{product.sku}</p></div></div></TableCell><TableCell className="px-4 text-muted-foreground">{product.category?.name ?? "Uncategorised"}</TableCell><TableCell className="px-4">{money(product.price)}</TableCell><TableCell className="px-4"><span className={product.stock < product.low_stock_threshold ? "text-amber-300" : ""}>{product.stock}</span></TableCell><TableCell className="px-4">{product.featured ? <CheckCircle2 className="size-4 text-teal" /> : "—"}</TableCell><TableCell className="px-4"><StatusBadge tone={product.status === "active" ? "success" : product.status === "out_of_stock" ? "warning" : "neutral"}>{statusLabel(product.status)}</StatusBadge></TableCell><TableCell className="px-4"><div className="flex items-center gap-1"><Button variant="ghost" size="icon" aria-label="View" asChild><Link to="/products/$productId" params={{ productId: product.slug }}><Eye className="size-4" /></Link></Button><Button variant="ghost" size="icon" aria-label="Edit" asChild><Link to="/admin/products/$productId/edit" params={{ productId: product.id }}><Edit3 className="size-4" /></Link></Button><Button variant="ghost" size="icon" className="text-red-300 hover:text-red-200" onClick={() => void remove(product.id)} aria-label="Delete"><Trash2 className="size-4" /></Button></div></TableCell></TableRow>)}</AdminTable>}</AdminLayout>;
+  const remove = async (id: string) => {
+    const product = products.find((item) => item.id === id);
+    if (!product) return;
+    try {
+      await deleteProduct(product);
+      await queryClient.invalidateQueries({ queryKey: productKeys.all });
+      toast.success("Product deleted", {
+        description: `${product.name} was removed from the catalog.`,
+      });
+    } catch (error) {
+      toast.error("Unable to delete product", {
+        description: error instanceof Error ? error.message : "Please try again.",
+      });
+    }
+  };
+  return (
+    <AdminLayout
+      title="Products"
+      description="Manage your store catalog"
+      actions={
+        <Button asChild>
+          <Link to="/admin/products/new">
+            <Plus />
+            Add product
+          </Link>
+        </Button>
+      }
+    >
+      <div className="mb-5 flex items-center gap-3">
+        <div className="relative max-w-sm flex-1">
+          <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+          <Input className="pl-9" placeholder="Search products..." />
+        </div>
+        <Button variant="outline">Filter</Button>
+      </div>
+      {isLoading ? (
+        <AdminTableSkeleton />
+      ) : (
+        <AdminTable
+          columns={["Product", "Category", "Price", "Stock", "Featured", "Status", "Actions"]}
+        >
+          {products.map((product) => (
+            <TableRow key={product.id}>
+              <TableCell className="min-w-56 px-4">
+                <div className="flex items-center gap-3">
+                  {product.images[0] ? (
+                    <img
+                      src={product.images[0].image_url}
+                      alt={product.images[0].alt_text ?? product.name}
+                      className="size-10 shrink-0 rounded-lg object-cover"
+                    />
+                  ) : (
+                    <div className="size-10 shrink-0 rounded-lg bg-gradient-to-br from-neutral-700 to-neutral-950" />
+                  )}
+                  <div>
+                    <p className="font-medium">{product.name}</p>
+                    <p className="text-xs text-muted-foreground">{product.sku}</p>
+                  </div>
+                </div>
+              </TableCell>
+              <TableCell className="px-4 text-muted-foreground">
+                {product.category?.name ?? "Uncategorised"}
+              </TableCell>
+              <TableCell className="px-4">{money(product.price)}</TableCell>
+              <TableCell className="px-4">
+                <span
+                  className={product.stock < product.low_stock_threshold ? "text-amber-300" : ""}
+                >
+                  {product.stock}
+                </span>
+              </TableCell>
+              <TableCell className="px-4">
+                {product.featured ? <CheckCircle2 className="size-4 text-teal" /> : "—"}
+              </TableCell>
+              <TableCell className="px-4">
+                <StatusBadge
+                  tone={
+                    product.status === "active"
+                      ? "success"
+                      : product.status === "out_of_stock"
+                        ? "warning"
+                        : "neutral"
+                  }
+                >
+                  {statusLabel(product.status)}
+                </StatusBadge>
+              </TableCell>
+              <TableCell className="px-4">
+                <div className="flex items-center gap-1">
+                  <Button variant="ghost" size="icon" aria-label="View" asChild>
+                    <Link to="/products/$productId" params={{ productId: product.slug }}>
+                      <Eye className="size-4" />
+                    </Link>
+                  </Button>
+                  <Button variant="ghost" size="icon" aria-label="Edit" asChild>
+                    <Link to="/admin/products/$productId/edit" params={{ productId: product.id }}>
+                      <Edit3 className="size-4" />
+                    </Link>
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="text-red-300 hover:text-red-200"
+                    onClick={() => void remove(product.id)}
+                    aria-label="Delete"
+                  >
+                    <Trash2 className="size-4" />
+                  </Button>
+                </div>
+              </TableCell>
+            </TableRow>
+          ))}
+        </AdminTable>
+      )}
+    </AdminLayout>
+  );
 }
 
 export function ProductFormPage({ productId }: { productId?: string }) {
-  const navigate = useNavigate(); const queryClient = useQueryClient(); const inputRef = useRef<HTMLInputElement>(null); const { user } = useAuth();
-  const { data: categories = [] } = useCategories(); const { data: existing, isLoading } = useProduct(productId ?? "", Boolean(productId));
-  const [form, setForm] = useState(empty); const [files, setFiles] = useState<File[]>([]); const [submitting, setSubmitting] = useState(false); const [removingImageId, setRemovingImageId] = useState<string | null>(null);
-  useEffect(() => { if (existing && productId) setForm({ name: existing.name, slug: existing.slug, category_id: existing.category_id ?? "", price: Number(existing.price), compare_price: Number(existing.compare_price ?? 0), stock: existing.stock, low_stock_threshold: existing.low_stock_threshold, sku: existing.sku, description: existing.description ?? "", brand: existing.brand ?? "", featured: existing.featured, status: existing.status }); }, [existing, productId]);
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const inputRef = useRef<HTMLInputElement>(null);
+  const { user } = useAuth();
+  const { data: categories = [] } = useCategories();
+  const { data: existing, isLoading } = useProduct(productId ?? "", Boolean(productId));
+  const [form, setForm] = useState(empty);
+  const [files, setFiles] = useState<File[]>([]);
+  const [submitting, setSubmitting] = useState(false);
+  const [removingImageId, setRemovingImageId] = useState<string | null>(null);
+  useEffect(() => {
+    if (existing && productId)
+      setForm({
+        name: existing.name,
+        slug: existing.slug,
+        category_id: existing.category_id ?? "",
+        price: Number(existing.price),
+        compare_price: Number(existing.compare_price ?? 0),
+        stock: existing.stock,
+        low_stock_threshold: existing.low_stock_threshold,
+        sku: existing.sku,
+        description: existing.description ?? "",
+        brand: existing.brand ?? "",
+        featured: existing.featured,
+        status: existing.status,
+      });
+  }, [existing, productId]);
   const source = form;
-  const update = <K extends keyof typeof empty>(key: K, value: (typeof empty)[K]) => setForm((current) => ({ ...current, [key]: value, ...(key === "name" ? { slug: createSlug(String(value)) } : {}) }));
-  const submit = async (event: FormEvent, status: ProductStatus) => { event.preventDefault(); if (!user) return; const values = { ...source, status }; const slug = productId ? values.slug : createSlug(values.name); if (!values.name.trim() || !slug || !values.sku.trim() || !values.category_id || !Number.isFinite(values.price) || !Number.isFinite(values.stock) || !Number.isFinite(values.low_stock_threshold) || !Number.isFinite(values.compare_price) || values.price < 0 || values.stock < 0 || values.low_stock_threshold < 0 || values.compare_price < 0) { toast.error("Complete all required product fields with valid values"); return; } setSubmitting(true); const input: ProductInput = { category_id: values.category_id, name: values.name.trim(), slug, sku: values.sku.trim(), brand: values.brand.trim() || null, short_description: values.description.trim() || null, description: values.description.trim() || null, price: values.price, compare_price: values.compare_price || null, stock: values.stock, low_stock_threshold: values.low_stock_threshold, featured: values.featured, is_new: false, is_best_seller: false, is_on_sale: Boolean(values.compare_price), status: values.status, is_active: true, weight: null, length: null, width: null, height: null, rating: 0, reviews_count: 0, meta_title: null, meta_description: null, created_by: user.id, updated_by: user.id }; try { if (existing) await updateProduct(existing.id, { ...input, updated_by: user.id }, files, []); else await createProduct(input, files); await queryClient.invalidateQueries({ queryKey: productKeys.all }); toast.success(status === "active" ? "Product saved" : "Draft saved", { description: values.name }); navigate({ to: "/admin/products" }); } catch (error) { toast.error("Unable to save product", { description: error instanceof Error ? error.message : "Please try again." }); } finally { setSubmitting(false); } };
-  const removeImage = async (imageId: string) => { if (!existing) return; setRemovingImageId(imageId); try { await deleteProductImages([imageId]); await queryClient.invalidateQueries({ queryKey: productKeys.detail(existing.id, true) }); await queryClient.invalidateQueries({ queryKey: productKeys.all }); toast.success("Image removed"); } catch (error) { toast.error("Unable to remove image", { description: error instanceof Error ? error.message : "Please try again." }); } finally { setRemovingImageId(null); } };
-  if (productId && isLoading) return <AdminLayout title="Edit product" description="Update product information"><FormSkeleton /></AdminLayout>;
-  return <AdminLayout title={productId ? "Edit product" : "Add product"} description={productId ? "Update product information" : "Create a new catalog product"}><AdminBackLink /><form className="mt-6 grid gap-6 xl:grid-cols-[1fr_320px]" onSubmit={(event) => void submit(event, "active")}><div className="space-y-6"><section className="rounded-xl border border-white/10 bg-white/[0.025] p-5"><h2 className="font-medium">Product information</h2><div className="mt-5 grid gap-5 sm:grid-cols-2"><Field label="Product name" value={source.name} onChange={(value) => update("name", value)} /><Field label="Slug" value={source.slug} onChange={(value) => update("slug", value)} /><div className="sm:col-span-2"><Label>Description</Label><Textarea className="mt-2 min-h-28" value={source.description} onChange={(event) => update("description", event.target.value)} /></div><Field label="Brand" value={source.brand} onChange={(value) => update("brand", value)} /><div><Label>Category</Label><select className="mt-2 h-9 w-full rounded-md border border-input bg-background px-3 text-sm" value={source.category_id} onChange={(event) => update("category_id", event.target.value)}><option value="">Select category</option>{categories.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}</select></div></div></section><section className="rounded-xl border border-white/10 bg-white/[0.025] p-5"><h2 className="font-medium">Pricing & inventory</h2><div className="mt-5 grid gap-5 sm:grid-cols-2"><Field label="Price" type="number" value={source.price} onChange={(value) => update("price", Number(value))} /><Field label="Compare price" type="number" value={source.compare_price} onChange={(value) => update("compare_price", Number(value))} /><Field label="Stock" type="number" value={source.stock} onChange={(value) => update("stock", Number(value))} /><Field label="SKU" value={source.sku} onChange={(value) => update("sku", value)} /></div></section><section className="rounded-xl border border-white/10 bg-white/[0.025] p-5"><h2 className="font-medium">Media</h2><p className="mt-1 text-xs text-muted-foreground">Add up to five product images.</p><input ref={inputRef} type="file" accept="image/*" multiple className="hidden" onChange={(event) => setFiles(Array.from(event.target.files ?? []).slice(0, Math.max(0, 5 - (existing?.images.length ?? 0))))} /><div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">{existing?.images.map((image) => <div key={image.id} className="relative aspect-square overflow-hidden rounded-lg border border-white/10"><img src={image.image_url} alt={image.alt_text ?? source.name} className="size-full object-cover" /><Button type="button" variant="ghost" size="icon" className="absolute right-1 top-1 bg-black/60 text-white hover:bg-black/80" aria-label="Remove image" disabled={removingImageId === image.id} onClick={() => void removeImage(image.id)}><X className="size-4" /></Button></div>)}{files.map((file) => <button key={file.name} type="button" onClick={() => inputRef.current?.click()} className="grid aspect-square place-items-center rounded-lg border border-dashed border-white/20 bg-white/[0.02] px-2 text-center text-[10px] text-muted-foreground transition-colors hover:border-teal hover:text-teal">{file.name}</button>)}{Array.from({ length: Math.max(0, 4 - (existing?.images.length ?? 0) - files.length) }, (_, index) => <button key={index} type="button" onClick={() => inputRef.current?.click()} className="grid aspect-square place-items-center rounded-lg border border-dashed border-white/20 bg-white/[0.02] text-muted-foreground transition-colors hover:border-teal hover:text-teal"><ImagePlus className="size-5" /><span className="mt-1 text-[10px]">Image {(existing?.images.length ?? 0) + files.length + index + 1}</span></button>)}</div></section></div><aside className="space-y-6"><section className="rounded-xl border border-white/10 bg-white/[0.025] p-5"><h2 className="font-medium">Publishing</h2><div className="mt-5 flex items-center justify-between"><div><p className="text-sm">Featured product</p><p className="text-xs text-muted-foreground">Show on your home page</p></div><Switch checked={source.featured} onCheckedChange={(value) => update("featured", value)} /></div><div className="mt-5"><Label>Status</Label><select className="mt-2 h-9 w-full rounded-md border border-input bg-background px-3 text-sm" value={source.status} onChange={(event) => update("status", event.target.value as ProductStatus)}><option value="draft">Draft</option><option value="active">Active</option><option value="out_of_stock">Out of stock</option></select></div></section><div className="flex flex-col gap-3"><Button type="submit" disabled={submitting}><Upload />{submitting ? files.length ? "Uploading images…" : "Saving…" : "Publish product"}</Button><Button type="button" variant="outline" disabled={submitting} onClick={(event) => void submit(event, "draft")}><Save />Save draft</Button><Button type="button" variant="ghost" onClick={() => navigate({ to: "/admin/products" })}><X />Cancel</Button></div></aside></form></AdminLayout>;
+  const update = <K extends keyof typeof empty>(key: K, value: (typeof empty)[K]) =>
+    setForm((current) => ({
+      ...current,
+      [key]: value,
+      ...(key === "name" ? { slug: createSlug(String(value)) } : {}),
+    }));
+  const submit = async (event: FormEvent, status: ProductStatus) => {
+    event.preventDefault();
+    if (!user) return;
+    const values = { ...source, status };
+    const slug = productId ? values.slug : createSlug(values.name);
+    if (
+      !values.name.trim() ||
+      !slug ||
+      !values.sku.trim() ||
+      !values.category_id ||
+      !Number.isFinite(values.price) ||
+      !Number.isFinite(values.stock) ||
+      !Number.isFinite(values.low_stock_threshold) ||
+      !Number.isFinite(values.compare_price) ||
+      values.price < 0 ||
+      values.stock < 0 ||
+      values.low_stock_threshold < 0 ||
+      values.compare_price < 0
+    ) {
+      toast.error("Complete all required product fields with valid values");
+      return;
+    }
+    setSubmitting(true);
+    const input: ProductInput = {
+      category_id: values.category_id,
+      name: values.name.trim(),
+      slug,
+      sku: values.sku.trim(),
+      brand: values.brand.trim() || null,
+      short_description: values.description.trim() || null,
+      description: values.description.trim() || null,
+      price: values.price,
+      compare_price: values.compare_price || null,
+      stock: values.stock,
+      low_stock_threshold: values.low_stock_threshold,
+      featured: values.featured,
+      is_new: false,
+      is_best_seller: false,
+      is_on_sale: Boolean(values.compare_price),
+      status: values.status,
+      is_active: true,
+      weight: null,
+      length: null,
+      width: null,
+      height: null,
+      rating: 0,
+      reviews_count: 0,
+      meta_title: null,
+      meta_description: null,
+      created_by: user.id,
+      updated_by: user.id,
+    };
+    try {
+      if (existing) await updateProduct(existing.id, { ...input, updated_by: user.id }, files, []);
+      else await createProduct(input, files);
+      await queryClient.invalidateQueries({ queryKey: productKeys.all });
+      toast.success(status === "active" ? "Product saved" : "Draft saved", {
+        description: values.name,
+      });
+      navigate({ to: "/admin/products" });
+    } catch (error) {
+      toast.error("Unable to save product", {
+        description: error instanceof Error ? error.message : "Please try again.",
+      });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+  const removeImage = async (imageId: string) => {
+    if (!existing) return;
+    setRemovingImageId(imageId);
+    try {
+      await deleteProductImages([imageId]);
+      await queryClient.invalidateQueries({ queryKey: productKeys.detail(existing.id, true) });
+      await queryClient.invalidateQueries({ queryKey: productKeys.all });
+      toast.success("Image removed");
+    } catch (error) {
+      toast.error("Unable to remove image", {
+        description: error instanceof Error ? error.message : "Please try again.",
+      });
+    } finally {
+      setRemovingImageId(null);
+    }
+  };
+  if (productId && isLoading)
+    return (
+      <AdminLayout title="Edit product" description="Update product information">
+        <FormSkeleton />
+      </AdminLayout>
+    );
+  return (
+    <AdminLayout
+      title={productId ? "Edit product" : "Add product"}
+      description={productId ? "Update product information" : "Create a new catalog product"}
+    >
+      <AdminBackLink />
+      <form
+        className="mt-6 grid gap-6 xl:grid-cols-[1fr_320px]"
+        onSubmit={(event) => void submit(event, "active")}
+      >
+        <div className="space-y-6">
+          <section className="rounded-xl border border-white/10 bg-white/[0.025] p-5">
+            <h2 className="font-medium">Product information</h2>
+            <div className="mt-5 grid gap-5 sm:grid-cols-2">
+              <Field
+                label="Product name"
+                value={source.name}
+                onChange={(value) => update("name", value)}
+              />
+              <Field label="Slug" value={source.slug} onChange={(value) => update("slug", value)} />
+              <div className="sm:col-span-2">
+                <Label>Description</Label>
+                <Textarea
+                  className="mt-2 min-h-28"
+                  value={source.description}
+                  onChange={(event) => update("description", event.target.value)}
+                />
+              </div>
+              <Field
+                label="Brand"
+                value={source.brand}
+                onChange={(value) => update("brand", value)}
+              />
+              <div>
+                <Label>Category</Label>
+                <select
+                  className="mt-2 h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+                  value={source.category_id}
+                  onChange={(event) => update("category_id", event.target.value)}
+                >
+                  <option value="">Select category</option>
+                  {categories.map((category) => (
+                    <option key={category.id} value={category.id}>
+                      {category.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          </section>
+          <section className="rounded-xl border border-white/10 bg-white/[0.025] p-5">
+            <h2 className="font-medium">Pricing & inventory</h2>
+            <div className="mt-5 grid gap-5 sm:grid-cols-2">
+              <Field
+                label="Price"
+                type="number"
+                value={source.price}
+                onChange={(value) => update("price", Number(value))}
+              />
+              <Field
+                label="Compare price"
+                type="number"
+                value={source.compare_price}
+                onChange={(value) => update("compare_price", Number(value))}
+              />
+              <Field
+                label="Stock"
+                type="number"
+                value={source.stock}
+                onChange={(value) => update("stock", Number(value))}
+              />
+              <Field label="SKU" value={source.sku} onChange={(value) => update("sku", value)} />
+            </div>
+          </section>
+          <section className="rounded-xl border border-white/10 bg-white/[0.025] p-5">
+            <h2 className="font-medium">Media</h2>
+            <p className="mt-1 text-xs text-muted-foreground">Add up to five product images.</p>
+            <input
+              ref={inputRef}
+              type="file"
+              accept="image/*"
+              multiple
+              className="hidden"
+              onChange={(event) =>
+                setFiles(
+                  Array.from(event.target.files ?? []).slice(
+                    0,
+                    Math.max(0, 5 - (existing?.images.length ?? 0)),
+                  ),
+                )
+              }
+            />
+            <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+              {existing?.images.map((image) => (
+                <div
+                  key={image.id}
+                  className="relative aspect-square overflow-hidden rounded-lg border border-white/10"
+                >
+                  <img
+                    src={image.image_url}
+                    alt={image.alt_text ?? source.name}
+                    className="size-full object-cover"
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="absolute right-1 top-1 bg-black/60 text-white hover:bg-black/80"
+                    aria-label="Remove image"
+                    disabled={removingImageId === image.id}
+                    onClick={() => void removeImage(image.id)}
+                  >
+                    <X className="size-4" />
+                  </Button>
+                </div>
+              ))}
+              {files.map((file) => (
+                <button
+                  key={file.name}
+                  type="button"
+                  onClick={() => inputRef.current?.click()}
+                  className="grid aspect-square place-items-center rounded-lg border border-dashed border-white/20 bg-white/[0.02] px-2 text-center text-[10px] text-muted-foreground transition-colors hover:border-teal hover:text-teal"
+                >
+                  {file.name}
+                </button>
+              ))}
+              {Array.from(
+                { length: Math.max(0, 4 - (existing?.images.length ?? 0) - files.length) },
+                (_, index) => (
+                  <button
+                    key={index}
+                    type="button"
+                    onClick={() => inputRef.current?.click()}
+                    className="grid aspect-square place-items-center rounded-lg border border-dashed border-white/20 bg-white/[0.02] text-muted-foreground transition-colors hover:border-teal hover:text-teal"
+                  >
+                    <ImagePlus className="size-5" />
+                    <span className="mt-1 text-[10px]">
+                      Image {(existing?.images.length ?? 0) + files.length + index + 1}
+                    </span>
+                  </button>
+                ),
+              )}
+            </div>
+          </section>
+        </div>
+        <aside className="space-y-6">
+          <section className="rounded-xl border border-white/10 bg-white/[0.025] p-5">
+            <h2 className="font-medium">Publishing</h2>
+            <div className="mt-5 flex items-center justify-between">
+              <div>
+                <p className="text-sm">Featured product</p>
+                <p className="text-xs text-muted-foreground">Show on your home page</p>
+              </div>
+              <Switch
+                checked={source.featured}
+                onCheckedChange={(value) => update("featured", value)}
+              />
+            </div>
+            <div className="mt-5">
+              <Label>Status</Label>
+              <select
+                className="mt-2 h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+                value={source.status}
+                onChange={(event) => update("status", event.target.value as ProductStatus)}
+              >
+                <option value="draft">Draft</option>
+                <option value="active">Active</option>
+                <option value="out_of_stock">Out of stock</option>
+              </select>
+            </div>
+          </section>
+          <div className="flex flex-col gap-3">
+            <Button type="submit" disabled={submitting}>
+              <Upload />
+              {submitting ? (files.length ? "Uploading images…" : "Saving…") : "Publish product"}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              disabled={submitting}
+              onClick={(event) => void submit(event, "draft")}
+            >
+              <Save />
+              Save draft
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => navigate({ to: "/admin/products" })}
+            >
+              <X />
+              Cancel
+            </Button>
+          </div>
+        </aside>
+      </form>
+    </AdminLayout>
+  );
 }
-function Field({ label, value, type = "text", onChange }: { label: string; value: string | number; type?: string; onChange: (value: string) => void }) { return <div><Label>{label}</Label><Input type={type} className="mt-2" value={value} onChange={(event) => onChange(event.target.value)} /></div>; }
+function Field({
+  label,
+  value,
+  type = "text",
+  onChange,
+}: {
+  label: string;
+  value: string | number;
+  type?: string;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <div>
+      <Label>{label}</Label>
+      <Input
+        type={type}
+        className="mt-2"
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+      />
+    </div>
+  );
+}
