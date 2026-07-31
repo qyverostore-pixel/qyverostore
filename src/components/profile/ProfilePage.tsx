@@ -1,18 +1,30 @@
-import { useEffect } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useAuth } from "@/providers/AuthProvider";
-import { User, Mail, Phone, Shield, Calendar, LogOut } from "lucide-react";
+import { TextField } from "@/components/text-field";
+import { supabase } from "@/lib/supabase";
+import { User, Mail, Phone, Shield, Calendar, Lock, LogOut, Package } from "lucide-react";
 import { toast } from "sonner";
 
 export function ProfilePage() {
-  const { user, profile, loading, signOut } = useAuth();
+  const { user, profile, loading, refreshProfile, signOut } = useAuth();
   const navigate = useNavigate();
+  const [profileForm, setProfileForm] = useState({ fullName: "", phone: "" });
+  const [passwordForm, setPasswordForm] = useState({ password: "", confirmPassword: "" });
+  const [profileErrors, setProfileErrors] = useState<{ fullName?: string; phone?: string }>({});
+  const [passwordErrors, setPasswordErrors] = useState<{ password?: string; confirmPassword?: string }>({});
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [savingPassword, setSavingPassword] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) {
       navigate({ to: "/auth/signin", replace: true });
     }
   }, [loading, user, navigate]);
+
+  useEffect(() => {
+    setProfileForm({ fullName: profile?.full_name ?? "", phone: profile?.phone ?? "" });
+  }, [profile?.full_name, profile?.phone]);
 
   const handleSignOut = async () => {
     try {
@@ -23,6 +35,62 @@ export function ProfilePage() {
       toast.error("Unable to sign out", {
         description: error instanceof Error ? error.message : "Please try again.",
       });
+    }
+  };
+
+  const handleProfileUpdate = async (event: FormEvent) => {
+    event.preventDefault();
+    const fullName = profileForm.fullName.trim();
+    const phone = profileForm.phone.trim();
+    const errors: typeof profileErrors = {};
+
+    if (fullName.length < 2) errors.fullName = "Enter your full name";
+    if (fullName.length > 100) errors.fullName = "Use 100 characters or fewer";
+    if (phone && !/^[+\d][\d\s()-]{6,}$/.test(phone)) errors.phone = "Enter a valid phone number";
+    setProfileErrors(errors);
+    if (Object.keys(errors).length || !user) return;
+
+    setSavingProfile(true);
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .update({ full_name: fullName, phone: phone || null })
+        .eq("id", user.id);
+      if (error) throw error;
+
+      await refreshProfile();
+      toast.success("Profile updated successfully");
+    } catch (error) {
+      toast.error("Unable to update profile", {
+        description: error instanceof Error ? error.message : "Please try again.",
+      });
+    } finally {
+      setSavingProfile(false);
+    }
+  };
+
+  const handlePasswordUpdate = async (event: FormEvent) => {
+    event.preventDefault();
+    const errors: typeof passwordErrors = {};
+    if (passwordForm.password.length < 8) errors.password = "Use at least 8 characters";
+    if (passwordForm.confirmPassword !== passwordForm.password) errors.confirmPassword = "Passwords do not match";
+    setPasswordErrors(errors);
+    if (Object.keys(errors).length) return;
+
+    setSavingPassword(true);
+    try {
+      const { error } = await supabase.auth.updateUser({ password: passwordForm.password });
+      if (error) throw error;
+
+      setPasswordForm({ password: "", confirmPassword: "" });
+      setPasswordErrors({});
+      toast.success("Password updated successfully");
+    } catch (error) {
+      toast.error("Unable to update password", {
+        description: error instanceof Error ? error.message : "Please try again.",
+      });
+    } finally {
+      setSavingPassword(false);
     }
   };
 
@@ -159,6 +227,22 @@ export function ProfilePage() {
                 )}
 
                 <button
+                  onClick={() => navigate({ to: "/profile" })}
+                  className="w-full inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/5 text-sm font-medium text-foreground transition hover:border-teal hover:text-teal"
+                >
+                  <User className="h-4 w-4" />
+                  Personal Information
+                </button>
+
+                <button
+                  onClick={() => navigate({ to: "/profile/orders" })}
+                  className="w-full inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/5 text-sm font-medium text-foreground transition hover:border-teal hover:text-teal"
+                >
+                  <Package className="h-4 w-4" />
+                  My Orders
+                </button>
+
+                <button
                   onClick={handleSignOut}
                   className="w-full inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-foreground px-4 text-sm font-semibold uppercase tracking-[0.15em] text-background transition hover:bg-foreground/90"
                 >
@@ -167,6 +251,75 @@ export function ProfilePage() {
                 </button>
               </div>
             </div>
+          </div>
+
+          <div className="mt-6 grid gap-6 md:grid-cols-2">
+            <form onSubmit={handleProfileUpdate} className="glass-card rounded-[2rem] p-6 sm:p-8">
+              <div className="mb-6">
+                <h2 className="text-display text-xl font-medium text-foreground">Edit Profile</h2>
+                <p className="mt-1 text-sm text-muted-foreground">Keep your account details up to date.</p>
+              </div>
+              <div className="space-y-4">
+                <TextField
+                  label="Full Name"
+                  autoComplete="name"
+                  icon={<User />}
+                  value={profileForm.fullName}
+                  onChange={(event) => setProfileForm((current) => ({ ...current, fullName: event.target.value }))}
+                  error={profileErrors.fullName}
+                />
+                <TextField
+                  label="Phone Number"
+                  type="tel"
+                  autoComplete="tel"
+                  icon={<Phone />}
+                  value={profileForm.phone}
+                  onChange={(event) => setProfileForm((current) => ({ ...current, phone: event.target.value }))}
+                  error={profileErrors.phone}
+                />
+                <button
+                  type="submit"
+                  disabled={savingProfile}
+                  className="w-full inline-flex h-11 items-center justify-center rounded-xl bg-foreground px-4 text-sm font-semibold uppercase tracking-[0.15em] text-background transition hover:bg-foreground/90 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {savingProfile ? "Saving…" : "Save Changes"}
+                </button>
+              </div>
+            </form>
+
+            <form onSubmit={handlePasswordUpdate} className="rounded-[2rem] border border-white/10 bg-white/[0.02] p-6 sm:p-8">
+              <div className="mb-6">
+                <h2 className="text-display text-xl font-medium text-foreground">Change Password</h2>
+                <p className="mt-1 text-sm text-muted-foreground">Use at least 8 characters to secure your account.</p>
+              </div>
+              <div className="space-y-4">
+                <TextField
+                  label="New Password"
+                  type="password"
+                  autoComplete="new-password"
+                  icon={<Lock />}
+                  value={passwordForm.password}
+                  onChange={(event) => setPasswordForm((current) => ({ ...current, password: event.target.value }))}
+                  error={passwordErrors.password}
+                />
+                <TextField
+                  label="Confirm Password"
+                  type="password"
+                  autoComplete="new-password"
+                  icon={<Lock />}
+                  value={passwordForm.confirmPassword}
+                  onChange={(event) => setPasswordForm((current) => ({ ...current, confirmPassword: event.target.value }))}
+                  error={passwordErrors.confirmPassword}
+                />
+                <button
+                  type="submit"
+                  disabled={savingPassword}
+                  className="w-full inline-flex h-11 items-center justify-center rounded-xl border border-white/15 bg-white/5 px-4 text-sm font-medium text-foreground transition hover:border-teal hover:text-teal disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {savingPassword ? "Updating…" : "Update Password"}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       </section>

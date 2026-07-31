@@ -1,29 +1,35 @@
 import { Link } from "@tanstack/react-router";
+import type { SVGProps } from "react";
 import {
   ArrowRight,
   ArrowUpRight,
   Wallet,
   Watch,
   Sparkles,
-  ShoppingBag,
-  Headphones,
   Cpu,
   ShieldCheck,
-  Package,
   Truck,
   Instagram,
   Facebook,
   Mail,
   MessageCircle,
   Star,
+  Gem,
+  Dumbbell,
+  Shirt,
 } from "lucide-react";
+import { PiBeltFill } from "react-icons/pi";
 import { useState } from "react";
 import { BrandMark } from "@/components/brand-mark";
-import { getSocialLink } from "@/data/social";
+import { EmptyState } from "@/components/ui/empty-state";
+import { useFeaturedProducts } from "@/hooks/use-products";
+import type { StoreProduct } from "@/services/products";
+import { useStorefrontSettings } from "@/providers/StorefrontSettingsProvider";
+import { emailUrl, externalUrl, whatsappUrl } from "@/services/store-settings";
 
 /* ---------- shared bits ---------- */
 
-const TikTokIcon = (props: React.SVGProps<SVGSVGElement>) => (
+const TikTokIcon = (props: SVGProps<SVGSVGElement>) => (
   <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
     <path d="M19.6 6.3a5.3 5.3 0 0 1-3.2-1.1V15a5.5 5.5 0 1 1-5.5-5.5c.3 0 .6 0 .9.1v2.7a2.8 2.8 0 1 0 2 2.7V2h2.6a5.3 5.3 0 0 0 3.2 4.3v0Z" />
   </svg>
@@ -68,13 +74,14 @@ function SectionHeading({
 /* ---------- hero ---------- */
 
 function Hero() {
+  const settings = useStorefrontSettings();
   const socials = [
-    { label: "Instagram", Icon: Instagram, href: getSocialLink("Instagram").href },
-    { label: "Facebook", Icon: Facebook, href: getSocialLink("Facebook").href },
-    { label: "TikTok", Icon: TikTokIcon, href: getSocialLink("TikTok").href },
-    { label: "WhatsApp", Icon: MessageCircle, href: getSocialLink("WhatsApp").href },
-    { label: "Email", Icon: Mail, href: getSocialLink("Email").href },
-  ];
+    { label: "Instagram", Icon: Instagram, href: externalUrl(settings.instagram) },
+    { label: "Facebook", Icon: Facebook, href: externalUrl(settings.facebook) },
+    { label: "TikTok", Icon: TikTokIcon, href: externalUrl(settings.tiktok) },
+    { label: "WhatsApp", Icon: MessageCircle, href: whatsappUrl(settings.whatsapp) },
+    { label: "Email", Icon: Mail, href: emailUrl(settings.email) },
+  ].filter((social) => social.href);
 
   return (
     <section className="bg-noise relative isolate overflow-hidden">
@@ -165,13 +172,54 @@ function Hero() {
 /* ---------- categories ---------- */
 
 const CATEGORIES = [
-  { name: "Wallets", Icon: Wallet, soon: false },
-  { name: "Watches", Icon: Watch, soon: false },
-  { name: "Belts", Icon: Package, soon: false },
-  { name: "Perfumes", Icon: Sparkles, soon: false },
-  { name: "Cross Bags", Icon: ShoppingBag, soon: false },
-  { name: "Accessories", Icon: Headphones, soon: false },
-  { name: "Tech", Icon: Cpu, soon: true },
+  {
+    name: "Wallets & Bags",
+    slug: "wallets-bags",
+    Icon: Wallet,
+    soon: false,
+  },
+  {
+    name: "Watches",
+    slug: "watches",
+    Icon: Watch,
+    soon: false,
+  },
+  {
+    name: "Belts",
+    slug: "belts",
+    Icon: PiBeltFill,
+    soon: false,
+  },
+  {
+    name: "Perfumes",
+    slug: "perfumes",
+    Icon: Sparkles,
+    soon: false,
+  },
+  {
+    name: "Accessories",
+    slug: "accessories",
+    Icon: Gem,
+    soon: false,
+  },
+  {
+    name: "Tech & Computer Accessories",
+    slug: "tech-computer-accessories",
+    Icon: Cpu,
+    soon: false,
+  },
+  {
+    name: "Gym & Fitness Accessories",
+    slug: "gym-fitness-accessories",
+    Icon: Dumbbell,
+    soon: false,
+  },
+  {
+    name: "Clothing & Shoes & Socks",
+    slug: "clothing-shoes-socks",
+    Icon: Shirt,
+    soon: true,
+  },
 ];
 
 function Categories() {
@@ -185,10 +233,11 @@ function Categories() {
         />
 
         <div className="mt-16 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-          {CATEGORIES.map(({ name, Icon, soon }) => (
+          {CATEGORIES.map(({ name, slug, Icon, soon }) => (
             <Link
-              key={name}
+              key={slug}
               to="/products"
+              search={{ category: slug }}
               className="group relative overflow-hidden rounded-3xl border border-white/10 bg-white/[0.02] p-6 transition-all duration-500 hover:-translate-y-1 hover:border-white/25 hover:bg-white/[0.04] active:scale-[0.98]"
             >
               <div
@@ -219,30 +268,12 @@ function Categories() {
 
 /* ---------- featured products ---------- */
 
-type Product = {
-  id: number;
-  name: string;
-  category: string;
-  price: number;
-  tone: string;
-};
-
-const PRODUCTS: Product[] = [
-  { id: 1, name: "Bifold Leather Wallet", category: "Wallets", price: 89, tone: "from-neutral-800 to-neutral-950" },
-  { id: 2, name: "Chrono Steel 42mm", category: "Watches", price: 349, tone: "from-teal/25 to-neutral-950" },
-  { id: 3, name: "Signature Belt — Onyx", category: "Belts", price: 79, tone: "from-neutral-700 to-neutral-950" },
-  { id: 4, name: "Noir Eau de Parfum", category: "Perfumes", price: 129, tone: "from-amber-900/40 to-neutral-950" },
-  { id: 5, name: "Urban Cross Bag", category: "Cross Bags", price: 149, tone: "from-neutral-800 to-neutral-950" },
-  { id: 6, name: "Minimal Card Holder", category: "Accessories", price: 49, tone: "from-neutral-900 to-neutral-950" },
-  { id: 7, name: "Wireless Earbuds Pro", category: "Tech", price: 199, tone: "from-teal/20 to-neutral-950" },
-  { id: 8, name: "Aviator Sunglasses", category: "Accessories", price: 119, tone: "from-neutral-800 to-neutral-950" },
-];
-
-function ProductCard({ product }: { product: Product }) {
+function ProductCard({ product }: { product: StoreProduct }) {
+  const settings = useStorefrontSettings();
   return (
     <article className="group flex flex-col overflow-hidden rounded-3xl border border-white/10 bg-white/[0.02] transition-all duration-500 hover:-translate-y-1 hover:border-white/25">
       <div
-        className={`relative aspect-square overflow-hidden bg-gradient-to-br ${product.tone}`}
+        className="relative aspect-square overflow-hidden bg-gradient-to-br from-neutral-800 to-neutral-950"
       >
         <div
           aria-hidden
@@ -252,13 +283,21 @@ function ProductCard({ product }: { product: Product }) {
               "radial-gradient(circle at 30% 20%, rgba(255,255,255,0.15), transparent 60%)",
           }}
         />
-        <div className="absolute inset-0 grid place-items-center">
-          <span className="text-display text-6xl font-light text-white/10">
-            QY
-          </span>
-        </div>
+        {product.images[0] ? (
+          <img
+            src={product.images[0].image_url}
+            alt={product.images[0].alt_text ?? product.name}
+            className="absolute inset-0 size-full object-cover"
+          />
+        ) : (
+          <div className="absolute inset-0 grid place-items-center">
+            <span className="text-display text-6xl font-light text-white/10">
+              QY
+            </span>
+          </div>
+        )}
         <span className="absolute left-4 top-4 rounded-full border border-white/15 bg-black/30 px-3 py-1 text-[10px] uppercase tracking-[0.3em] text-foreground/90 backdrop-blur">
-          {product.category}
+          {product.category?.name ?? "Collection"}
         </span>
       </div>
 
@@ -269,7 +308,7 @@ function ProductCard({ product }: { product: Product }) {
               {product.name}
             </h3>
             <p className="mt-1 text-sm font-semibold text-teal">
-              ${product.price}
+              ${Number(product.price)}
             </p>
           </div>
         </div>
@@ -277,13 +316,13 @@ function ProductCard({ product }: { product: Product }) {
         <div className="mt-auto flex flex-col gap-2">
           <Link
             to="/products/$productId"
-            params={{ productId: String(product.id) }}
+            params={{ productId: product.slug }}
             className="inline-flex items-center justify-center gap-2 rounded-full bg-foreground px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.2em] text-background transition hover:bg-foreground/90 text-center"
           >
             View Details
           </Link>
           <a
-            href={`https://wa.me/201505967144?text=${encodeURIComponent(`Hello QYVERO, I'm interested in the ${product.name}.`)}`}
+            href={whatsappUrl(settings.whatsapp, `Hello QYVERO, I'm interested in the ${product.name}.`)}
             target="_blank"
             rel="noreferrer"
             className="inline-flex items-center justify-center gap-2 rounded-full border border-white/15 px-4 py-2.5 text-xs font-medium text-foreground transition hover:border-teal hover:text-teal"
@@ -298,6 +337,7 @@ function ProductCard({ product }: { product: Product }) {
 }
 
 function FeaturedProducts() {
+  const { data: products = [] } = useFeaturedProducts();
   return (
     <section className="relative py-24 sm:py-32">
       <div className="mx-auto w-full max-w-7xl px-6">
@@ -318,10 +358,18 @@ function FeaturedProducts() {
         </div>
 
         <div className="mt-14 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          {PRODUCTS.map((p) => (
+          {products.map((p) => (
             <ProductCard key={p.id} product={p} />
           ))}
         </div>
+        {!products.length && (
+          <div className="mt-14">
+            <EmptyState
+              title="No featured products"
+              description="Featured products will appear here when they are available."
+            />
+          </div>
+        )}
       </div>
     </section>
   );
@@ -444,57 +492,45 @@ function BrandStory() {
 /* ---------- instagram preview ---------- */
 
 function InstagramPreview() {
-  const tiles = [
-    "from-neutral-800 to-neutral-950",
-    "from-teal/30 to-neutral-950",
-    "from-amber-900/40 to-neutral-950",
-    "from-neutral-700 to-neutral-950",
-    "from-teal/20 to-neutral-950",
-    "from-neutral-800 to-neutral-950",
-  ];
+  const settings = useStorefrontSettings();
   return (
     <section className="relative py-24 sm:py-32">
       <div className="mx-auto w-full max-w-7xl px-6">
-        <SectionHeading
-          eyebrow="@qyvero"
-          title="Follow the brand on Instagram"
-          description="Fresh drops, styling, and behind the scenes."
-        />
-        <div className="mt-14 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-          {tiles.map((tone, i) => (
+        <div className="glass-card relative overflow-hidden rounded-[2rem] px-8 py-16 text-center sm:px-16">
+          <div
+            aria-hidden
+            className="pointer-events-none absolute -left-24 -top-24 h-64 w-64 rounded-full bg-teal/20 blur-3xl"
+          />
+          <div
+            aria-hidden
+            className="pointer-events-none absolute -bottom-24 -right-24 h-64 w-64 rounded-full bg-teal/10 blur-3xl"
+          />
+
+          <span className="grid h-16 w-16 mx-auto place-items-center rounded-2xl border border-white/10 bg-white/[0.03] text-teal">
+            <Instagram className="h-7 w-7" />
+          </span>
+
+          <p className="mt-8 text-[11px] font-semibold uppercase tracking-[0.4em] text-teal">
+            {settings.instagram.replace(/^https?:\/\/(www\.)?instagram\.com\//i, "@").replace(/\/$/, "") || "Instagram"}
+          </p>
+          <h2 className="text-display mt-4 text-3xl font-light leading-[1.1] text-foreground sm:text-4xl md:text-5xl">
+            Follow the brand on Instagram
+          </h2>
+          <p className="mx-auto mt-4 max-w-md text-base leading-relaxed text-muted-foreground">
+            Fresh drops, styling, and behind the scenes.
+          </p>
+
+          <div className="mt-10 flex justify-center">
             <a
-              key={i}
-              href={getSocialLink("Instagram").href}
+              href={externalUrl(settings.instagram)}
               target="_blank"
               rel="noreferrer"
-              className={`group relative aspect-square overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br ${tone} transition-all duration-500 hover:-translate-y-1 hover:border-white/25`}
+              className="inline-flex items-center gap-2 rounded-full bg-foreground px-6 py-3 text-sm font-semibold uppercase tracking-[0.2em] text-background transition hover:bg-foreground/90"
             >
-              <div
-                aria-hidden
-                className="absolute inset-0 opacity-30"
-                style={{
-                  backgroundImage:
-                    "radial-gradient(circle at 30% 20%, rgba(255,255,255,0.2), transparent 60%)",
-                }}
-              />
-              <div className="absolute inset-0 grid place-items-center opacity-0 transition-opacity duration-500 group-hover:opacity-100">
-                <span className="grid h-11 w-11 place-items-center rounded-full border border-white/30 bg-black/30 text-foreground backdrop-blur">
-                  <Instagram className="h-5 w-5" />
-                </span>
-              </div>
+              <Instagram className="h-4 w-4" />
+              Follow Us
             </a>
-          ))}
-        </div>
-        <div className="mt-10 flex justify-center">
-          <a
-            href={getSocialLink("Instagram").href}
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex items-center gap-2 rounded-full bg-foreground px-6 py-3 text-sm font-semibold uppercase tracking-[0.2em] text-background transition hover:bg-foreground/90"
-          >
-            <Instagram className="h-4 w-4" />
-            Follow Us
-          </a>
+          </div>
         </div>
       </div>
     </section>
@@ -532,7 +568,6 @@ function Newsletter() {
             onSubmit={(e) => {
               e.preventDefault();
               if (!email) return;
-              // TODO: connect Supabase
               setDone(true);
               setEmail("");
               setTimeout(() => setDone(false), 3000);

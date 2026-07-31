@@ -1,6 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { ProfilePage } from "@/components/profile/ProfilePage";
+import { createFileRoute, Outlet } from "@tanstack/react-router";
+import { seoHead } from "@/lib/seo";
 
 export const Route = createFileRoute("/profile")({
-  component: ProfilePage,
+  component: Outlet,
+  head: () => seoHead({ title: "Your Profile", description: "Manage your QYVERO profile and orders.", path: "/profile", robots: "noindex,nofollow" }),
 });

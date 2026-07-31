@@ -1,5 +1,5 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
-import { Bell, Boxes, ChevronLeft, ClipboardList, LayoutDashboard, LogOut, Mail, Menu, Settings, Tags, Users, X } from "lucide-react";
+import { Bell, Boxes, ChevronLeft, ClipboardList, LayoutDashboard, LogOut, Mail, Menu, Settings, Star, Tags, TicketPercent, Truck, Users, X } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 import { BrandMark } from "@/components/brand-mark";
 import { Button } from "@/components/ui/button";
@@ -8,7 +8,7 @@ import { useAuth } from "@/providers/AuthProvider";
 import { toast } from "sonner";
 
 const items = [
-  { label: "Dashboard", to: "/admin", icon: LayoutDashboard }, { label: "Products", to: "/admin/products", icon: Boxes }, { label: "Categories", to: "/admin/categories", icon: Tags }, { label: "Orders", to: "/admin/orders", icon: ClipboardList }, { label: "Customers", to: "/admin/customers", icon: Users }, { label: "Messages", to: "/admin/messages", icon: Mail }, { label: "Settings", to: "/admin/settings", icon: Settings },
+  { label: "Dashboard", to: "/admin", icon: LayoutDashboard }, { label: "Products", to: "/admin/products", icon: Boxes }, { label: "Categories", to: "/admin/categories", icon: Tags }, { label: "Orders", to: "/admin/orders", icon: ClipboardList }, { label: "Shipping", to: "/admin/shipping", icon: Truck }, { label: "Coupons", to: "/admin/coupons", icon: TicketPercent }, { label: "Reviews", to: "/admin/reviews", icon: Star }, { label: "Customers", to: "/admin/customers", icon: Users }, { label: "Messages", to: "/admin/messages", icon: Mail }, { label: "Email Settings", to: "/admin/email-settings", icon: Mail }, { label: "Settings", to: "/admin/settings", icon: Settings },
 ] as const;
 
 export function AdminLayout({ title, description, actions, children }: { title: string; description: string; actions?: ReactNode; children: ReactNode }) {

@@ -1,5 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { getSocialLink } from "@/data/social";
+import omarImage from "./images/omar.jpeg";
+import shaltatImage from "./images/shaltat.jpeg";
 import {
   ArrowRight,
   Check,
@@ -79,7 +81,7 @@ function Hero() {
           About QYVERO
         </span>
         <h1 className="text-display mt-8 max-w-4xl text-5xl font-light leading-[0.98] sm:text-7xl md:text-[6.25rem]">
-          The story behind <span className="italic text-teal">QYVERO.</span>
+          The vision behind <span className="italic text-teal">QYVERO.</span>
         </h1>
         <p className="mt-7 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg">
           A modern men&apos;s lifestyle brand, engineered around the things worth carrying every
@@ -116,18 +118,19 @@ function Story() {
         <div>
           <SectionHeading
             eyebrow="Our beginning"
-            title="Two students, one considered idea."
+            title="One vision, one standard."
             align="left"
           />
           <div className="mt-8 space-y-5 text-base leading-relaxed text-muted-foreground">
             <p>
-              QYVERO began with two Computer Science students who saw the same gap in the things men
-              use every day: too much noise, too little intention.
+              QYVERO began with two Computer Science students who saw the same gap in the things
+              men use every day: too much noise, too little intention.
             </p>
             <p>
-              We shared a belief that fashion and technology should speak the same language — clean,
-              purposeful, and quietly capable. What started as late-night conversations about design
-              systems and everyday carry became a vision for a premium men&apos;s lifestyle brand.
+              The vision was simple: fashion and technology should speak the same
+              language—clean, purposeful, and quietly capable. What started as late-night ideas
+              about design, branding, and everyday carry evolved into a premium men's lifestyle
+              brand.
             </p>
             <p>
               Today, QYVERO selects accessories and essentials with the precision of a product team
@@ -250,19 +253,17 @@ function Values() {
   );
 }
 
-function FounderCard({
-  role,
-  initials,
-  name,
-  tone,
-}: {
+type FounderCardProps = {
   role: string;
-  initials: string;
   name: string;
   tone: string;
-}) {
+  image: string;
+  bio: string;
+};
+
+function FounderCard({ role, name, tone, image, bio }: FounderCardProps) {
   return (
-    <article className="group overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.02]">
+    <article className="group w-full max-w-md overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.02]">
       <div className={`relative aspect-[4/3] overflow-hidden bg-gradient-to-br ${tone}`}>
         <div
           aria-hidden
@@ -272,25 +273,51 @@ function FounderCard({
               "radial-gradient(circle at 25% 20%, rgba(255,255,255,.25), transparent 30%)",
           }}
         />
-        <div className="absolute inset-0 grid place-items-center">
-          <span className="text-display text-7xl font-light tracking-[0.15em] text-white/30">
-            {initials}
-          </span>
+
+        <div className="absolute inset-0 flex items-center justify-center">
+          <img
+            src={image}
+            alt={name}
+            className="h-64 w-52 rounded-[1.5rem] border border-white/10 object-cover shadow-2xl transition-transform duration-700 group-hover:scale-105"
+          />
         </div>
-        <span className="absolute bottom-5 left-5 rounded-full border border-white/15 bg-black/25 px-3 py-1 text-[10px] uppercase tracking-[0.25em] text-foreground/85 backdrop-blur">
+
+        <div className="absolute inset-0 bg-black/20" />
+
+        <span className="absolute bottom-5 left-5 rounded-full border border-white/15 bg-black/25 px-3 py-1 text-[10px] uppercase tracking-[0.25em] text-white backdrop-blur">
           QYVERO
         </span>
       </div>
+
       <div className="p-7">
-        <p className="text-[10px] font-semibold uppercase tracking-[0.3em] text-teal">{role}</p>
-        <h3 className="text-display mt-3 text-2xl font-medium">{name}</h3>
-        <p className="mt-3 text-sm leading-6 text-muted-foreground">
-          Computer Science student and co-architect of the QYVERO vision.
+        <p className="text-[10px] font-semibold uppercase tracking-[0.3em] text-teal">
+          {role}
         </p>
+
+        <h3 className="text-display mt-3 text-2xl font-medium">{name}</h3>
+
+        <p className="mt-3 text-sm leading-6 text-muted-foreground">{bio}</p>
       </div>
     </article>
   );
 }
+
+const founders = [
+  {
+    role: "Founder & CEO",
+    name: "Omar Mahmoud",
+    tone: "from-teal/30 via-neutral-800 to-neutral-950",
+    image: omarImage,
+    bio: "Computer Science student, founder of QYVERO, and passionate about building a premium men's lifestyle brand through design and technology.",
+  },
+  {
+    role: "Co-Founder",
+    name: "Omar Shaltout",
+    tone: "from-neutral-800 via-neutral-900 to-teal/25",
+    image: shaltatImage,
+    bio: "Computer Science student and co-founder of QYVERO, driven by the same vision of turning technology and design into everyday essentials.",
+  },
+];
 
 function Founders() {
   return (
@@ -299,27 +326,18 @@ function Founders() {
         <SectionHeading
           eyebrow="The people behind it"
           title="Meet the founders."
-          description="Two minds with a shared standard for what modern essentials should be."
+          description="The vision behind QYVERO."
         />
-        <div className="mt-16 grid gap-5 md:grid-cols-2">
-          <FounderCard
-            role="Founder"
-            name="Founder Name"
-            initials="FN"
-            tone="from-teal/30 via-neutral-800 to-neutral-950"
-          />
-          <FounderCard
-            role="Co-Founder"
-            name="Co-Founder Name"
-            initials="CN"
-            tone="from-stone-600 via-neutral-800 to-neutral-950"
-          />
+
+        <div className="mt-16 flex flex-wrap justify-center gap-8">
+          {founders.map((founder) => (
+            <FounderCard key={founder.name} {...founder} />
+          ))}
         </div>
       </div>
     </section>
   );
 }
-
 function CallToAction() {
   return (
     <section className="pb-24 pt-8 sm:pb-32">

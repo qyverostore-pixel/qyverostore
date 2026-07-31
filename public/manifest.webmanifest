@@ -1,0 +1,10 @@
+{
+  "name": "QYVERO Store",
+  "short_name": "QYVERO",
+  "description": "Luxury men's lifestyle essentials and refined accessories.",
+  "start_url": "/",
+  "display": "browser",
+  "background_color": "#0D0D0D",
+  "theme_color": "#0D0D0D",
+  "icons": [{ "src": "/favicon.ico", "sizes": "any", "type": "image/x-icon" }]
+}

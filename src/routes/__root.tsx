@@ -15,6 +15,8 @@ import { Footer } from "@/components/layout/Footer";
 import { Toaster } from "@/components/ui/sonner";
 import { PageTransition } from "@/components/ui/page-transition";
 import { AuthProvider, useAuth } from "@/providers/AuthProvider";
+import { StorefrontSettingsProvider } from "@/providers/StorefrontSettingsProvider";
+import { defaultDescription, organizationSchema, websiteSchema } from "@/lib/seo";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
@@ -44,7 +46,6 @@ function NotFoundComponent() {
 }
 
 function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
-  console.error(error);
   const router = useRouter();
   useEffect(() => {
     reportLovableError(error, { boundary: "tanstack_root_error_component" });
@@ -69,12 +70,12 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
           >
             Try again
           </button>
-          <a
-            href="/"
+          <Link
+            to="/"
             className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
           >
             Go home
-          </a>
+          </Link>
         </div>
       </div>
     </div>
@@ -94,6 +95,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       { name: "author", content: "QYVERO" },
       { name: "theme-color", content: "#0D0D0D" },
+      { name: "color-scheme", content: "dark" },
       { property: "og:title", content: "QYVERO — Own Your Style." },
       {
         property: "og:description",
@@ -112,6 +114,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     ],
     links: [
       { rel: "stylesheet", href: appCss },
+      { rel: "icon", href: "/favicon.ico", sizes: "any" },
+      { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
+      { rel: "manifest", href: "/manifest.webmanifest" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       {
         rel: "preconnect",
@@ -135,6 +140,7 @@ function RootShell({ children }: { children: ReactNode }) {
     <html lang="en">
       <head>
         <HeadContent />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify([organizationSchema, websiteSchema]) }} />
       </head>
       <body>
         {children}
@@ -152,12 +158,14 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <PostLoginRedirect />
-        {!hideChrome && <Navbar />}
-        {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-        <PageTransition><Outlet /></PageTransition>
-        {!hideChrome && <Footer />}
-        <Toaster richColors position="top-right" />
+        <StorefrontSettingsProvider>
+          <PostLoginRedirect />
+          {!hideChrome && <Navbar />}
+          {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+          <PageTransition><Outlet /></PageTransition>
+          {!hideChrome && <Footer />}
+          <Toaster richColors position="top-right" />
+        </StorefrontSettingsProvider>
       </AuthProvider>
     </QueryClientProvider>
   );

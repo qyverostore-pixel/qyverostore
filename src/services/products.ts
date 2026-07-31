@@ -3,6 +3,8 @@ import { supabase } from "@/lib/supabase";
 export type ProductStatus = "draft" | "active" | "out_of_stock";
 
 export type StoreCategory = { id: string; name: string; slug: string; is_active: boolean };
+export type AdminCategory = StoreCategory & { icon: string | null; description: string | null; sort_order: number };
+export type CategoryInput = { name: string; slug: string; icon: string | null; description: string | null; sort_order: number; is_active: boolean };
 export type ProductImage = { id: string; product_id: string; image_url: string; storage_path: string | null; alt_text: string | null; sort_order: number; is_primary: boolean; created_at: string };
 export type StoreProduct = {
   id: string; category_id: string | null; name: string; slug: string; sku: string; brand: string | null;
@@ -14,22 +16,22 @@ export type StoreProduct = {
 };
 
 export type ProductInput = Omit<StoreProduct, "id" | "created_at" | "updated_at" | "category" | "images">;
-const productSelect = "*, category:categories(id,name,slug,is_active), images:product_images(id,product_id,image_url,storage_path,alt_text,sort_order,is_primary,created_at)";
+export const storeProductSelect = "*, category:categories(id,name,slug,is_active), images:product_images(id,product_id,image_url,storage_path,alt_text,sort_order,is_primary,created_at)";
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 const normaliseProduct = (product: StoreProduct): StoreProduct => ({ ...product, images: [...(product.images ?? [])].sort((a, b) => Number(b.is_primary) - Number(a.is_primary) || a.sort_order - b.sort_order) });
 const fail = (error: { message: string } | null) => { if (error) throw new Error(error.message); };
 
 export async function getProducts(admin = false) {
-  let query = supabase.from("products").select(productSelect).order("created_at", { ascending: false });
-  if (!admin) query = query.eq("is_active", true).eq("status", "active");
+  let query = supabase.from("products").select(storeProductSelect).order("created_at", { ascending: false });
+  if (!admin) query = query.eq("is_active", true).in("status", ["active", "out_of_stock"]);
   const { data, error } = await query;
   fail(error);
   return ((data ?? []) as StoreProduct[]).map(normaliseProduct);
 }
 
 export async function getFeaturedProducts() {
-  const { data, error } = await supabase.from("products").select(productSelect).eq("is_active", true).eq("status", "active").eq("featured", true).order("created_at", { ascending: false }).limit(4);
+  const { data, error } = await supabase.from("products").select(storeProductSelect).eq("is_active", true).in("status", ["active", "out_of_stock"]).eq("featured", true).order("created_at", { ascending: false }).limit(4);
   fail(error);
   return ((data ?? []) as StoreProduct[]).map(normaliseProduct);
 }
@@ -40,17 +42,27 @@ export async function getCategories() {
   return (data ?? []) as StoreCategory[];
 }
 
+export async function updateCategory(id: string, input: CategoryInput) {
+  const { error } = await supabase.from("categories").update(input).eq("id", id);
+  fail(error);
+}
+
+export async function deleteCategory(id: string) {
+  const { error } = await supabase.from("categories").delete().eq("id", id);
+  fail(error);
+}
+
 export async function getProduct(identifier: string, admin = false) {
-  let query = supabase.from("products").select(productSelect);
+  let query = supabase.from("products").select(storeProductSelect);
   query = uuid.test(identifier) ? query.eq("id", identifier) : query.eq("slug", identifier);
-  if (!admin) query = query.eq("is_active", true).eq("status", "active");
+  if (!admin) query = query.eq("is_active", true).in("status", ["active", "out_of_stock"]);
   const { data, error } = await query.maybeSingle();
   fail(error);
   return data ? normaliseProduct(data as StoreProduct) : null;
 }
 
 export async function getRelatedProducts(product: StoreProduct) {
-  let query = supabase.from("products").select(productSelect).eq("is_active", true).eq("status", "active").neq("id", product.id).limit(4);
+  let query = supabase.from("products").select(storeProductSelect).eq("is_active", true).in("status", ["active", "out_of_stock"]).neq("id", product.id).limit(4);
   if (product.category_id) query = query.eq("category_id", product.category_id);
   const { data, error } = await query;
   fail(error);
@@ -77,7 +89,7 @@ export async function uploadProductImages(productId: string, files: File[]) {
 }
 
 export async function createProduct(input: ProductInput, files: File[]) {
-  const { data, error } = await supabase.from("products").insert(input).select(productSelect).single();
+  const { data, error } = await supabase.from("products").insert(input).select(storeProductSelect).single();
   fail(error);
   try {
     if (files.length) await uploadProductImages(data.id, files);

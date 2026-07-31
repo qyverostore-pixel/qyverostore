@@ -1,3 +1,3 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { MessagesPage } from "@/components/admin/AdminPages";
-export const Route = createFileRoute("/admin/messages")({ component: MessagesPage });
+import { MessagesManagement } from "@/components/admin/MessagesManagement";
+export const Route = createFileRoute("/admin/messages")({ component: MessagesManagement });

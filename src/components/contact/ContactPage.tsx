@@ -11,12 +11,15 @@ import {
 } from "lucide-react";
 import { useState, type ElementType, type FormEvent, type SVGProps } from "react";
 import { toast } from "sonner";
+import { createMessage } from "@/services/messages";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { useStorefrontSettings } from "@/providers/StorefrontSettingsProvider";
+import { emailUrl, externalUrl, whatsappUrl, type StorefrontSettings } from "@/services/store-settings";
 
 type ContactChannel = {
   name: string;
@@ -25,38 +28,15 @@ type ContactChannel = {
   Icon: ElementType<SVGProps<SVGSVGElement>>;
 };
 
-const contactChannels: ContactChannel[] = [
-  {
-    name: "WhatsApp",
-    handle: "+20 150 596 7144",
-    href: "https://wa.me/201505967144",
-    Icon: MessageCircle,
-  },
-  {
-    name: "Email",
-    handle: "qyverostore@gmail.com",
-    href: "mailto:qyverostore@gmail.com",
-    Icon: Mail,
-  },
-  {
-    name: "Instagram",
-    handle: "@qyverostore",
-    href: "https://www.instagram.com/qyverostore",
-    Icon: Instagram,
-  },
-  {
-    name: "Facebook",
-    handle: "QYVERO Store",
-    href: "https://www.facebook.com/share/1JiGemJjBM/",
-    Icon: Facebook,
-  },
-  {
-    name: "TikTok",
-    handle: "@qyvero.store",
-    href: "https://www.tiktok.com/@qyvero.store",
-    Icon: TikTokIcon,
-  },
-];
+function contactChannels(settings: StorefrontSettings): ContactChannel[] {
+  return [
+    { name: "WhatsApp", handle: settings.whatsapp, href: whatsappUrl(settings.whatsapp), Icon: MessageCircle },
+    { name: "Email", handle: settings.email, href: emailUrl(settings.email), Icon: Mail },
+    { name: "Instagram", handle: settings.instagram, href: externalUrl(settings.instagram), Icon: Instagram },
+    { name: "Facebook", handle: settings.facebook, href: externalUrl(settings.facebook), Icon: Facebook },
+    { name: "TikTok", handle: settings.tiktok, href: externalUrl(settings.tiktok), Icon: TikTokIcon },
+  ].filter((channel) => channel.href);
+}
 
 const faqs = [
   [
@@ -141,14 +121,53 @@ function ContactCard({ channel }: { channel: ContactChannel }) {
 
 function ContactForm() {
   const [sent, setSent] = useState(false);
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setSent(true);
-    event.currentTarget.reset();
-    toast.success("Message sent", { description: "Our team will get back to you shortly." });
+
+    const formElement = event.currentTarget;
+    const form = new FormData(formElement);
+
+    const name = String(form.get("fullName") ?? "").trim();
+    const email = String(form.get("email") ?? "").trim();
+    const subject = String(form.get("subject") ?? "").trim();
+    const message = String(form.get("message") ?? "").trim();
+
+    if (!name || !email || !subject || !message) {
+      toast.error("Complete all contact fields");
+      return;
+    }
+
+    setSubmitting(true);
+
+    try {
+      await createMessage({
+        full_name: name,
+        email,
+        subject,
+        message,
+      });
+
+      setSent(true);
+      formElement.reset();
+
+      toast.success("Message sent", {
+        description: "Our team will get back to you shortly.",
+      });
+    } catch (error) {
+      toast.error("Unable to send message", {
+        description:
+          error instanceof Error ? error.message : "Please try again.",
+      });
+    } finally {
+      setSubmitting(false);
+    }
   };
+
   const inputClass =
     "mt-2 h-12 rounded-xl border-white/15 bg-white/[0.025] px-4 text-sm text-foreground placeholder:text-muted-foreground focus:border-teal focus:ring-2 focus:ring-teal/20";
+
   return (
     <form onSubmit={handleSubmit} className="glass-card rounded-[2rem] p-6 sm:p-9">
       <div className="grid gap-5 sm:grid-cols-2">
@@ -196,10 +215,11 @@ function ContactForm() {
         </p>
         <button
           type="submit"
+          disabled={submitting}
           className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-foreground px-6 text-xs font-semibold uppercase tracking-[0.18em] text-background transition hover:bg-foreground/90"
         >
           <Send className="h-4 w-4" />
-          {sent ? "Message Sent" : "Send Message"}
+          {submitting ? "Sending…" : sent ? "Message Sent" : "Send Message"}
         </button>
       </div>
     </form>
@@ -226,6 +246,7 @@ function BusinessInfo() {
 }
 
 export function ContactPage() {
+  const settings = useStorefrontSettings();
   return (
     <main className="min-h-screen bg-noise pb-24 sm:pb-32">
       <section className="relative isolate overflow-hidden border-b border-white/10">
@@ -254,7 +275,7 @@ export function ContactPage() {
             description="Reach out through the channel that feels most natural to you."
           />
           <div className="mt-14 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
-            {contactChannels.map((channel) => (
+            {contactChannels(settings).map((channel) => (
               <ContactCard key={channel.name} channel={channel} />
             ))}
           </div>
@@ -274,8 +295,7 @@ export function ContactPage() {
                 <ShieldCheck className="h-4 w-4" />
               </span>
               <p className="pt-1">
-                Your message is handled with care. There is no backend connected yet, so messages
-                are not stored.
+                Your message is handled with care and securely delivered to our team.
               </p>
             </div>
           </div>

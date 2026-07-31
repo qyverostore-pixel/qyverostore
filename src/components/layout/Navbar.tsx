@@ -1,32 +1,30 @@
 import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import {
-  Search,
-  Heart,
-  ShoppingBag,
-  Menu,
-  X,
-  Instagram,
-  Facebook,
-} from "lucide-react";
+import { Search, Heart, ShoppingBag, Menu, X, Instagram, Facebook } from "lucide-react";
 import { BrandMark } from "@/components/brand-mark";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/providers/AuthProvider";
 import { toast } from "sonner";
+import { useCart } from "@/hooks/use-cart";
+import { useWishlist } from "@/hooks/use-wishlist";
+import { SearchModal } from "@/components/layout/SearchModal";
+import { useStorefrontSettings } from "@/providers/StorefrontSettingsProvider";
+import { externalUrl, whatsappUrl } from "@/services/store-settings";
 
 const NAV_LINKS = [
   { to: "/", label: "Home" },
   { to: "/", hash: "categories", label: "Categories" },
   { to: "/products", label: "Products" },
   { to: "/about", label: "About" },
+  { to: "/connect", label: "Connect" },
   { to: "/contact", label: "Contact" },
 ] as const;
 
-const SOCIALS = [
-  { href: "https://www.instagram.com/qyverostore", label: "Instagram", Icon: Instagram },
-  { href: "https://www.facebook.com/share/1JiGemJjBM/", label: "Facebook", Icon: Facebook },
+const socialIcons = [
+  { key: "instagram", label: "Instagram", Icon: Instagram },
+  { key: "facebook", label: "Facebook", Icon: Facebook },
   {
-    href: "https://www.tiktok.com/@qyvero.store",
+    key: "tiktok",
     label: "TikTok",
     Icon: (props: React.SVGProps<SVGSVGElement>) => (
       <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
@@ -35,7 +33,7 @@ const SOCIALS = [
     ),
   },
   {
-    href: "https://wa.me/201505967144",
+    key: "whatsapp",
     label: "WhatsApp",
     Icon: (props: React.SVGProps<SVGSVGElement>) => (
       <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
@@ -64,14 +62,17 @@ function NavItem({ to, hash, label }: { to: string; hash?: string; label: string
 function IconButton({
   label,
   children,
+  onClick,
 }: {
   label: string;
   children: React.ReactNode;
+  onClick?: () => void;
 }) {
   return (
     <button
       type="button"
       aria-label={label}
+      onClick={onClick}
       className="grid h-10 w-10 place-items-center rounded-full text-foreground/80 transition-colors hover:bg-white/5 hover:text-foreground"
     >
       {children}
@@ -82,13 +83,20 @@ function IconButton({
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   const { user, profile, signOut } = useAuth();
+  const { count } = useCart();
+  const { data: wishlist = [] } = useWishlist(Boolean(user));
+  const settings = useStorefrontSettings();
+  const socials = socialIcons.map((item) => ({ ...item, href: item.key === "whatsapp" ? whatsappUrl(settings.whatsapp) : externalUrl(settings[item.key as "instagram" | "facebook" | "tiktok"]) })).filter((item) => item.href);
   const handleSignOut = async () => {
     try {
       await signOut();
       toast.success("Signed out successfully");
     } catch (error) {
-      toast.error("Unable to sign out", { description: error instanceof Error ? error.message : "Please try again." });
+      toast.error("Unable to sign out", {
+        description: error instanceof Error ? error.message : "Please try again.",
+      });
     }
   };
 
@@ -118,7 +126,7 @@ export function Navbar() {
           "fixed inset-x-0 top-0 z-50 transition-all duration-500",
           scrolled
             ? "border-b border-white/10 bg-background/60 shadow-[0_10px_40px_-20px_rgba(0,0,0,0.8)] backdrop-blur-xl backdrop-saturate-150"
-            : "border-b border-transparent bg-transparent"
+            : "border-b border-transparent bg-transparent",
         )}
       >
         <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between gap-6 px-6 sm:h-20">
@@ -130,22 +138,45 @@ export function Navbar() {
           {/* Center: Nav */}
           <nav className="hidden items-center gap-8 lg:flex">
             {navLinks.map((l) => (
-              <NavItem key={l.label} to={l.to} hash={"hash" in l ? l.hash : undefined} label={l.label} />
+              <NavItem
+                key={l.label}
+                to={l.to}
+                hash={"hash" in l ? l.hash : undefined}
+                label={l.label}
+              />
             ))}
           </nav>
 
           {/* Right: Actions */}
           <div className="flex items-center gap-1 sm:gap-2">
             <div className="hidden items-center sm:flex">
-              <IconButton label="Search">
+              <IconButton label="Search" onClick={() => setSearchOpen(true)}>
                 <Search className="h-[18px] w-[18px]" />
               </IconButton>
-              <IconButton label="Wishlist">
+              <Link
+                to="/wishlist"
+                aria-label="Wishlist"
+                className="relative grid h-10 w-10 place-items-center rounded-full text-foreground/80 transition-colors hover:bg-white/5 hover:text-foreground"
+              >
                 <Heart className="h-[18px] w-[18px]" />
-              </IconButton>
-              <IconButton label="Cart">
+                {wishlist.length > 0 && (
+                  <span className="absolute right-1 top-1 grid size-4 place-items-center rounded-full bg-teal text-[10px] font-semibold text-teal-foreground">
+                    {wishlist.length}
+                  </span>
+                )}
+              </Link>
+              <Link
+                to="/checkout"
+                aria-label="Cart"
+                className="relative grid h-10 w-10 place-items-center rounded-full text-foreground/80 transition-colors hover:bg-white/5 hover:text-foreground"
+              >
                 <ShoppingBag className="h-[18px] w-[18px]" />
-              </IconButton>
+                {count > 0 && (
+                  <span className="absolute right-1 top-1 grid size-4 place-items-center rounded-full bg-teal text-[10px] font-semibold text-teal-foreground">
+                    {count}
+                  </span>
+                )}
+              </Link>
             </div>
 
             <div className="ml-1 hidden items-center gap-2 lg:flex">
@@ -202,7 +233,7 @@ export function Navbar() {
       <div
         className={cn(
           "fixed inset-0 z-[60] lg:hidden",
-          open ? "pointer-events-auto" : "pointer-events-none"
+          open ? "pointer-events-auto" : "pointer-events-none",
         )}
         aria-hidden={!open}
       >
@@ -210,13 +241,13 @@ export function Navbar() {
           onClick={() => setOpen(false)}
           className={cn(
             "absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300",
-            open ? "opacity-100" : "opacity-0"
+            open ? "opacity-100" : "opacity-0",
           )}
         />
         <aside
           className={cn(
             "absolute right-0 top-0 flex h-full w-full max-w-sm flex-col border-l border-white/10 bg-background/95 backdrop-blur-xl transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]",
-            open ? "translate-x-0" : "translate-x-full"
+            open ? "translate-x-0" : "translate-x-full",
           )}
         >
           <div className="flex items-center justify-between px-6 py-5">
@@ -294,11 +325,9 @@ export function Navbar() {
           </div>
 
           <div className="border-t border-white/10 px-6 py-6">
-            <p className="text-[10px] uppercase tracking-[0.4em] text-teal">
-              Follow QYVERO
-            </p>
+            <p className="text-[10px] uppercase tracking-[0.4em] text-teal">Follow QYVERO</p>
             <div className="mt-4 flex items-center gap-2">
-              {SOCIALS.map(({ href, label, Icon }) => (
+              {socials.map(({ href, label, Icon }) => (
                 <a
                   key={label}
                   href={href}
@@ -314,6 +343,7 @@ export function Navbar() {
           </div>
         </aside>
       </div>
+      <SearchModal open={searchOpen} onOpenChange={setSearchOpen} />
     </>
   );
 }
