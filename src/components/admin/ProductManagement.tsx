@@ -33,6 +33,18 @@ export function ProductFormPage({ productId }: { productId?: string }) {
   const navigate = useNavigate(); const queryClient = useQueryClient(); const inputRef = useRef<HTMLInputElement>(null); const { user } = useAuth();
   const { data: categories = [] } = useCategories(); const { data: existing, isLoading } = useProduct(productId ?? "", Boolean(productId));
   const [form, setForm] = useState(empty); const [files, setFiles] = useState<File[]>([]); const [submitting, setSubmitting] = useState(false); const [removingImageId, setRemovingImageId] = useState<string | null>(null);
+  useEffect(() => {
+    const input = inputRef.current;
+    if (!input) return;
+    const appendSelectedFiles = (event: Event) => {
+      event.stopPropagation();
+      const selected = Array.from((event.currentTarget as HTMLInputElement).files ?? []);
+      setFiles((current) => [...current, ...selected].slice(0, Math.max(0, MAX_PRODUCT_IMAGES - (existing?.images.length ?? 0))));
+      (event.currentTarget as HTMLInputElement).value = "";
+    };
+    input.addEventListener("change", appendSelectedFiles, true);
+    return () => input.removeEventListener("change", appendSelectedFiles, true);
+  }, [existing?.images.length]);
   useEffect(() => { if (existing && productId) setForm({ name: existing.name, slug: existing.slug, category_id: existing.category_id ?? "", price: Number(existing.price), compare_price: Number(existing.compare_price ?? 0), stock: existing.stock, low_stock_threshold: existing.low_stock_threshold, sku: existing.sku, description: existing.description ?? "", brand: existing.brand ?? "", featured: existing.featured, status: existing.status }); }, [existing, productId]);
   const source = form;
   const update = <K extends keyof typeof empty>(key: K, value: (typeof empty)[K]) => setForm((current) => ({ ...current, [key]: value, ...(key === "name" ? { slug: createSlug(String(value)) } : {}) }));
