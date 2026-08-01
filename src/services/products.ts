@@ -75,15 +75,32 @@ function storageName(file: File) {
 }
 
 export async function uploadProductImages(productId: string, files: File[]) {
+  console.info("[product-images] files.length", files.length);
+  if (files.length > 10) throw new Error("A product can have at most 10 images.");
+  const { data: existingImages, error: existingImagesError } = await supabase
+    .from("product_images")
+    .select("id,sort_order,is_primary")
+    .eq("product_id", productId)
+    .order("sort_order");
+  fail(existingImagesError);
+  if ((existingImages?.length ?? 0) + files.length > 10) throw new Error("A product can have at most 10 images.");
+  const firstSortOrder = (existingImages ?? []).reduce((highest, image) => Math.max(highest, Number(image.sort_order)), -1) + 1;
+  const hasPrimary = (existingImages ?? []).some((image) => image.is_primary);
   const uploaded: ProductImage[] = [];
+  const uploadedUrls: string[] = [];
+  const insertedRows: ProductImage[] = [];
   for (const [index, file] of files.entries()) {
     const storage_path = `${productId}/${storageName(file)}`;
     const { error: uploadError } = await supabase.storage.from("products").upload(storage_path, file, { upsert: false, contentType: file.type });
     fail(uploadError);
     const { data: publicUrl } = supabase.storage.from("products").getPublicUrl(storage_path);
-    const { data, error } = await supabase.from("product_images").insert({ product_id: productId, storage_path, image_url: publicUrl.publicUrl, alt_text: file.name, sort_order: index, is_primary: index === 0 }).select().single();
+    uploadedUrls.push(publicUrl.publicUrl);
+    console.info("[product-images] uploadedUrls.length", uploadedUrls.length);
+    const { data, error } = await supabase.from("product_images").insert({ product_id: productId, storage_path, image_url: publicUrl.publicUrl, alt_text: file.name, sort_order: firstSortOrder + index, is_primary: !hasPrimary && index === 0 }).select().single();
     fail(error);
     uploaded.push(data as ProductImage);
+    insertedRows.push(data as ProductImage);
+    console.info("[product-images] insertedRows.length", insertedRows.length);
   }
   return uploaded;
 }
