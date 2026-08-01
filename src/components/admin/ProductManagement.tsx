@@ -17,6 +17,7 @@ import { createProduct, deleteProduct, deleteProductImages, reorderProductImages
 import { useAuth } from "@/providers/AuthProvider";
 
 const money = (value: number) => `$${Number(value).toLocaleString()}`;
+const MAX_PRODUCT_IMAGES = 10;
 const empty = { name: "", slug: "", category_id: "", price: 0, compare_price: 0, stock: 0, low_stock_threshold: 5, sku: "", description: "", brand: "QYVERO", featured: false, status: "draft" as ProductStatus };
 const statusLabel = (status: ProductStatus) => status === "active" ? "Active" : status === "out_of_stock" ? "Out of stock" : "Draft";
 const createSlug = (name: string) => name.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
