@@ -2,7 +2,7 @@ import { supabase } from "@/lib/supabase";
 
 export type ProductStatus = "draft" | "active" | "out_of_stock";
 
-export type StoreCategory = { id: string; name: string; slug: string; is_active: boolean };
+export type StoreCategory = { id: string; name: string; slug: string; icon: string | null; description: string | null; is_active: boolean };
 export type AdminCategory = StoreCategory & { icon: string | null; description: string | null; sort_order: number };
 export type CategoryInput = { name: string; slug: string; icon: string | null; description: string | null; sort_order: number; is_active: boolean };
 export type ProductImage = { id: string; product_id: string; image_url: string; storage_path: string | null; alt_text: string | null; sort_order: number; is_primary: boolean; created_at: string };
@@ -16,7 +16,7 @@ export type StoreProduct = {
 };
 
 export type ProductInput = Omit<StoreProduct, "id" | "created_at" | "updated_at" | "category" | "images">;
-export const storeProductSelect = "*, category:categories(id,name,slug,is_active), images:product_images(id,product_id,image_url,storage_path,alt_text,sort_order,is_primary,created_at)";
+export const storeProductSelect = "*, category:categories(id,name,slug,icon,description,is_active), images:product_images(id,product_id,image_url,storage_path,alt_text,sort_order,is_primary,created_at)";
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 const normaliseProduct = (product: StoreProduct): StoreProduct => ({ ...product, images: [...(product.images ?? [])].sort((a, b) => Number(b.is_primary) - Number(a.is_primary) || a.sort_order - b.sort_order) });
@@ -37,7 +37,7 @@ export async function getFeaturedProducts() {
 }
 
 export async function getCategories() {
-  const { data, error } = await supabase.from("categories").select("id,name,slug,is_active").eq("is_active", true).order("sort_order");
+  const { data, error } = await supabase.from("categories").select("id,name,slug,icon,description,is_active").eq("is_active", true).order("sort_order");
   fail(error);
   return (data ?? []) as StoreCategory[];
 }
@@ -116,6 +116,17 @@ export async function deleteProductImages(ids: string[]) {
   if (paths.length) { const { error: storageError } = await supabase.storage.from("products").remove(paths); fail(storageError); }
   const { error: deleteError } = await supabase.from("product_images").delete().in("id", ids);
   fail(deleteError);
+}
+
+export async function reorderProductImages(productId: string, imageIds: string[]) {
+  await Promise.all(imageIds.map(async (id, index) => {
+    const { error } = await supabase
+      .from("product_images")
+      .update({ sort_order: index, is_primary: index === 0 })
+      .eq("id", id)
+      .eq("product_id", productId);
+    fail(error);
+  }));
 }
 
 export async function deleteProduct(product: StoreProduct) {

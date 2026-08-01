@@ -22,7 +22,7 @@ import { PiBeltFill } from "react-icons/pi";
 import { useState } from "react";
 import { BrandMark } from "@/components/brand-mark";
 import { EmptyState } from "@/components/ui/empty-state";
-import { useFeaturedProducts } from "@/hooks/use-products";
+import { useCategories, useFeaturedProducts } from "@/hooks/use-products";
 import type { StoreProduct } from "@/services/products";
 import { useStorefrontSettings } from "@/providers/StorefrontSettingsProvider";
 import { emailUrl, externalUrl, whatsappUrl } from "@/services/store-settings";
@@ -171,58 +171,15 @@ function Hero() {
 
 /* ---------- categories ---------- */
 
-const CATEGORIES = [
-  {
-    name: "Wallets & Bags",
-    slug: "wallets-bags",
-    Icon: Wallet,
-    soon: false,
-  },
-  {
-    name: "Watches",
-    slug: "watches",
-    Icon: Watch,
-    soon: false,
-  },
-  {
-    name: "Belts",
-    slug: "belts",
-    Icon: PiBeltFill,
-    soon: false,
-  },
-  {
-    name: "Perfumes",
-    slug: "perfumes",
-    Icon: Sparkles,
-    soon: false,
-  },
-  {
-    name: "Accessories",
-    slug: "accessories",
-    Icon: Gem,
-    soon: false,
-  },
-  {
-    name: "Tech & Computer Accessories",
-    slug: "tech-computer-accessories",
-    Icon: Cpu,
-    soon: false,
-  },
-  {
-    name: "Gym & Fitness Accessories",
-    slug: "gym-fitness-accessories",
-    Icon: Dumbbell,
-    soon: false,
-  },
-  {
-    name: "Clothing & Shoes & Socks",
-    slug: "clothing-shoes-socks",
-    Icon: Shirt,
-    soon: true,
-  },
-];
+const categoryIcons = { wallets: Wallet, watches: Watch, belts: PiBeltFill, perfumes: Sparkles, accessories: Gem, tech: Cpu, gym: Dumbbell, clothing: Shirt };
+
+function categoryIcon(icon: string | null, slug: string) {
+  const key = (icon || slug).toLowerCase();
+  return Object.entries(categoryIcons).find(([name]) => key.includes(name))?.[1] ?? Sparkles;
+}
 
 function Categories() {
+  const { data: categories = [] } = useCategories();
   return (
     <section id="categories" className="relative py-24 sm:py-32">
       <div className="mx-auto w-full max-w-7xl px-6">
@@ -233,7 +190,9 @@ function Categories() {
         />
 
         <div className="mt-16 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-          {CATEGORIES.map(({ name, slug, Icon, soon }) => (
+          {categories.map(({ name, slug, icon, description }) => {
+            const Icon = categoryIcon(icon, slug);
+            return (
             <Link
               key={slug}
               to="/products"
@@ -255,11 +214,12 @@ function Categories() {
                   {name}
                 </p>
                 <p className="mt-1 text-xs uppercase tracking-[0.25em] text-muted-foreground">
-                  {soon ? "Coming Soon" : "Shop Collection"}
+                  {description?.trim() || "Shop Collection"}
                 </p>
               </div>
             </Link>
-          ))}
+            );
+          })}
         </div>
       </div>
     </section>
