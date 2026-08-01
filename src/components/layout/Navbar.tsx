@@ -1,6 +1,17 @@
 import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Search, Heart, ShoppingBag, Menu, X, Instagram, Facebook } from "lucide-react";
+import {
+  Search,
+  Heart,
+  ShoppingBag,
+  Menu,
+  X,
+  Instagram,
+  Facebook,
+  Moon,
+  Sun,
+  Languages,
+} from "lucide-react";
 import { BrandMark } from "@/components/brand-mark";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/providers/AuthProvider";
@@ -10,14 +21,16 @@ import { useWishlist } from "@/hooks/use-wishlist";
 import { SearchModal } from "@/components/layout/SearchModal";
 import { useStorefrontSettings } from "@/providers/StorefrontSettingsProvider";
 import { externalUrl, whatsappUrl } from "@/services/store-settings";
+import { useLocale } from "@/providers/LocaleProvider";
+import { useTheme } from "@/providers/ThemeProvider";
 
 const NAV_LINKS = [
-  { to: "/", label: "Home" },
-  { to: "/", hash: "categories", label: "Categories" },
-  { to: "/products", label: "Products" },
-  { to: "/about", label: "About" },
-  { to: "/connect", label: "Connect" },
-  { to: "/contact", label: "Contact" },
+  { to: "/", key: "nav.home" },
+  { to: "/", hash: "categories", key: "nav.categories" },
+  { to: "/products", key: "nav.products" },
+  { to: "/about", key: "nav.about" },
+  { to: "/connect", key: "nav.connect" },
+  { to: "/contact", key: "nav.contact" },
 ] as const;
 
 const socialIcons = [
@@ -88,7 +101,17 @@ export function Navbar() {
   const { count } = useCart();
   const { data: wishlist = [] } = useWishlist(Boolean(user));
   const settings = useStorefrontSettings();
-  const socials = socialIcons.map((item) => ({ ...item, href: item.key === "whatsapp" ? whatsappUrl(settings.whatsapp) : externalUrl(settings[item.key as "instagram" | "facebook" | "tiktok"]) })).filter((item) => item.href);
+  const { t, toggleLanguage } = useLocale();
+  const { theme, toggleTheme } = useTheme();
+  const socials = socialIcons
+    .map((item) => ({
+      ...item,
+      href:
+        item.key === "whatsapp"
+          ? whatsappUrl(settings.whatsapp)
+          : externalUrl(settings[item.key as "instagram" | "facebook" | "tiktok"]),
+    }))
+    .filter((item) => item.href);
   const handleSignOut = async () => {
     try {
       await signOut();
@@ -101,8 +124,10 @@ export function Navbar() {
   };
 
   const navLinks = [
-    ...NAV_LINKS,
-    ...(user && profile?.role === "admin" ? [{ to: "/admin" as const, label: "Admin" }] : []),
+    ...NAV_LINKS.map((link) => ({ ...link, label: t(link.key) })),
+    ...(user && profile?.role === "admin"
+      ? [{ to: "/admin" as const, label: t("nav.admin") }]
+      : []),
   ];
 
   useEffect(() => {
@@ -149,6 +174,16 @@ export function Navbar() {
 
           {/* Right: Actions */}
           <div className="flex items-center gap-1 sm:gap-2">
+            <IconButton label={t("common.language")} onClick={toggleLanguage}>
+              <Languages className="h-[18px] w-[18px]" />
+            </IconButton>
+            <IconButton label={t("common.theme")} onClick={toggleTheme}>
+              {theme === "dark" ? (
+                <Sun className="h-[18px] w-[18px]" />
+              ) : (
+                <Moon className="h-[18px] w-[18px]" />
+              )}
+            </IconButton>
             <div className="hidden items-center sm:flex">
               <IconButton label="Search" onClick={() => setSearchOpen(true)}>
                 <Search className="h-[18px] w-[18px]" />
@@ -186,13 +221,13 @@ export function Navbar() {
                     to="/profile"
                     className="rounded-full px-4 py-2 text-sm font-medium text-foreground/80 transition hover:text-foreground"
                   >
-                    Profile
+                    {t("nav.profile")}
                   </Link>
                   <button
                     onClick={() => void handleSignOut()}
                     className="rounded-full bg-foreground px-4 py-2 text-sm font-semibold text-background transition hover:bg-foreground/90 cursor-pointer"
                   >
-                    Logout
+                    {t("nav.signOut")}
                   </button>
                 </>
               ) : (
@@ -201,13 +236,13 @@ export function Navbar() {
                     to="/auth/signin"
                     className="rounded-full px-4 py-2 text-sm font-medium text-foreground/80 transition hover:text-foreground"
                   >
-                    Sign In
+                    {t("nav.signIn")}
                   </Link>
                   <Link
                     to="/auth/signup"
                     className="rounded-full bg-foreground px-4 py-2 text-sm font-semibold text-background transition hover:bg-foreground/90"
                   >
-                    Create Account
+                    {t("nav.createAccount")}
                   </Link>
                 </>
               )}
@@ -215,7 +250,7 @@ export function Navbar() {
 
             <button
               type="button"
-              aria-label="Open menu"
+              aria-label={t("nav.openMenu")}
               aria-expanded={open}
               onClick={() => setOpen(true)}
               className="grid h-10 w-10 shrink-0 place-items-center rounded-full text-foreground/90 transition hover:bg-white/5 lg:hidden"
@@ -254,7 +289,7 @@ export function Navbar() {
             <BrandMark size="sm" />
             <button
               type="button"
-              aria-label="Close menu"
+              aria-label={t("nav.closeMenu")}
               onClick={() => setOpen(false)}
               className="grid h-10 w-10 place-items-center rounded-full text-foreground/80 transition hover:bg-white/5"
             >
@@ -292,7 +327,7 @@ export function Navbar() {
                   onClick={() => setOpen(false)}
                   className="rounded-full border border-white/15 px-4 py-3 text-center text-sm font-medium text-foreground transition hover:border-white/30"
                 >
-                  Profile
+                  {t("nav.profile")}
                 </Link>
                 <button
                   onClick={() => {
@@ -301,7 +336,7 @@ export function Navbar() {
                   }}
                   className="rounded-full bg-foreground px-4 py-3 text-center text-sm font-semibold text-background transition hover:bg-foreground/90 cursor-pointer"
                 >
-                  Logout
+                  {t("nav.signOut")}
                 </button>
               </>
             ) : (
@@ -311,14 +346,14 @@ export function Navbar() {
                   onClick={() => setOpen(false)}
                   className="rounded-full border border-white/15 px-4 py-3 text-center text-sm font-medium text-foreground transition hover:border-white/30"
                 >
-                  Sign In
+                  {t("nav.signIn")}
                 </Link>
                 <Link
                   to="/auth/signup"
                   onClick={() => setOpen(false)}
                   className="rounded-full bg-foreground px-4 py-3 text-center text-sm font-semibold text-background transition hover:bg-foreground/90"
                 >
-                  Create Account
+                  {t("nav.createAccount")}
                 </Link>
               </>
             )}

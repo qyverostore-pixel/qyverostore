@@ -19,7 +19,17 @@ export async function getShippingZones(admin = false) {
 export async function getShippingQuote(governorate: string, city?: string) {
   if (!governorate) return null;
   const zones = await getShippingZones();
-  return zones.find((zone) => zone.city?.toLowerCase() === city?.toLowerCase() && zone.rate?.is_active) ?? zones.find((zone) => zone.city === null && zone.rate?.is_active) ?? null;
+  const governorateZones = zones.filter(
+    (zone) => zone.governorate.toLowerCase() === governorate.toLowerCase(),
+  );
+
+  return (
+    governorateZones.find(
+      (zone) => zone.city?.toLowerCase() === city?.toLowerCase() && zone.rate?.is_active,
+    ) ??
+    governorateZones.find((zone) => zone.city === null && zone.rate?.is_active) ??
+    null
+  );
 }
 
 export async function saveShippingZone(input: ShippingZoneInput, id?: string) {

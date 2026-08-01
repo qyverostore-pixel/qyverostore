@@ -16,18 +16,27 @@ import { Toaster } from "@/components/ui/sonner";
 import { PageTransition } from "@/components/ui/page-transition";
 import { AuthProvider, useAuth } from "@/providers/AuthProvider";
 import { StorefrontSettingsProvider } from "@/providers/StorefrontSettingsProvider";
+import { LocaleProvider } from "@/providers/LocaleProvider";
+import { ThemeProvider } from "@/providers/ThemeProvider";
+import { LocaleTextBridge } from "@/components/LocaleTextBridge";
 import { defaultDescription, organizationSchema, websiteSchema } from "@/lib/seo";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 
+<meta name="google-site-verification" content="m9GLgd4TNVEoR34qN3XZRr_6I3afP4GqBXojUCDurY0" />
+
 function NotFoundComponent() {
   return (
     <div className="bg-noise flex min-h-screen items-center justify-center px-6">
       <div className="glass-card max-w-lg rounded-[2rem] p-9 text-center sm:p-12">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.4em] text-teal">Lost in the collection</p>
+        <p className="text-[11px] font-semibold uppercase tracking-[0.4em] text-teal">
+          Lost in the collection
+        </p>
         <h1 className="text-display mt-5 text-7xl font-light text-foreground sm:text-8xl">404</h1>
-        <h2 className="text-display mt-4 text-2xl font-medium text-foreground">This page is not here.</h2>
+        <h2 className="text-display mt-4 text-2xl font-medium text-foreground">
+          This page is not here.
+        </h2>
         <p className="mt-3 text-sm leading-6 text-muted-foreground">
           The page you're looking for doesn't exist or has been moved.
         </p>
@@ -38,7 +47,12 @@ function NotFoundComponent() {
           >
             Back to home
           </Link>
-          <Link to="/products" className="inline-flex items-center justify-center rounded-full border border-white/15 px-5 py-2.5 text-sm font-medium transition hover:border-teal hover:text-teal focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal">Browse products</Link>
+          <Link
+            to="/products"
+            className="inline-flex items-center justify-center rounded-full border border-white/15 px-5 py-2.5 text-sm font-medium transition hover:border-teal hover:text-teal focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal"
+          >
+            Browse products
+          </Link>
         </div>
       </div>
     </div>
@@ -107,10 +121,19 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:title", content: "QYVERO — Own Your Style." },
       {
         name: "twitter:description",
-        content: "QYVERO is a modern men's lifestyle brand built for quality, style and everyday essentials.",
+        content:
+          "QYVERO is a modern men's lifestyle brand built for quality, style and everyday essentials.",
       },
-      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/ssOqc5b86yePsdrhmD9rbIJcCPl2/social-images/social-1783812691813-WhatsApp_Image_2026-07-11_at_21.26.09_(7).webp" },
-      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/ssOqc5b86yePsdrhmD9rbIJcCPl2/social-images/social-1783812691813-WhatsApp_Image_2026-07-11_at_21.26.09_(7).webp" },
+      {
+        property: "og:image",
+        content:
+          "https://storage.googleapis.com/gpt-engineer-file-uploads/ssOqc5b86yePsdrhmD9rbIJcCPl2/social-images/social-1783812691813-WhatsApp_Image_2026-07-11_at_21.26.09_(7).webp",
+      },
+      {
+        name: "twitter:image",
+        content:
+          "https://storage.googleapis.com/gpt-engineer-file-uploads/ssOqc5b86yePsdrhmD9rbIJcCPl2/social-images/social-1783812691813-WhatsApp_Image_2026-07-11_at_21.26.09_(7).webp",
+      },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
@@ -140,7 +163,10 @@ function RootShell({ children }: { children: ReactNode }) {
     <html lang="en">
       <head>
         <HeadContent />
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify([organizationSchema, websiteSchema]) }} />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify([organizationSchema, websiteSchema]) }}
+        />
       </head>
       <body>
         {children}
@@ -157,16 +183,23 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <StorefrontSettingsProvider>
-          <PostLoginRedirect />
-          {!hideChrome && <Navbar />}
-          {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-          <PageTransition><Outlet /></PageTransition>
-          {!hideChrome && <Footer />}
-          <Toaster richColors position="top-right" />
-        </StorefrontSettingsProvider>
-      </AuthProvider>
+      <ThemeProvider>
+        <LocaleProvider>
+          <AuthProvider>
+            <StorefrontSettingsProvider>
+              <PostLoginRedirect />
+              <LocaleTextBridge />
+              {!hideChrome && <Navbar />}
+              {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+              <PageTransition>
+                <Outlet />
+              </PageTransition>
+              {!hideChrome && <Footer />}
+              <Toaster richColors position="top-right" />
+            </StorefrontSettingsProvider>
+          </AuthProvider>
+        </LocaleProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }

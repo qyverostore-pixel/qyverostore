@@ -11,6 +11,12 @@ import { useCart } from "@/hooks/use-cart";
 import { WishlistButton } from "@/components/wishlist/WishlistButton";
 import { ReviewsSection } from "@/components/products/ReviewsSection";
 import { Seo, breadcrumbSchema, productSchema } from "@/lib/seo";
+import { useLocale } from "@/providers/LocaleProvider";
+import {
+  localizedCategoryName,
+  localizedProductDescription,
+  localizedProductName,
+} from "@/lib/localized-content";
 
 function ProductGallery({ product }: { product: StoreProduct }) {
   const [selected, setSelected] = useState(0);
@@ -25,7 +31,9 @@ function ProductGallery({ product }: { product: StoreProduct }) {
             fetchPriority="high"
             decoding="async"
             sizes="(min-width: 1024px) 55vw, 100vw"
-            onError={(event) => { event.currentTarget.style.display = "none"; }}
+            onError={(event) => {
+              event.currentTarget.style.display = "none";
+            }}
             className="h-full w-full object-cover transition duration-700 ease-out group-hover:scale-110"
           />
         ) : (
@@ -56,7 +64,9 @@ function ProductGallery({ product }: { product: StoreProduct }) {
               alt=""
               loading="lazy"
               decoding="async"
-              onError={(event) => { event.currentTarget.style.display = "none"; }}
+              onError={(event) => {
+                event.currentTarget.style.display = "none";
+              }}
               className="h-full w-full object-cover"
             />
           </button>
@@ -127,7 +137,20 @@ function OrderActions({
   const inStock = product.stock > 0;
   return (
     <div className={cn("grid gap-3", compact ? "grid-cols-1" : "sm:grid-cols-[1fr_auto]")}>
-      {inStock ? <Link to="/checkout" onClick={addToCheckout} className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-foreground px-6 text-xs font-semibold uppercase tracking-[0.18em] text-background transition hover:bg-foreground/90"><MessageCircle className="h-4 w-4" />Checkout</Link> : <span className="inline-flex h-12 cursor-not-allowed items-center justify-center gap-2 rounded-full bg-white/10 px-6 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">Out of Stock</span>}
+      {inStock ? (
+        <Link
+          to="/checkout"
+          onClick={addToCheckout}
+          className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-foreground px-6 text-xs font-semibold uppercase tracking-[0.18em] text-background transition hover:bg-foreground/90"
+        >
+          <MessageCircle className="h-4 w-4" />
+          Checkout
+        </Link>
+      ) : (
+        <span className="inline-flex h-12 cursor-not-allowed items-center justify-center gap-2 rounded-full bg-white/10 px-6 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+          Out of Stock
+        </span>
+      )}
       {!compact && (
         <WishlistButton
           product={product}
@@ -219,7 +242,9 @@ function RelatedCard({ product }: { product: StoreProduct }) {
             loading="lazy"
             decoding="async"
             sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw"
-            onError={(event) => { event.currentTarget.style.display = "none"; }}
+            onError={(event) => {
+              event.currentTarget.style.display = "none";
+            }}
             className="h-full w-full object-cover"
           />
         )}
@@ -245,6 +270,7 @@ export function ProductDetailsPage({ productId }: { productId: string }) {
   const { data: product, isLoading } = useProduct(productId);
   const { data: related = [] } = useRelatedProducts(product ?? null);
   const [quantity, setQuantity] = useState(1);
+  const { language, t } = useLocale();
   useEffect(() => {
     if (product) setQuantity((current) => Math.min(Math.max(1, product.stock), current));
   }, [product?.id, product?.stock]);
@@ -267,9 +293,34 @@ export function ProductDetailsPage({ productId }: { productId: string }) {
         </div>
       </main>
     );
+  const name = localizedProductName(product, language);
+  const description = localizedProductDescription(product, language) || product.short_description;
+  const categoryName = product.category
+    ? localizedCategoryName(product.category, language)
+    : t("product.collection");
   return (
     <main className="min-h-screen bg-noise pb-32 pt-8 sm:pt-12">
-      <Seo input={{ title: product.meta_title || product.name, description: product.meta_description || product.description || product.short_description || `${product.name} by QYVERO.`, path: `/products/${product.slug}`, image: product.images[0]?.image_url, keywords: `${product.name}, ${product.category?.name ?? "men's lifestyle"}, ${product.brand ?? "QYVERO"}`, structuredData: [productSchema(product), breadcrumbSchema([{ name: "Home", path: "/" }, { name: "Products", path: "/products" }, { name: product.name, path: `/products/${product.slug}` }])] }} />
+      <Seo
+        input={{
+          title: product.meta_title || product.name,
+          description:
+            product.meta_description ||
+            product.description ||
+            product.short_description ||
+            `${product.name} by QYVERO.`,
+          path: `/products/${product.slug}`,
+          image: product.images[0]?.image_url,
+          keywords: `${product.name}, ${product.category?.name ?? "men's lifestyle"}, ${product.brand ?? "QYVERO"}`,
+          structuredData: [
+            productSchema(product),
+            breadcrumbSchema([
+              { name: "Home", path: "/" },
+              { name: "Products", path: "/products" },
+              { name: product.name, path: `/products/${product.slug}` },
+            ]),
+          ],
+        }}
+      />
       <div className="mx-auto w-full max-w-7xl px-6">
         <nav
           aria-label="Breadcrumb"
@@ -283,18 +334,18 @@ export function ProductDetailsPage({ productId }: { productId: string }) {
             Products
           </Link>
           <ChevronRight className="h-3.5 w-3.5" />
-          <span>{product.category?.name}</span>
+          <span>{categoryName}</span>
           <ChevronRight className="h-3.5 w-3.5" />
-          <span className="text-foreground">{product.name}</span>
+          <span className="text-foreground">{name}</span>
         </nav>
         <div className="mt-8 grid gap-10 lg:grid-cols-[minmax(0,1.1fr)_minmax(360px,.9fr)] lg:gap-16">
           <ProductGallery product={product} />
           <section className="lg:pt-5">
             <span className="inline-flex rounded-full border border-teal/40 bg-teal/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.24em] text-teal">
-              {product.category?.name ?? "Collection"}
+              {categoryName}
             </span>
             <h1 className="text-display mt-5 text-4xl font-light leading-tight sm:text-5xl">
-              {product.name}
+              {name}
             </h1>
             <div className="mt-5">
               <Rating product={product} />
@@ -310,15 +361,26 @@ export function ProductDetailsPage({ productId }: { productId: string }) {
               )}
             </div>
             <div className="mt-7 flex items-center gap-2 border-y border-white/10 py-4 text-sm">
-              <span className={cn("h-2 w-2 rounded-full", product.stock === 0 ? "bg-red-400" : product.stock <= product.low_stock_threshold ? "bg-amber-300" : "bg-teal shadow-[0_0_12px_var(--color-teal)]")} />
+              <span
+                className={cn(
+                  "h-2 w-2 rounded-full",
+                  product.stock === 0
+                    ? "bg-red-400"
+                    : product.stock <= product.low_stock_threshold
+                      ? "bg-amber-300"
+                      : "bg-teal shadow-[0_0_12px_var(--color-teal)]",
+                )}
+              />
               <span className="font-medium text-foreground">
-                {product.stock === 0 ? "Out of Stock" : product.stock <= product.low_stock_threshold ? `Only ${product.stock} left` : "In Stock"}
+                {product.stock === 0
+                  ? "Out of Stock"
+                  : product.stock <= product.low_stock_threshold
+                    ? `Only ${product.stock} left`
+                    : "In Stock"}
               </span>
               <span className="text-muted-foreground">— ready to dispatch</span>
             </div>
-            <p className="mt-7 text-sm leading-7 text-muted-foreground">
-              {product.short_description || product.description}
-            </p>
+            <p className="mt-7 text-sm leading-7 text-muted-foreground">{description}</p>
             <ul className="mt-6 grid gap-3 text-sm text-foreground/90">
               {["Premium Material", "Modern Design", "Durable", "Lightweight"].map((item) => (
                 <li key={item} className="flex items-center gap-3">
@@ -335,7 +397,11 @@ export function ProductDetailsPage({ productId }: { productId: string }) {
                   Quantity
                 </p>
                 <div className="mt-3">
-                  <QuantitySelector quantity={quantity} max={Math.max(1, product.stock)} onChange={setQuantity} />
+                  <QuantitySelector
+                    quantity={quantity}
+                    max={Math.max(1, product.stock)}
+                    onChange={setQuantity}
+                  />
                 </div>
               </div>
               <div className="hidden items-center gap-2 text-xs text-muted-foreground sm:flex">

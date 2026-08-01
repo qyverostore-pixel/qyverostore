@@ -79,6 +79,19 @@
   --glass-border: oklch(1 0 0 / 10%);
 }
 
+html.light {
+  --background: oklch(0.975 0.004 210); --foreground: oklch(0.19 0.01 245);
+  --card: oklch(1 0 0); --card-foreground: oklch(0.19 0.01 245);
+  --popover: oklch(1 0 0); --popover-foreground: oklch(0.19 0.01 245);
+  --primary: oklch(0.19 0.01 245); --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.94 0.008 210); --secondary-foreground: oklch(0.19 0.01 245);
+  --muted: oklch(0.94 0.008 210); --muted-foreground: oklch(0.46 0.02 245);
+  --accent: oklch(0.46 0.08 195); --accent-foreground: oklch(0.985 0 0);
+  --teal: oklch(0.46 0.08 195); --teal-foreground: oklch(0.985 0 0);
+  --border: oklch(0.2 0.01 245 / 13%); --input: oklch(0.2 0.01 245 / 15%);
+  --ring: oklch(0.46 0.08 195); --glass: oklch(1 0 0 / 70%); --glass-border: oklch(0.2 0.01 245 / 12%);
+}
+
 @layer base {
   * {
     border-color: var(--color-border);
@@ -91,7 +104,13 @@
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
   }
+
+  html[dir="rtl"] body { font-family: Tahoma, Arial, sans-serif; }
 }
+
+html.light .bg-noise { background-image: radial-gradient(1200px 600px at 20% -10%, color-mix(in oklab, var(--color-teal) 16%, transparent), transparent 60%), linear-gradient(180deg, oklch(0.99 0.003 210), oklch(0.96 0.006 210)); }
+html.light .glass-card { box-shadow: 0 20px 60px -30px oklch(0.2 0.01 245 / 0.2); }
+html[dir="rtl"] .rtl-flip { transform: scaleX(-1); }
 
 @utility glass-card {
   background: linear-gradient(

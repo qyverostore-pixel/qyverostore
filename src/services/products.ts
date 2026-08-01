@@ -2,28 +2,107 @@ import { supabase } from "@/lib/supabase";
 
 export type ProductStatus = "draft" | "active" | "out_of_stock";
 
-export type StoreCategory = { id: string; name: string; slug: string; icon: string | null; description: string | null; is_active: boolean };
-export type AdminCategory = StoreCategory & { icon: string | null; description: string | null; sort_order: number };
-export type CategoryInput = { name: string; slug: string; icon: string | null; description: string | null; sort_order: number; is_active: boolean };
-export type ProductImage = { id: string; product_id: string; image_url: string; storage_path: string | null; alt_text: string | null; sort_order: number; is_primary: boolean; created_at: string };
+export type StoreCategory = {
+  id: string;
+  name: string;
+  name_en: string | null;
+  name_ar: string | null;
+  slug: string;
+  icon: string | null;
+  description: string | null;
+  description_en: string | null;
+  description_ar: string | null;
+  is_active: boolean;
+};
+export type AdminCategory = StoreCategory & {
+  icon: string | null;
+  description: string | null;
+  sort_order: number;
+};
+export type CategoryInput = {
+  name: string;
+  name_en: string | null;
+  name_ar: string | null;
+  slug: string;
+  icon: string | null;
+  description: string | null;
+  description_en: string | null;
+  description_ar: string | null;
+  sort_order: number;
+  is_active: boolean;
+};
+export type ProductImage = {
+  id: string;
+  product_id: string;
+  image_url: string;
+  storage_path: string | null;
+  alt_text: string | null;
+  sort_order: number;
+  is_primary: boolean;
+  created_at: string;
+};
 export type StoreProduct = {
-  id: string; category_id: string | null; name: string; slug: string; sku: string; brand: string | null;
-  short_description: string | null; description: string | null; price: number; compare_price: number | null;
-  stock: number; low_stock_threshold: number; featured: boolean; is_new: boolean; is_best_seller: boolean;
-  is_on_sale: boolean; status: ProductStatus; is_active: boolean; weight: number | null; length: number | null;
-  width: number | null; height: number | null; rating: number; reviews_count: number; meta_title: string | null;
-  meta_description: string | null; created_by: string | null; updated_by: string | null; created_at: string; updated_at: string; category: StoreCategory | null; images: ProductImage[];
+  id: string;
+  category_id: string | null;
+  name: string;
+  name_en: string | null;
+  name_ar: string | null;
+  slug: string;
+  sku: string;
+  brand: string | null;
+  short_description: string | null;
+  description: string | null;
+  description_en: string | null;
+  description_ar: string | null;
+  price: number;
+  compare_price: number | null;
+  stock: number;
+  low_stock_threshold: number;
+  featured: boolean;
+  is_new: boolean;
+  is_best_seller: boolean;
+  is_on_sale: boolean;
+  status: ProductStatus;
+  is_active: boolean;
+  weight: number | null;
+  length: number | null;
+  width: number | null;
+  height: number | null;
+  rating: number;
+  reviews_count: number;
+  meta_title: string | null;
+  meta_description: string | null;
+  created_by: string | null;
+  updated_by: string | null;
+  created_at: string;
+  updated_at: string;
+  category: StoreCategory | null;
+  images: ProductImage[];
 };
 
-export type ProductInput = Omit<StoreProduct, "id" | "created_at" | "updated_at" | "category" | "images">;
-export const storeProductSelect = "*, category:categories(id,name,slug,icon,description,is_active), images:product_images(id,product_id,image_url,storage_path,alt_text,sort_order,is_primary,created_at)";
+export type ProductInput = Omit<
+  StoreProduct,
+  "id" | "created_at" | "updated_at" | "category" | "images"
+>;
+export const storeProductSelect =
+  "*, category:categories(id,name,name_en,name_ar,slug,icon,description,description_en,description_ar,is_active), images:product_images(id,product_id,image_url,storage_path,alt_text,sort_order,is_primary,created_at)";
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
-const normaliseProduct = (product: StoreProduct): StoreProduct => ({ ...product, images: [...(product.images ?? [])].sort((a, b) => Number(b.is_primary) - Number(a.is_primary) || a.sort_order - b.sort_order) });
-const fail = (error: { message: string } | null) => { if (error) throw new Error(error.message); };
+const normaliseProduct = (product: StoreProduct): StoreProduct => ({
+  ...product,
+  images: [...(product.images ?? [])].sort(
+    (a, b) => Number(b.is_primary) - Number(a.is_primary) || a.sort_order - b.sort_order,
+  ),
+});
+const fail = (error: { message: string } | null) => {
+  if (error) throw new Error(error.message);
+};
 
 export async function getProducts(admin = false) {
-  let query = supabase.from("products").select(storeProductSelect).order("created_at", { ascending: false });
+  let query = supabase
+    .from("products")
+    .select(storeProductSelect)
+    .order("created_at", { ascending: false });
   if (!admin) query = query.eq("is_active", true).in("status", ["active", "out_of_stock"]);
   const { data, error } = await query;
   fail(error);
@@ -31,13 +110,24 @@ export async function getProducts(admin = false) {
 }
 
 export async function getFeaturedProducts() {
-  const { data, error } = await supabase.from("products").select(storeProductSelect).eq("is_active", true).in("status", ["active", "out_of_stock"]).eq("featured", true).order("created_at", { ascending: false }).limit(4);
+  const { data, error } = await supabase
+    .from("products")
+    .select(storeProductSelect)
+    .eq("is_active", true)
+    .in("status", ["active", "out_of_stock"])
+    .eq("featured", true)
+    .order("created_at", { ascending: false })
+    .limit(4);
   fail(error);
   return ((data ?? []) as StoreProduct[]).map(normaliseProduct);
 }
 
 export async function getCategories() {
-  const { data, error } = await supabase.from("categories").select("id,name,slug,icon,description,is_active").eq("is_active", true).order("sort_order");
+  const { data, error } = await supabase
+    .from("categories")
+    .select("id,name,name_en,name_ar,slug,icon,description,description_en,description_ar,is_active")
+    .eq("is_active", true)
+    .order("sort_order");
   fail(error);
   return (data ?? []) as StoreCategory[];
 }
@@ -62,7 +152,13 @@ export async function getProduct(identifier: string, admin = false) {
 }
 
 export async function getRelatedProducts(product: StoreProduct) {
-  let query = supabase.from("products").select(storeProductSelect).eq("is_active", true).in("status", ["active", "out_of_stock"]).neq("id", product.id).limit(4);
+  let query = supabase
+    .from("products")
+    .select(storeProductSelect)
+    .eq("is_active", true)
+    .in("status", ["active", "out_of_stock"])
+    .neq("id", product.id)
+    .limit(4);
   if (product.category_id) query = query.eq("category_id", product.category_id);
   const { data, error } = await query;
   fail(error);
@@ -70,7 +166,11 @@ export async function getRelatedProducts(product: StoreProduct) {
 }
 
 function storageName(file: File) {
-  const extension = file.name.split(".").pop()?.replace(/[^a-z0-9]/gi, "") || "jpg";
+  const extension =
+    file.name
+      .split(".")
+      .pop()
+      ?.replace(/[^a-z0-9]/gi, "") || "jpg";
   return `${crypto.randomUUID()}.${extension.toLowerCase()}`;
 }
 
@@ -82,16 +182,34 @@ export async function uploadProductImages(productId: string, files: File[]) {
     .eq("product_id", productId)
     .order("sort_order");
   fail(existingImagesError);
-  if ((existingImages?.length ?? 0) + files.length > 10) throw new Error("A product can have at most 10 images.");
-  const firstSortOrder = (existingImages ?? []).reduce((highest, image) => Math.max(highest, Number(image.sort_order)), -1) + 1;
+  if ((existingImages?.length ?? 0) + files.length > 10)
+    throw new Error("A product can have at most 10 images.");
+  const firstSortOrder =
+    (existingImages ?? []).reduce(
+      (highest, image) => Math.max(highest, Number(image.sort_order)),
+      -1,
+    ) + 1;
   const hasPrimary = (existingImages ?? []).some((image) => image.is_primary);
   const uploaded: ProductImage[] = [];
   for (const [index, file] of files.entries()) {
     const storage_path = `${productId}/${storageName(file)}`;
-    const { error: uploadError } = await supabase.storage.from("products").upload(storage_path, file, { upsert: false, contentType: file.type });
+    const { error: uploadError } = await supabase.storage
+      .from("products")
+      .upload(storage_path, file, { upsert: false, contentType: file.type });
     fail(uploadError);
     const { data: publicUrl } = supabase.storage.from("products").getPublicUrl(storage_path);
-    const { data, error } = await supabase.from("product_images").insert({ product_id: productId, storage_path, image_url: publicUrl.publicUrl, alt_text: file.name, sort_order: firstSortOrder + index, is_primary: !hasPrimary && index === 0 }).select().single();
+    const { data, error } = await supabase
+      .from("product_images")
+      .insert({
+        product_id: productId,
+        storage_path,
+        image_url: publicUrl.publicUrl,
+        alt_text: file.name,
+        sort_order: firstSortOrder + index,
+        is_primary: !hasPrimary && index === 0,
+      })
+      .select()
+      .single();
     fail(error);
     uploaded.push(data as ProductImage);
   }
@@ -99,7 +217,11 @@ export async function uploadProductImages(productId: string, files: File[]) {
 }
 
 export async function createProduct(input: ProductInput, files: File[]) {
-  const { data, error } = await supabase.from("products").insert(input).select(storeProductSelect).single();
+  const { data, error } = await supabase
+    .from("products")
+    .insert(input)
+    .select(storeProductSelect)
+    .single();
   fail(error);
   try {
     if (files.length) await uploadProductImages(data.id, files);
@@ -110,7 +232,12 @@ export async function createProduct(input: ProductInput, files: File[]) {
   }
 }
 
-export async function updateProduct(id: string, input: Partial<ProductInput>, files: File[], removeImageIds: string[]) {
+export async function updateProduct(
+  id: string,
+  input: Partial<ProductInput>,
+  files: File[],
+  removeImageIds: string[],
+) {
   if (removeImageIds.length) await deleteProductImages(removeImageIds);
   const { error } = await supabase.from("products").update(input).eq("id", id);
   fail(error);
@@ -120,23 +247,33 @@ export async function updateProduct(id: string, input: Partial<ProductInput>, fi
 
 export async function deleteProductImages(ids: string[]) {
   if (!ids.length) return;
-  const { data, error } = await supabase.from("product_images").select("id,storage_path").in("id", ids);
+  const { data, error } = await supabase
+    .from("product_images")
+    .select("id,storage_path")
+    .in("id", ids);
   fail(error);
-  const paths = (data ?? []).map((image) => image.storage_path).filter((path): path is string => Boolean(path));
-  if (paths.length) { const { error: storageError } = await supabase.storage.from("products").remove(paths); fail(storageError); }
+  const paths = (data ?? [])
+    .map((image) => image.storage_path)
+    .filter((path): path is string => Boolean(path));
+  if (paths.length) {
+    const { error: storageError } = await supabase.storage.from("products").remove(paths);
+    fail(storageError);
+  }
   const { error: deleteError } = await supabase.from("product_images").delete().in("id", ids);
   fail(deleteError);
 }
 
 export async function reorderProductImages(productId: string, imageIds: string[]) {
-  await Promise.all(imageIds.map(async (id, index) => {
-    const { error } = await supabase
-      .from("product_images")
-      .update({ sort_order: index, is_primary: index === 0 })
-      .eq("id", id)
-      .eq("product_id", productId);
-    fail(error);
-  }));
+  await Promise.all(
+    imageIds.map(async (id, index) => {
+      const { error } = await supabase
+        .from("product_images")
+        .update({ sort_order: index, is_primary: index === 0 })
+        .eq("id", id)
+        .eq("product_id", productId);
+      fail(error);
+    }),
+  );
 }
 
 export async function deleteProduct(product: StoreProduct) {

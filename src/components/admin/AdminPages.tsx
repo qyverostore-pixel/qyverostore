@@ -522,9 +522,13 @@ export function ProductFormPage({ productId }: { productId?: string }) {
 const categoryKey = ["categories", "admin"] as const;
 const emptyCategory = {
   name: "",
+  name_en: "",
+  name_ar: "",
   slug: "",
   icon: "",
   description: "",
+  description_en: "",
+  description_ar: "",
   sort_order: "0",
   is_active: true,
 };
@@ -546,7 +550,7 @@ export function CategoriesPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("categories")
-        .select("id,name,slug,icon,description,sort_order,is_active")
+        .select("id,name,name_en,name_ar,slug,icon,description,description_en,description_ar,sort_order,is_active")
         .order("sort_order");
       if (error) throw error;
       return (data ?? []) as AdminCategory[];
@@ -593,9 +597,13 @@ export function CategoriesPage() {
     setSelectedCategory(category);
     setForm({
       name: category.name,
+      name_en: category.name_en ?? category.name,
+      name_ar: category.name_ar ?? "",
       slug: category.slug,
       icon: category.icon ?? "",
       description: category.description ?? "",
+      description_en: category.description_en ?? category.description ?? "",
+      description_ar: category.description_ar ?? "",
       sort_order: String(category.sort_order ?? 0),
       is_active: category.is_active,
     });
@@ -610,15 +618,20 @@ export function CategoriesPage() {
   const submit = async (event: FormEvent) => {
     event.preventDefault();
     const sortOrder = Number(form.sort_order);
-    if (!form.name.trim() || !form.slug || !Number.isFinite(sortOrder)) {
+    const englishName = form.name_en.trim() || form.name.trim();
+    if (!englishName || !form.slug || !Number.isFinite(sortOrder)) {
       toast.error("Enter a category name and a valid sort order");
       return;
     }
     const input = {
-      name: form.name.trim(),
+      name: englishName,
+      name_en: englishName,
+      name_ar: form.name_ar.trim() || null,
       slug: form.slug,
       icon: form.icon.trim() || null,
-      description: form.description.trim() || null,
+      description: (form.description_en.trim() || form.description.trim()) || null,
+      description_en: (form.description_en.trim() || form.description.trim()) || null,
+      description_ar: form.description_ar.trim() || null,
       sort_order: sortOrder,
       is_active: form.is_active,
     };
@@ -697,12 +710,16 @@ export function CategoriesPage() {
           <form className="space-y-5" onSubmit={(event) => void submit(event)}>
             <div className="grid gap-5 sm:grid-cols-2">
               <div>
-                <Label>Category name</Label>
+                <Label>Category name (English)</Label>
                 <Input
                   className="mt-2"
-                  value={form.name}
-                  onChange={(event) => update("name", event.target.value)}
+                  value={form.name_en}
+                  onChange={(event) => { update("name_en", event.target.value); update("name", event.target.value); update("slug", categorySlug(event.target.value)); }}
                 />
+              </div>
+              <div>
+                <Label>Category name (Arabic)</Label>
+                <Input dir="rtl" className="mt-2" value={form.name_ar} onChange={(event) => update("name_ar", event.target.value)} />
               </div>
               <div>
                 <Label>Slug</Label>
@@ -726,12 +743,16 @@ export function CategoriesPage() {
                 />
               </div>
               <div className="sm:col-span-2">
-                <Label>Description</Label>
+                <Label>Description (English)</Label>
                 <Textarea
                   className="mt-2"
-                  value={form.description}
-                  onChange={(event) => update("description", event.target.value)}
+                  value={form.description_en}
+                  onChange={(event) => { update("description_en", event.target.value); update("description", event.target.value); }}
                 />
+              </div>
+              <div className="sm:col-span-2">
+                <Label>Description (Arabic)</Label>
+                <Textarea dir="rtl" className="mt-2" value={form.description_ar} onChange={(event) => update("description_ar", event.target.value)} />
               </div>
               <div className="flex items-center justify-between sm:col-span-2">
                 <Label>Active</Label>
