@@ -18,6 +18,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { AdminBackLink, AdminLayout } from "@/components/admin/AdminLayout";
 import { AdminTable, StatusBadge } from "@/components/admin/AdminTable";
+import { VariantManagement } from "@/components/admin/VariantManagement";
 import { Button } from "@/components/ui/button";
 import { FormSkeleton, AdminTableSkeleton } from "@/components/ui/loading-skeletons";
 import { Input } from "@/components/ui/input";
@@ -373,21 +374,36 @@ export function ProductFormPage({ productId }: { productId?: string }) {
               <Field
                 label="Product name (English)"
                 value={source.name_en}
-                onChange={(value) => { update("name_en", value); update("name", value); }}
+                onChange={(value) => {
+                  update("name_en", value);
+                  update("name", value);
+                }}
               />
-              <Field label="Product name (Arabic)" value={source.name_ar} onChange={(value) => update("name_ar", value)} />
+              <Field
+                label="Product name (Arabic)"
+                value={source.name_ar}
+                onChange={(value) => update("name_ar", value)}
+              />
               <Field label="Slug" value={source.slug} onChange={(value) => update("slug", value)} />
               <div className="sm:col-span-2">
                 <Label>Description (English)</Label>
                 <Textarea
                   className="mt-2 min-h-28"
                   value={source.description_en}
-                  onChange={(event) => { update("description_en", event.target.value); update("description", event.target.value); }}
+                  onChange={(event) => {
+                    update("description_en", event.target.value);
+                    update("description", event.target.value);
+                  }}
                 />
               </div>
               <div className="sm:col-span-2">
                 <Label>Description (Arabic)</Label>
-                <Textarea dir="rtl" className="mt-2 min-h-28" value={source.description_ar} onChange={(event) => update("description_ar", event.target.value)} />
+                <Textarea
+                  dir="rtl"
+                  className="mt-2 min-h-28"
+                  value={source.description_ar}
+                  onChange={(event) => update("description_ar", event.target.value)}
+                />
               </div>
               <Field
                 label="Brand"
@@ -505,6 +521,17 @@ export function ProductFormPage({ productId }: { productId?: string }) {
               )}
             </div>
           </section>
+          {existing ? (
+            <VariantManagement product={existing} />
+          ) : (
+            <section className="rounded-xl border border-white/10 bg-white/[0.025] p-5">
+              <h2 className="font-medium">Variants</h2>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Save this product first, then come back here to manage color, size, and stock
+                variants.
+              </p>
+            </section>
+          )}
         </div>
         <aside className="space-y-6">
           <section className="rounded-xl border border-white/10 bg-white/[0.025] p-5">
