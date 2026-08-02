@@ -24,7 +24,6 @@ import { defaultDescription, organizationSchema, websiteSchema } from "@/lib/seo
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 
-<meta name="google-site-verification" content="m9GLgd4TNVEoR34qN3XZRr_6I3afP4GqBXojUCDurY0" />
 
 function NotFoundComponent() {
   return (
