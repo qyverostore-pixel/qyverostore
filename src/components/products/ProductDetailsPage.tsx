@@ -6,7 +6,13 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { ProductDetailsSkeleton } from "@/components/ui/loading-skeletons";
 import { cn } from "@/lib/utils";
 import { useProduct, useRelatedProducts } from "@/hooks/use-products";
-import type { StoreProduct } from "@/services/products";
+import {
+  getDefaultVariant,
+  getEffectivePrice,
+  getEffectiveStock,
+  type ProductVariant,
+  type StoreProduct,
+} from "@/services/products";
 import { useCart } from "@/hooks/use-cart";
 import { WishlistButton } from "@/components/wishlist/WishlistButton";
 import { ReviewsSection } from "@/components/products/ReviewsSection";
@@ -18,16 +24,19 @@ import {
   localizedProductName,
 } from "@/lib/localized-content";
 
-function ProductGallery({ product }: { product: StoreProduct }) {
+// Product images and variant images differ in their foreign key
+// (product_id vs variant_id), but the gallery only ever needs these three
+// fields, so it can render whichever list is passed in.
+type GalleryImage = { id: string; image_url: string; alt_text: string | null };
+function ProductGallery({ images, name }: { images: GalleryImage[]; name: string }) {
   const [selected, setSelected] = useState(0);
-  const images = product.images;
   return (
     <div>
       <div className="group relative aspect-square overflow-hidden rounded-[2rem] border border-white/10 bg-neutral-950">
         {images[selected] ? (
           <img
             src={images[selected].image_url}
-            alt={images[selected].alt_text ?? product.name}
+            alt={images[selected].alt_text ?? name}
             fetchPriority="high"
             decoding="async"
             sizes="(min-width: 1024px) 55vw, 100vw"
@@ -123,18 +132,148 @@ function QuantitySelector({
     </div>
   );
 }
+function VariantSelector({
+  variants,
+  selected,
+  onSelect,
+}: {
+  variants: ProductVariant[];
+  selected: ProductVariant | null;
+  onSelect: (variant: ProductVariant) => void;
+}) {
+  const colors = useMemo(() => {
+    const seen = new Set<string>();
+    const list: string[] = [];
+    for (const variant of variants) {
+      const color = variant.color?.trim();
+      if (color && !seen.has(color)) {
+        seen.add(color);
+        list.push(color);
+      }
+    }
+    return list;
+  }, [variants]);
+
+  const sizes = useMemo(() => {
+    const seen = new Set<string>();
+    const list: string[] = [];
+    for (const variant of variants) {
+      const size = variant.size?.trim();
+      if (size && !seen.has(size)) {
+        seen.add(size);
+        list.push(size);
+      }
+    }
+    return list;
+  }, [variants]);
+
+  if (colors.length < 2 && sizes.length < 2) return null;
+
+  const selectColor = (color: string) => {
+    const candidates = variants.filter((variant) => variant.color === color);
+    const keepSize = candidates.find((variant) => variant.size === selected?.size);
+    const withStock = candidates.find((variant) => variant.stock > 0);
+    const next = keepSize ?? withStock ?? candidates[0];
+    if (next) onSelect(next);
+  };
+
+  const selectSize = (size: string) => {
+    if (!selected) return;
+    const match = variants.find(
+      (variant) => variant.color === selected.color && variant.size === size,
+    );
+    if (match) onSelect(match);
+  };
+
+  return (
+    <div className="mt-7 space-y-6">
+      {colors.length >= 2 && (
+        <div>
+          <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+            Color
+            {selected?.color ? <span className="text-foreground"> — {selected.color}</span> : null}
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2.5">
+            {colors.map((color) => {
+              const active = selected?.color === color;
+              return (
+                <button
+                  key={color}
+                  type="button"
+                  onClick={() => selectColor(color)}
+                  aria-pressed={active}
+                  aria-label={`Select color ${color}`}
+                  title={color}
+                  className={cn(
+                    "grid h-10 w-10 place-items-center rounded-full border-2 transition",
+                    active
+                      ? "border-teal ring-2 ring-teal/25"
+                      : "border-white/15 hover:border-white/40",
+                  )}
+                >
+                  <span
+                    className="h-7 w-7 rounded-full border border-white/20"
+                    style={{ backgroundColor: color }}
+                  />
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+      {sizes.length >= 2 && (
+        <div>
+          <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+            Size
+            {selected?.size ? <span className="text-foreground"> — {selected.size}</span> : null}
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {sizes.map((size) => {
+              const match = variants.find(
+                (variant) => variant.color === selected?.color && variant.size === size,
+              );
+              const available = Boolean(match);
+              const active = available && selected?.size === size;
+              return (
+                <button
+                  key={size}
+                  type="button"
+                  disabled={!available}
+                  onClick={() => selectSize(size)}
+                  aria-pressed={active}
+                  className={cn(
+                    "min-w-11 rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-wide transition",
+                    !available &&
+                      "cursor-not-allowed border-white/5 text-muted-foreground/30 line-through",
+                    available && active && "border-teal bg-teal/10 text-teal",
+                    available &&
+                      !active &&
+                      "border-white/15 text-foreground/80 hover:border-white/40",
+                  )}
+                >
+                  {size}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 function OrderActions({
   product,
   quantity,
   compact = false,
+  inStock,
 }: {
   product: StoreProduct;
   quantity: number;
   compact?: boolean;
+  inStock: boolean;
 }) {
   const { addItem } = useCart();
   const addToCheckout = () => addItem(product, quantity);
-  const inStock = product.stock > 0;
   return (
     <div className={cn("grid gap-3", compact ? "grid-cols-1" : "sm:grid-cols-[1fr_auto]")}>
       {inStock ? (
@@ -270,10 +409,35 @@ export function ProductDetailsPage({ productId }: { productId: string }) {
   const { data: product, isLoading } = useProduct(productId);
   const { data: related = [] } = useRelatedProducts(product ?? null);
   const [quantity, setQuantity] = useState(1);
+  const [selectedVariantId, setSelectedVariantId] = useState<string | null>(null);
   const { language, t } = useLocale();
+
+  // Auto-select the default variant whenever a (new) product loads. For a
+  // product that only has its auto-created default variant, this resolves
+  // to the same price/stock/images the page already showed before variants
+  // existed, so nothing changes visually.
   useEffect(() => {
-    if (product) setQuantity((current) => Math.min(Math.max(1, product.stock), current));
-  }, [product?.id, product?.stock]);
+    setSelectedVariantId(product ? (getDefaultVariant(product)?.id ?? null) : null);
+  }, [product?.id]);
+
+  const activeVariants = useMemo(
+    () => product?.variants.filter((variant) => variant.is_active) ?? [],
+    [product],
+  );
+  const selectedVariant =
+    activeVariants.find((variant) => variant.id === selectedVariantId) ??
+    (product ? getDefaultVariant(product) : null);
+  const effectivePrice = product ? getEffectivePrice(product, selectedVariant) : 0;
+  const effectiveStock = product ? getEffectiveStock(product, selectedVariant) : 0;
+  const sku = selectedVariant?.sku ?? product?.sku ?? null;
+  const galleryImages =
+    selectedVariant && selectedVariant.images.length
+      ? selectedVariant.images
+      : (product?.images ?? []);
+
+  useEffect(() => {
+    setQuantity((current) => Math.min(Math.max(1, effectiveStock), current));
+  }, [product?.id, selectedVariant?.id, effectiveStock]);
   if (isLoading)
     return (
       <main className="min-h-screen bg-noise px-6 pb-32 pt-12">
@@ -339,7 +503,11 @@ export function ProductDetailsPage({ productId }: { productId: string }) {
           <span className="text-foreground">{name}</span>
         </nav>
         <div className="mt-8 grid gap-10 lg:grid-cols-[minmax(0,1.1fr)_minmax(360px,.9fr)] lg:gap-16">
-          <ProductGallery product={product} />
+          <ProductGallery
+            key={selectedVariant?.id ?? product.id}
+            images={galleryImages}
+            name={name}
+          />
           <section className="lg:pt-5">
             <span className="inline-flex rounded-full border border-teal/40 bg-teal/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.24em] text-teal">
               {categoryName}
@@ -352,7 +520,7 @@ export function ProductDetailsPage({ productId }: { productId: string }) {
             </div>
             <div className="mt-7 flex items-baseline gap-3">
               <span className="text-display text-3xl font-medium text-teal">
-                {product.price} EGP
+                {effectivePrice} EGP
               </span>
               {product.compare_price && (
                 <span className="text-base text-muted-foreground line-through">
@@ -364,22 +532,28 @@ export function ProductDetailsPage({ productId }: { productId: string }) {
               <span
                 className={cn(
                   "h-2 w-2 rounded-full",
-                  product.stock === 0
+                  effectiveStock === 0
                     ? "bg-red-400"
-                    : product.stock <= product.low_stock_threshold
+                    : effectiveStock <= product.low_stock_threshold
                       ? "bg-amber-300"
                       : "bg-teal shadow-[0_0_12px_var(--color-teal)]",
                 )}
               />
               <span className="font-medium text-foreground">
-                {product.stock === 0
+                {effectiveStock === 0
                   ? "Out of Stock"
-                  : product.stock <= product.low_stock_threshold
-                    ? `Only ${product.stock} left`
+                  : effectiveStock <= product.low_stock_threshold
+                    ? `Only ${effectiveStock} left`
                     : "In Stock"}
               </span>
               <span className="text-muted-foreground">— ready to dispatch</span>
             </div>
+            {sku && <p className="mt-3 text-xs text-muted-foreground">SKU: {sku}</p>}
+            <VariantSelector
+              variants={activeVariants}
+              selected={selectedVariant}
+              onSelect={(variant) => setSelectedVariantId(variant.id)}
+            />
             <p className="mt-7 text-sm leading-7 text-muted-foreground">{description}</p>
             <ul className="mt-6 grid gap-3 text-sm text-foreground/90">
               {["Premium Material", "Modern Design", "Durable", "Lightweight"].map((item) => (
@@ -399,7 +573,7 @@ export function ProductDetailsPage({ productId }: { productId: string }) {
                 <div className="mt-3">
                   <QuantitySelector
                     quantity={quantity}
-                    max={Math.max(1, product.stock)}
+                    max={Math.max(1, effectiveStock)}
                     onChange={setQuantity}
                   />
                 </div>
@@ -410,7 +584,7 @@ export function ProductDetailsPage({ productId }: { productId: string }) {
               </div>
             </div>
             <div className="mt-7">
-              <OrderActions product={product} quantity={quantity} />
+              <OrderActions product={product} quantity={quantity} inStock={effectiveStock > 0} />
             </div>
           </section>
         </div>
@@ -440,7 +614,7 @@ export function ProductDetailsPage({ productId }: { productId: string }) {
         </section>
       </div>
       <div className="fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-background/90 px-4 py-3 backdrop-blur-xl md:hidden">
-        <OrderActions product={product} quantity={quantity} compact />
+        <OrderActions product={product} quantity={quantity} compact inStock={effectiveStock > 0} />
       </div>
     </main>
   );

@@ -1,12 +1,35 @@
-import { useRef, useState, type FormEvent } from "react";
+import { useMemo, useRef, useState, type FormEvent } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Edit3, GripVertical, Images, Loader2, Plus, Star, Trash2, Upload, X } from "lucide-react";
+import {
+  AlertTriangle,
+  ArrowDown,
+  ArrowUp,
+  Boxes,
+  CheckCircle2,
+  Copy,
+  Edit3,
+  GripVertical,
+  Images,
+  Layers,
+  Loader2,
+  MoreVertical,
+  PackageX,
+  Plus,
+  Search,
+  Star,
+  Trash2,
+  Upload,
+  Wand2,
+  X,
+  XCircle,
+} from "lucide-react";
 import { AdminTable, StatusBadge } from "@/components/admin/AdminTable";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
 import { TableCell, TableRow } from "@/components/ui/table";
 import {
   Dialog,
@@ -16,6 +39,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { productKeys } from "@/hooks/use-products";
 import {
   createVariant,
@@ -31,6 +61,9 @@ import {
 
 const MAX_VARIANT_IMAGES = 10;
 const money = (value: number) => `$${Number(value).toLocaleString()}`;
+const selectClassName = "h-9 rounded-md border border-input bg-background px-2 text-sm";
+
+// --- form state --------------------------------------------------------
 
 type VariantFormState = {
   color: string;
@@ -130,24 +163,180 @@ function friendlyServiceError(error: unknown): { field?: "sku" | "barcode"; mess
   return { message };
 }
 
+function isUniqueViolation(error: unknown, key: "sku" | "barcode") {
+  const message = error instanceof Error ? error.message.toLowerCase() : "";
+  return message.includes(`product_variants_${key}_idx`) || message.includes(key);
+}
+
+// Creates a variant, transparently working around SKU/barcode collisions
+// that only the database can detect (e.g. a SKU already used on another
+// product). Used by both the bulk generator and "Duplicate variant" so
+// neither has to hand-roll retry logic. Calls only the existing
+// `createVariant` service — no service-layer changes.
+async function createVariantResilient(base: VariantInput): Promise<ProductVariant> {
+  let payload = base;
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    try {
+      return await createVariant(payload);
+    } catch (error) {
+      if (isUniqueViolation(error, "sku")) {
+        payload = { ...payload, sku: `${base.sku}-${randomSuffix()}` };
+        continue;
+      }
+      if (payload.barcode && isUniqueViolation(error, "barcode")) {
+        payload = { ...payload, barcode: null };
+        continue;
+      }
+      throw error;
+    }
+  }
+  throw new Error("Could not generate a unique SKU after several attempts.");
+}
+
+function randomSuffix() {
+  return Math.random().toString(36).slice(2, 6).toUpperCase();
+}
+
+function slugPart(value: string) {
+  return (
+    value
+      .trim()
+      .toUpperCase()
+      .replace(/[^A-Z0-9]+/g, "")
+      .slice(0, 6) || "VAR"
+  );
+}
+
+function buildGeneratedSku(base: string, color: string, size: string) {
+  return [slugPart(base), slugPart(color), slugPart(size)].filter(Boolean).join("-");
+}
+
+function comboKey(color: string | null, size: string | null) {
+  return `${(color ?? "").trim().toLowerCase()}__${(size ?? "").trim().toLowerCase()}`;
+}
+
+function parseLines(text: string): string[] {
+  return Array.from(
+    new Set(
+      text
+        .split(/\r?\n|,/)
+        .map((line) => line.trim())
+        .filter(Boolean),
+    ),
+  );
+}
+
+// --- filters / sorting ---------------------------------------------------
+
+type FilterValue = "all" | "active" | "inactive" | "low_stock" | "out_of_stock" | "default";
+type SortField = "color" | "size" | "sku" | "price" | "stock";
+type SortDir = "asc" | "desc";
+
+function matchesSearch(variant: ProductVariant, query: string) {
+  if (!query.trim()) return true;
+  const q = query.trim().toLowerCase();
+  return (
+    (variant.sku ?? "").toLowerCase().includes(q) ||
+    (variant.color ?? "").toLowerCase().includes(q) ||
+    (variant.size ?? "").toLowerCase().includes(q)
+  );
+}
+
+function matchesFilter(variant: ProductVariant, filter: FilterValue, threshold: number) {
+  switch (filter) {
+    case "active":
+      return variant.is_active;
+    case "inactive":
+      return !variant.is_active;
+    case "low_stock":
+      return variant.stock > 0 && variant.stock <= threshold;
+    case "out_of_stock":
+      return variant.stock <= 0;
+    case "default":
+      return variant.is_default;
+    default:
+      return true;
+  }
+}
+
+function compareVariants(
+  a: ProductVariant,
+  b: ProductVariant,
+  field: SortField,
+  dir: SortDir,
+  productPrice: number,
+) {
+  let result = 0;
+  switch (field) {
+    case "color":
+      result = (a.color ?? "").localeCompare(b.color ?? "");
+      break;
+    case "size":
+      result = (a.size ?? "").localeCompare(b.size ?? "");
+      break;
+    case "sku":
+      result = (a.sku ?? "").localeCompare(b.sku ?? "");
+      break;
+    case "price":
+      result = (a.price_override ?? productPrice) - (b.price_override ?? productPrice);
+      break;
+    case "stock":
+      result = a.stock - b.stock;
+      break;
+  }
+  return dir === "asc" ? result : -result;
+}
+
+function stockTone(stock: number, threshold: number): "success" | "warning" | "danger" {
+  if (stock <= 0) return "danger";
+  if (stock <= threshold) return "warning";
+  return "success";
+}
+
+// --- component -------------------------------------------------------------
+
 export function VariantManagement({ product }: { product: StoreProduct }) {
   const queryClient = useQueryClient();
   const variants = product.variants;
+  const threshold = product.low_stock_threshold;
 
+  // toolbar
+  const [search, setSearch] = useState("");
+  const [filter, setFilter] = useState<FilterValue>("all");
+  const [sortField, setSortField] = useState<SortField>("color");
+  const [sortDir, setSortDir] = useState<SortDir>("asc");
+
+  // add/edit dialog
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<VariantFormState>(emptyVariantForm);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
 
+  // delete confirm
   const [deleteTarget, setDeleteTarget] = useState<ProductVariant | null>(null);
   const [deleting, setDeleting] = useState(false);
 
+  // per-row quick action (enable/disable/default/duplicate) loading flag
+  const [rowActionId, setRowActionId] = useState<string | null>(null);
+
+  // bulk generator
+  const [generatorOpen, setGeneratorOpen] = useState(false);
+  const [colorsText, setColorsText] = useState("");
+  const [sizesText, setSizesText] = useState("");
+  const [generating, setGenerating] = useState(false);
+  const [generateProgress, setGenerateProgress] = useState<{ done: number; total: number } | null>(
+    null,
+  );
+
+  // manage images dialog
   const [imagesTargetId, setImagesTargetId] = useState<string | null>(null);
   const imagesVariant = variants.find((variant) => variant.id === imagesTargetId) ?? null;
   const [uploading, setUploading] = useState(false);
   const [removingImageId, setRemovingImageId] = useState<string | null>(null);
   const [draggedImageId, setDraggedImageId] = useState<string | null>(null);
+  const [isDraggingFiles, setIsDraggingFiles] = useState(false);
+  const [previewImageId, setPreviewImageId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const editingVariant = variants.find((variant) => variant.id === editingId) ?? null;
@@ -157,6 +346,37 @@ export function VariantManagement({ product }: { product: StoreProduct }) {
       queryClient.invalidateQueries({ queryKey: productKeys.detail(product.id, true) }),
       queryClient.invalidateQueries({ queryKey: productKeys.all }),
     ]);
+
+  // --- derived data --------------------------------------------------------
+
+  const summary = useMemo(
+    () =>
+      variants.reduce(
+        (acc, variant) => {
+          acc.total += 1;
+          acc.totalStock += variant.stock;
+          if (variant.is_active) acc.active += 1;
+          else acc.inactive += 1;
+          if (variant.stock <= 0) acc.outOfStock += 1;
+          else if (variant.stock <= threshold) acc.lowStock += 1;
+          return acc;
+        },
+        { total: 0, totalStock: 0, active: 0, inactive: 0, lowStock: 0, outOfStock: 0 },
+      ),
+    [variants, threshold],
+  );
+
+  const visibleVariants = useMemo(
+    () =>
+      variants
+        .filter(
+          (variant) => matchesSearch(variant, search) && matchesFilter(variant, filter, threshold),
+        )
+        .sort((a, b) => compareVariants(a, b, sortField, sortDir, product.price)),
+    [variants, search, filter, threshold, sortField, sortDir, product.price],
+  );
+
+  // --- add / edit dialog ---------------------------------------------------
 
   const openCreate = () => {
     setEditingId(null);
@@ -231,6 +451,8 @@ export function VariantManagement({ product }: { product: StoreProduct }) {
     }
   };
 
+  // --- delete ---------------------------------------------------------------
+
   const performDelete = async () => {
     if (!deleteTarget) return;
     setDeleting(true);
@@ -248,8 +470,181 @@ export function VariantManagement({ product }: { product: StoreProduct }) {
     }
   };
 
+  // --- quick actions ---------------------------------------------------------
+
+  const toggleActive = async (variant: ProductVariant) => {
+    setRowActionId(variant.id);
+    try {
+      await updateVariant(variant.id, { is_active: !variant.is_active });
+      await invalidate();
+      toast.success(variant.is_active ? "Variant disabled" : "Variant enabled");
+    } catch (error) {
+      toast.error("Unable to update variant", {
+        description: error instanceof Error ? error.message : "Please try again.",
+      });
+    } finally {
+      setRowActionId(null);
+    }
+  };
+
+  const markAsDefault = async (variant: ProductVariant) => {
+    if (variant.is_default) return;
+    const currentDefault = variants.find((candidate) => candidate.is_default) ?? null;
+    setRowActionId(variant.id);
+    try {
+      // Clear the old default first: the database only allows one
+      // `is_default = true` row per product, so setting the new one first
+      // would be rejected.
+      if (currentDefault && currentDefault.id !== variant.id) {
+        await updateVariant(currentDefault.id, { is_default: false });
+      }
+      try {
+        await updateVariant(variant.id, { is_default: true });
+      } catch (error) {
+        if (currentDefault) {
+          await updateVariant(currentDefault.id, { is_default: true }).catch(() => undefined);
+        }
+        throw error;
+      }
+      await invalidate();
+      toast.success("Default variant updated");
+    } catch (error) {
+      toast.error("Unable to set default variant", {
+        description: error instanceof Error ? error.message : "Please try again.",
+      });
+    } finally {
+      setRowActionId(null);
+    }
+  };
+
+  const duplicateVariant = async (variant: ProductVariant) => {
+    setRowActionId(variant.id);
+    try {
+      const created = await createVariantResilient({
+        product_id: product.id,
+        color: variant.color,
+        size: variant.size,
+        sku: `${slugPart(variant.sku ?? product.sku)}-COPY-${randomSuffix()}`,
+        price_override: variant.price_override,
+        stock: 0,
+        barcode: variant.barcode,
+        weight: variant.weight,
+        is_default: false,
+        is_active: variant.is_active,
+      });
+
+      if (variant.images.length) {
+        const files: File[] = [];
+        let skippedImages = 0;
+        for (const image of variant.images) {
+          try {
+            const response = await fetch(image.image_url);
+            const blob = await response.blob();
+            const name = image.storage_path?.split("/").pop() ?? `${created.id}.jpg`;
+            files.push(new File([blob], name, { type: blob.type || "image/jpeg" }));
+          } catch {
+            skippedImages += 1;
+          }
+        }
+        if (files.length) await uploadVariantImages(created.id, files, { hasPrimary: false });
+        if (skippedImages) {
+          toast.error(
+            `${skippedImages} image${skippedImages === 1 ? "" : "s"} could not be copied.`,
+          );
+        }
+      }
+
+      await invalidate();
+      toast.success("Variant duplicated", {
+        description: "Stock was reset to 0 — update it when ready.",
+      });
+    } catch (error) {
+      toast.error("Unable to duplicate variant", {
+        description: error instanceof Error ? error.message : "Please try again.",
+      });
+    } finally {
+      setRowActionId(null);
+    }
+  };
+
+  // --- bulk generator ---------------------------------------------------------
+
+  const runGenerate = async () => {
+    const colors = parseLines(colorsText);
+    const sizes = parseLines(sizesText);
+    if (!colors.length || !sizes.length) {
+      toast.error("Enter at least one color and one size.");
+      return;
+    }
+    const existingCombos = new Set(
+      variants.map((variant) => comboKey(variant.color, variant.size)),
+    );
+    const combos: { color: string; size: string }[] = [];
+    for (const color of colors) {
+      for (const size of sizes) {
+        const key = comboKey(color, size);
+        if (existingCombos.has(key)) continue;
+        existingCombos.add(key);
+        combos.push({ color, size });
+      }
+    }
+    const skipped = colors.length * sizes.length - combos.length;
+    if (!combos.length) {
+      toast.error("All of those color and size combinations already exist.");
+      return;
+    }
+
+    setGenerating(true);
+    setGenerateProgress({ done: 0, total: combos.length });
+    let created = 0;
+    let failed = 0;
+    for (const combo of combos) {
+      try {
+        await createVariantResilient({
+          product_id: product.id,
+          color: combo.color,
+          size: combo.size,
+          sku: buildGeneratedSku(product.sku, combo.color, combo.size),
+          price_override: null,
+          stock: 0,
+          barcode: null,
+          weight: null,
+          is_default: false,
+          is_active: true,
+        });
+        created += 1;
+      } catch {
+        failed += 1;
+      }
+      setGenerateProgress((current) =>
+        current ? { ...current, done: current.done + 1 } : current,
+      );
+    }
+    await invalidate();
+    setGenerating(false);
+    setGenerateProgress(null);
+    toast.success(`Generated ${created} variant${created === 1 ? "" : "s"}`, {
+      description:
+        [
+          skipped
+            ? `${skipped} combination${skipped === 1 ? "" : "s"} already existed and were skipped.`
+            : null,
+          failed ? `${failed} failed to create.` : null,
+        ]
+          .filter(Boolean)
+          .join(" ") || undefined,
+    });
+    if (created > 0) {
+      setColorsText("");
+      setSizesText("");
+      setGeneratorOpen(false);
+    }
+  };
+
+  // --- images ---------------------------------------------------------------
+
   const onFilesSelected = async (files: FileList | null) => {
-    if (!files || !imagesVariant) return;
+    if (!files || !files.length || !imagesVariant) return;
     const remaining = Math.max(0, MAX_VARIANT_IMAGES - imagesVariant.images.length);
     const list = Array.from(files).slice(0, remaining);
     if (!list.length) {
@@ -303,7 +698,7 @@ export function VariantManagement({ product }: { product: StoreProduct }) {
     }
   };
 
-  const onDrop = async (targetId: string) => {
+  const onDropImage = async (targetId: string) => {
     if (!imagesVariant || !draggedImageId || draggedImageId === targetId) {
       setDraggedImageId(null);
       return;
@@ -326,31 +721,146 @@ export function VariantManagement({ product }: { product: StoreProduct }) {
     }
   };
 
+  const closeImagesDialog = () => {
+    setImagesTargetId(null);
+    setPreviewImageId(null);
+  };
+
+  const previewImage = imagesVariant?.images.find((image) => image.id === previewImageId) ?? null;
+
+  // --- render ---------------------------------------------------------------
+
+  const summaryCards: {
+    label: string;
+    value: number;
+    icon: typeof Boxes;
+    accent?: string;
+  }[] = [
+    { label: "Total Variants", value: summary.total, icon: Boxes },
+    { label: "Total Stock", value: summary.totalStock, icon: Layers },
+    {
+      label: "Active Variants",
+      value: summary.active,
+      icon: CheckCircle2,
+      accent: "text-emerald-300",
+    },
+    {
+      label: "Inactive Variants",
+      value: summary.inactive,
+      icon: XCircle,
+      accent: "text-muted-foreground",
+    },
+    {
+      label: "Low Stock Variants",
+      value: summary.lowStock,
+      icon: AlertTriangle,
+      accent: "text-amber-300",
+    },
+    {
+      label: "Out Of Stock Variants",
+      value: summary.outOfStock,
+      icon: PackageX,
+      accent: "text-red-300",
+    },
+  ];
+
   return (
     <section className="rounded-xl border border-white/10 bg-white/[0.025] p-5">
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="font-medium">Variants</h2>
           <p className="mt-1 text-xs text-muted-foreground">
             Color, size, and stock combinations for this product.
           </p>
         </div>
-        <Button type="button" size="sm" onClick={openCreate}>
-          <Plus />
-          Add variant
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button type="button" variant="outline" size="sm" onClick={() => setGeneratorOpen(true)}>
+            <Wand2 />
+            Generate variants
+          </Button>
+          <Button type="button" size="sm" onClick={openCreate}>
+            <Plus />
+            Add variant
+          </Button>
+        </div>
       </div>
 
-      <div className="mt-5">
+      {/* Inventory summary */}
+      <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6">
+        {summaryCards.map(({ label, value, icon: Icon, accent }) => (
+          <div key={label} className="rounded-lg border border-white/10 bg-white/[0.02] p-3">
+            <div className="flex items-center justify-between">
+              <p className="text-[11px] text-muted-foreground">{label}</p>
+              <Icon className={`size-3.5 ${accent ?? "text-teal"}`} />
+            </div>
+            <p className={`mt-2 text-xl font-semibold tracking-tight ${accent ?? ""}`}>{value}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Toolbar: search / filter / sort */}
+      <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="relative w-full sm:max-w-xs">
+          <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            className="pl-8"
+            placeholder="Search SKU, color, size…"
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+          />
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <select
+            className={selectClassName}
+            value={filter}
+            onChange={(event) => setFilter(event.target.value as FilterValue)}
+            aria-label="Filter variants"
+          >
+            <option value="all">All variants</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+            <option value="low_stock">Low stock</option>
+            <option value="out_of_stock">Out of stock</option>
+            <option value="default">Default variant</option>
+          </select>
+          <select
+            className={selectClassName}
+            value={sortField}
+            onChange={(event) => setSortField(event.target.value as SortField)}
+            aria-label="Sort variants by"
+          >
+            <option value="color">Sort: Color</option>
+            <option value="size">Sort: Size</option>
+            <option value="sku">Sort: SKU</option>
+            <option value="price">Sort: Price</option>
+            <option value="stock">Sort: Stock</option>
+          </select>
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            aria-label="Toggle sort direction"
+            onClick={() => setSortDir((current) => (current === "asc" ? "desc" : "asc"))}
+          >
+            {sortDir === "asc" ? <ArrowUp className="size-4" /> : <ArrowDown className="size-4" />}
+          </Button>
+        </div>
+      </div>
+
+      <div className="mt-4">
         {variants.length === 0 ? (
           <div className="rounded-lg border border-dashed border-white/15 p-8 text-center text-sm text-muted-foreground">
-            No variants yet. Add one to start tracking color, size, and stock separately.
+            No variants yet. Add one, or generate a batch from colors and sizes.
+          </div>
+        ) : visibleVariants.length === 0 ? (
+          <div className="rounded-lg border border-dashed border-white/15 p-8 text-center text-sm text-muted-foreground">
+            No variants match your search or filter.
           </div>
         ) : (
           <AdminTable
             columns={["Color", "Size", "SKU", "Price", "Stock", "Status", "Default", "Actions"]}
           >
-            {variants.map((variant) => (
+            {visibleVariants.map((variant) => (
               <TableRow key={variant.id}>
                 <TableCell className="px-4">{variant.color || "—"}</TableCell>
                 <TableCell className="px-4">{variant.size || "—"}</TableCell>
@@ -364,7 +874,16 @@ export function VariantManagement({ product }: { product: StoreProduct }) {
                     </span>
                   )}
                 </TableCell>
-                <TableCell className="px-4">{variant.stock}</TableCell>
+                <TableCell className="px-4">
+                  <StatusBadge tone={stockTone(variant.stock, threshold)}>
+                    {variant.stock}
+                    {variant.stock <= 0
+                      ? " · out of stock"
+                      : variant.stock <= threshold
+                        ? " · low"
+                        : ""}
+                  </StatusBadge>
+                </TableCell>
                 <TableCell className="px-4">
                   <StatusBadge tone={variant.is_active ? "success" : "neutral"}>
                     {variant.is_active ? "Active" : "Inactive"}
@@ -409,6 +928,46 @@ export function VariantManagement({ product }: { product: StoreProduct }) {
                     >
                       <Trash2 className="size-4" />
                     </Button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          aria-label="More actions"
+                          disabled={rowActionId === variant.id}
+                        >
+                          {rowActionId === variant.id ? (
+                            <Loader2 className="size-4 animate-spin" />
+                          ) : (
+                            <MoreVertical className="size-4" />
+                          )}
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => void toggleActive(variant)}>
+                          {variant.is_active ? "Disable variant" : "Enable variant"}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          disabled={variant.is_default}
+                          onClick={() => void markAsDefault(variant)}
+                        >
+                          Mark as default
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => void duplicateVariant(variant)}>
+                          <Copy className="size-3.5" />
+                          Duplicate
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          disabled={variant.is_default}
+                          className="text-red-300 focus:text-red-200"
+                          onClick={() => setDeleteTarget(variant)}
+                        >
+                          Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                 </TableCell>
               </TableRow>
@@ -416,6 +975,62 @@ export function VariantManagement({ product }: { product: StoreProduct }) {
           </AdminTable>
         )}
       </div>
+
+      {/* Generate variants */}
+      <Dialog open={generatorOpen} onOpenChange={(open) => !generating && setGeneratorOpen(open)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Generate variants</DialogTitle>
+            <DialogDescription>
+              One color or size per line. Existing combinations are skipped automatically, and new
+              variants start with 0 stock.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <Label>Colors</Label>
+              <Textarea
+                rows={6}
+                className="mt-2"
+                placeholder={"Black\nBrown\nWhite\nBlue"}
+                value={colorsText}
+                onChange={(event) => setColorsText(event.target.value)}
+                disabled={generating}
+              />
+            </div>
+            <div>
+              <Label>Sizes</Label>
+              <Textarea
+                rows={6}
+                className="mt-2"
+                placeholder={"S\nM\nL\nXL"}
+                value={sizesText}
+                onChange={(event) => setSizesText(event.target.value)}
+                disabled={generating}
+              />
+            </div>
+          </div>
+          {generateProgress && (
+            <p className="text-xs text-muted-foreground">
+              Creating variant {generateProgress.done} of {generateProgress.total}…
+            </p>
+          )}
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => setGeneratorOpen(false)}
+              disabled={generating}
+            >
+              Cancel
+            </Button>
+            <Button type="button" onClick={() => void runGenerate()} disabled={generating}>
+              {generating && <Loader2 className="size-4 animate-spin" />}
+              Generate
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Add / edit variant */}
       <Dialog
@@ -538,16 +1153,13 @@ export function VariantManagement({ product }: { product: StoreProduct }) {
       </Dialog>
 
       {/* Manage images */}
-      <Dialog
-        open={Boolean(imagesTargetId)}
-        onOpenChange={(open) => !open && setImagesTargetId(null)}
-      >
-        <DialogContent className="sm:max-w-2xl">
+      <Dialog open={Boolean(imagesTargetId)} onOpenChange={(open) => !open && closeImagesDialog()}>
+        <DialogContent className="relative sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle>Manage images</DialogTitle>
             <DialogDescription>
               {imagesVariant
-                ? `Images for ${[imagesVariant.color, imagesVariant.size].filter(Boolean).join(" / ") || imagesVariant.sku || "this variant"}. Drag to reorder — the first image is the cover.`
+                ? `Images for ${[imagesVariant.color, imagesVariant.size].filter(Boolean).join(" / ") || imagesVariant.sku || "this variant"}. Drag thumbnails to reorder — the first image is the cover.`
                 : ""}
             </DialogDescription>
           </DialogHeader>
@@ -561,23 +1173,44 @@ export function VariantManagement({ product }: { product: StoreProduct }) {
                 className="hidden"
                 onChange={(event) => void onFilesSelected(event.target.files)}
               />
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                disabled={uploading || imagesVariant.images.length >= MAX_VARIANT_IMAGES}
-                onClick={() => fileInputRef.current?.click()}
+              <div
+                onDragOver={(event) => {
+                  event.preventDefault();
+                  setIsDraggingFiles(true);
+                }}
+                onDragLeave={() => setIsDraggingFiles(false)}
+                onDrop={(event) => {
+                  event.preventDefault();
+                  setIsDraggingFiles(false);
+                  if (event.dataTransfer.files?.length)
+                    void onFilesSelected(event.dataTransfer.files);
+                }}
+                className={`flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed p-6 text-center text-xs transition-colors ${
+                  isDraggingFiles
+                    ? "border-teal bg-teal/5 text-teal"
+                    : "border-white/15 text-muted-foreground"
+                }`}
               >
-                {uploading ? (
-                  <Loader2 className="size-4 animate-spin" />
-                ) : (
-                  <Upload className="size-4" />
-                )}
-                Upload images
-              </Button>
-              <p className="mt-1 text-xs text-muted-foreground">
-                {imagesVariant.images.length}/{MAX_VARIANT_IMAGES} images
-              </p>
+                <Upload className="size-5" />
+                <p>Drag & drop images here, or</p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={uploading || imagesVariant.images.length >= MAX_VARIANT_IMAGES}
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  {uploading ? (
+                    <Loader2 className="size-4 animate-spin" />
+                  ) : (
+                    <Upload className="size-4" />
+                  )}
+                  Browse files
+                </Button>
+                <p>
+                  {imagesVariant.images.length}/{MAX_VARIANT_IMAGES} images
+                </p>
+              </div>
               <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
                 {imagesVariant.images.length === 0 ? (
                   <div className="col-span-full rounded-lg border border-dashed border-white/15 p-6 text-center text-xs text-muted-foreground">
@@ -590,7 +1223,7 @@ export function VariantManagement({ product }: { product: StoreProduct }) {
                       draggable
                       onDragStart={() => setDraggedImageId(image.id)}
                       onDragOver={(event) => event.preventDefault()}
-                      onDrop={() => void onDrop(image.id)}
+                      onDrop={() => void onDropImage(image.id)}
                       className={`group relative aspect-square cursor-grab overflow-hidden rounded-lg border ${
                         image.is_primary ? "border-teal" : "border-white/10"
                       } ${draggedImageId === image.id ? "opacity-40" : ""}`}
@@ -599,6 +1232,7 @@ export function VariantManagement({ product }: { product: StoreProduct }) {
                         src={image.image_url}
                         alt={image.alt_text ?? "Variant image"}
                         className="size-full object-cover"
+                        onClick={() => setPreviewImageId(image.id)}
                       />
                       <div className="absolute inset-x-0 top-0 flex items-center justify-between p-1">
                         <span className="rounded bg-black/60 p-1 text-white/70">
@@ -638,8 +1272,28 @@ export function VariantManagement({ product }: { product: StoreProduct }) {
               </div>
             </div>
           )}
+          {previewImage && (
+            <div
+              className="absolute inset-0 z-50 flex items-center justify-center rounded-lg bg-black/90 p-6"
+              onClick={() => setPreviewImageId(null)}
+            >
+              <img
+                src={previewImage.image_url}
+                alt={previewImage.alt_text ?? "Preview"}
+                className="max-h-full max-w-full rounded-lg object-contain"
+              />
+              <button
+                type="button"
+                className="absolute right-4 top-4 rounded-full bg-white/10 p-2 text-white hover:bg-white/20"
+                onClick={() => setPreviewImageId(null)}
+                aria-label="Close preview"
+              >
+                <X className="size-4" />
+              </button>
+            </div>
+          )}
           <DialogFooter>
-            <Button type="button" variant="ghost" onClick={() => setImagesTargetId(null)}>
+            <Button type="button" variant="ghost" onClick={closeImagesDialog}>
               Done
             </Button>
           </DialogFooter>
