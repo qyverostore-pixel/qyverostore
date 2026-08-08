@@ -303,13 +303,31 @@ export function ProductFormPage({ productId }: { productId?: string }) {
       updated_by: user.id,
     };
     try {
-      if (existing) await updateProduct(existing.id, { ...input, updated_by: user.id }, files, []);
-      else await createProduct(input, files);
-      await queryClient.invalidateQueries({ queryKey: productKeys.all });
-      toast.success(status === "active" ? "Product saved" : "Draft saved", {
-        description: englishName,
-      });
-      navigate({ to: "/admin/products" });
+      if (existing) {
+        await updateProduct(existing.id, { ...input, updated_by: user.id }, files, []);
+        await queryClient.invalidateQueries({ queryKey: productKeys.all });
+        toast.success(status === "active" ? "Product saved" : "Draft saved", {
+          description: englishName,
+        });
+        navigate({ to: "/admin/products" });
+      } else {
+        const created = await createProduct(input, files);
+        await queryClient.invalidateQueries({ queryKey: productKeys.all });
+        if (created) {
+          toast.success("Product created. You can now add variants.", {
+            description: englishName,
+          });
+          navigate({ to: "/admin/products/$productId/edit", params: { productId: created.id } });
+        } else {
+          // Fallback: creation succeeded but the follow-up read didn't return the
+          // product (should not happen in practice). Preserve the previous
+          // behavior rather than navigating somewhere we can't back up with data.
+          toast.success(status === "active" ? "Product saved" : "Draft saved", {
+            description: englishName,
+          });
+          navigate({ to: "/admin/products" });
+        }
+      }
     } catch (error) {
       toast.error("Unable to save product", {
         description: error instanceof Error ? error.message : "Please try again.",
