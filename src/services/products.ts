@@ -301,12 +301,16 @@ export async function uploadProductImages(productId: string, files: File[]) {
 }
 
 export async function createProduct(input: ProductInput, files: File[]) {
-  const { data, error } = await supabase
-    .from("products")
-    .insert(input)
-    .select(storeProductSelect)
-    .single();
+  // Only ask for the new row's id here. Deliberately NOT using
+  // `storeProductSelect` on this insert: that select embeds
+  // `product_variants`/`variant_images`, which couples product *creation*
+  // to a table a brand-new product has no rows in yet (variants are only
+  // managed after the product is saved — see VariantManagement). The full
+  // StoreProduct — variants included — is still returned below via
+  // getProduct(), as a normal read.
+  const { data, error } = await supabase.from("products").insert(input).select("id").single();
   fail(error);
+  if (!data) throw new Error("Product creation did not return an id.");
   try {
     if (files.length) await uploadProductImages(data.id, files);
     return await getProduct(data.id, true);
