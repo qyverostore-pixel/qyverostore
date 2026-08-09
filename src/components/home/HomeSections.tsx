@@ -26,6 +26,8 @@ import { useCategories, useFeaturedProducts } from "@/hooks/use-products";
 import type { StoreProduct } from "@/services/products";
 import { useStorefrontSettings } from "@/providers/StorefrontSettingsProvider";
 import { emailUrl, externalUrl, whatsappUrl } from "@/services/store-settings";
+import { useLocale } from "@/providers/LocaleProvider";
+import { localizedCategoryName } from "@/lib/localized-content";
 
 /* ---------- shared bits ---------- */
 
@@ -180,6 +182,7 @@ function categoryIcon(icon: string | null, slug: string) {
 
 function Categories() {
   const { data: categories = [] } = useCategories();
+  const { language } = useLocale();
   return (
     <section id="categories" className="relative py-24 sm:py-32">
       <div className="mx-auto w-full max-w-7xl px-6">
@@ -190,7 +193,9 @@ function Categories() {
         />
 
         <div className="mt-16 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-          {categories.map(({ name, slug, icon, description }) => {
+          {categories.map((category) => {
+            const { slug, icon, description } = category;
+            const name = localizedCategoryName(category, language);
             const Icon = categoryIcon(icon, slug);
             return (
             <Link
