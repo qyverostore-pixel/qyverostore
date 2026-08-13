@@ -7,6 +7,8 @@ import { GoogleButton } from "@/components/google-button";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { useAuth } from "@/providers/AuthProvider";
+import { useLocale } from "@/providers/LocaleProvider";
+import { normalizeEgyptianPhone } from "@/lib/validation";
 
 export const Route = createFileRoute("/auth/signup")({
   head: () => ({
@@ -44,6 +46,7 @@ type Errors = Partial<
 function SignUpPage() {
   const navigate = useNavigate();
   const { user, profile, loading } = useAuth();
+  const { t } = useLocale();
   const [form, setForm] = useState({
     firstName: "",
     lastName: "",
@@ -74,17 +77,17 @@ function SignUpPage() {
 
   function validate(): Errors {
     const e: Errors = {};
-    if (form.firstName.trim().length < 2) e.firstName = "Enter your first name";
-    if (form.lastName.trim().length < 2) e.lastName = "Enter your last name";
+    if (form.firstName.trim().length < 2) e.firstName = t("auth.enterFirstName");
+    if (form.lastName.trim().length < 2) e.lastName = t("auth.enterLastName");
     if (!/^[a-zA-Z0-9_.]{3,20}$/.test(form.username))
-      e.username = "3–20 chars, letters, numbers, . or _";
+      e.username = t("auth.usernameHint");
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email))
-      e.email = "Enter a valid email";
-    if (!/^[+\d][\d\s-]{6,}$/.test(form.phone))
-      e.phone = "Enter a valid phone number";
-    if (form.password.length < 8) e.password = "At least 8 characters";
-    if (form.confirm !== form.password) e.confirm = "Passwords do not match";
-    if (!form.terms) e.terms = "You must accept to continue";
+      e.email = t("auth.validEmail");
+    if (!normalizeEgyptianPhone(form.phone))
+      e.phone = t("auth.validPhone");
+    if (form.password.length < 8) e.password = t("auth.minPassword");
+    if (form.confirm !== form.password) e.confirm = t("auth.passwordsMatch");
+    if (!form.terms) e.terms = t("auth.acceptTerms");
     return e;
   }
 
@@ -98,20 +101,20 @@ function SignUpPage() {
       const { data, error } = await supabase.auth.signUp({
         email: form.email,
         password: form.password,
-        options: { data: { first_name: form.firstName, last_name: form.lastName, username: form.username, phone: form.phone } },
+        options: { data: { first_name: form.firstName.trim(), last_name: form.lastName.trim(), username: form.username.trim(), phone: normalizeEgyptianPhone(form.phone) } },
       });
       if (error) {
-        toast.error("Unable to create account", { description: error.message });
+        toast.error(t("auth.unableToCreate"), { description: error.message });
         return;
       }
       if (data.session) {
-        toast.success("Account created successfully");
+        toast.success(t("auth.accountCreated"));
         return;
       }
-      toast.success("Check your email to confirm your account");
+      toast.success(t("auth.checkEmail"));
       navigate({ to: "/auth/signin" });
     } catch (error) {
-      toast.error("Unable to create account", { description: error instanceof Error ? error.message : "Please try again." });
+      toast.error(t("auth.unableToCreate"), { description: error instanceof Error ? error.message : t("common.tryAgain") });
     } finally {
       setSubmitting(false);
     }
@@ -123,29 +126,29 @@ function SignUpPage() {
 
   return (
     <AuthLayout
-      eyebrow="A New Standard"
+      eyebrow={t("auth.newStandard")}
       title={
         <>
-          Welcome to the <span className="text-teal">QYVERO</span> family.
+          {t("auth.welcomeToThe")} <span className="text-teal">QYVERO</span> {t("auth.family")}.
         </>
       }
-      subtitle="Create an account to shop premium essentials, track orders and unlock member-only drops."
+      subtitle={t("auth.signUpSubtitle")}
       side={<AuthSideVisual variant="signup" />}
     >
       <div className="mb-8">
         <p className="text-[11px] uppercase tracking-[0.4em] text-teal">
-          Create account
+          {t("auth.createAccount")}
         </p>
         <h1 className="mt-3 text-display text-3xl font-light text-foreground">
-          Own your style.
+          {t("brand.tagline")}
         </h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          Already have an account?{" "}
+          {t("auth.alreadyHaveAccount")} {" "}
           <Link
             to="/auth/signin"
             className="text-foreground underline-offset-4 hover:underline"
           >
-            Sign in
+            {t("auth.signIn")}
           </Link>
           .
         </p>
@@ -154,7 +157,7 @@ function SignUpPage() {
       <form onSubmit={onSubmit} className="flex flex-col gap-4" noValidate>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <TextField
-            label="First name"
+            label={t("auth.firstName")}
             placeholder="John"
             autoComplete="given-name"
             icon={<User />}
@@ -163,7 +166,7 @@ function SignUpPage() {
             error={errors.firstName}
           />
           <TextField
-            label="Last name"
+            label={t("auth.lastName")}
             placeholder="Doe"
             autoComplete="family-name"
             icon={<User />}
@@ -174,7 +177,7 @@ function SignUpPage() {
         </div>
 
         <TextField
-          label="Username"
+          label={t("auth.username")}
           placeholder="johndoe"
           autoComplete="username"
           icon={<AtSign />}
@@ -184,7 +187,7 @@ function SignUpPage() {
         />
 
         <TextField
-          label="Email"
+          label={t("auth.email")}
           type="email"
           placeholder="you@qyvero.com"
           autoComplete="email"
@@ -195,7 +198,7 @@ function SignUpPage() {
         />
 
         <TextField
-          label="Phone number"
+          label={t("auth.phone")}
           placeholder="+20 123 456 789"
           autoComplete="tel"
           icon={<Phone />}
@@ -205,7 +208,7 @@ function SignUpPage() {
         />
 
         <TextField
-          label="Password"
+          label={t("auth.password")}
           type="password"
           placeholder="••••••••"
           autoComplete="new-password"
@@ -216,7 +219,7 @@ function SignUpPage() {
         />
 
         <TextField
-          label="Confirm password"
+          label={t("auth.confirmPassword")}
           type="password"
           placeholder="••••••••"
           autoComplete="new-password"
@@ -234,13 +237,13 @@ function SignUpPage() {
             className="mt-1 h-4 w-4 rounded border-white/20 bg-white/5 accent-[color:var(--color-teal)]"
           />
           <span className="leading-tight">
-            I agree to the{" "}
+            {t("auth.agreeToThe")} {" "}
             <Link to="/" className="text-foreground underline underline-offset-2">
-              Terms of Service
+              {t("auth.termsOfService")}
             </Link>{" "}
-            and{" "}
+            {t("auth.and")} {" "}
             <Link to="/" className="text-foreground underline underline-offset-2">
-              Privacy Policy
+              {t("legal.privacyTitle")}
             </Link>
             .
           </span>
@@ -252,12 +255,12 @@ function SignUpPage() {
           disabled={submitting}
           className="mt-2 inline-flex items-center justify-center rounded-xl bg-foreground px-4 py-3.5 text-sm font-semibold uppercase tracking-[0.2em] text-background transition-all hover:bg-foreground/90 active:scale-[0.99] disabled:opacity-60 cursor-pointer"
         >
-          {submitting ? "Creating account…" : "Create account"}
+          {submitting ? t("auth.creatingAccount") : t("auth.createAccount")}
         </button>
 
         <div className="my-1 flex items-center gap-3 text-[10px] uppercase tracking-[0.3em] text-muted-foreground/70">
           <span className="h-px flex-1 bg-white/10" />
-          or
+          {t("auth.or")}
           <span className="h-px flex-1 bg-white/10" />
         </div>
 

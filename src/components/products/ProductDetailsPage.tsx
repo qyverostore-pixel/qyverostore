@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { Check, ChevronRight, MessageCircle, Minus, Plus, Star, Truck } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ProductDetailsSkeleton } from "@/components/ui/loading-skeletons";
@@ -30,6 +31,7 @@ import {
 type GalleryImage = { id: string; image_url: string; alt_text: string | null };
 function ProductGallery({ images, name }: { images: GalleryImage[]; name: string }) {
   const [selected, setSelected] = useState(0);
+  const { t } = useLocale();
   return (
     <div>
       <div className="group relative aspect-square overflow-hidden rounded-[2rem] border border-white/10 bg-neutral-950">
@@ -51,7 +53,7 @@ function ProductGallery({ images, name }: { images: GalleryImage[]; name: string
           </span>
         )}
         <span className="pointer-events-none absolute bottom-5 left-1/2 -translate-x-1/2 rounded-full border border-white/10 bg-black/35 px-3 py-1.5 text-[10px] uppercase tracking-[0.22em] text-foreground/75 opacity-0 backdrop-blur transition group-hover:opacity-100">
-          Hover to zoom
+          {t("product.hoverToZoom")}
         </span>
       </div>
       <div className="mt-4 grid grid-cols-4 gap-3">
@@ -60,7 +62,7 @@ function ProductGallery({ images, name }: { images: GalleryImage[]; name: string
             key={image.id}
             type="button"
             onClick={() => setSelected(index)}
-            aria-label={`View product image ${index + 1}`}
+            aria-label={`${t("product.viewImage")} ${index + 1}`}
             className={cn(
               "aspect-square overflow-hidden rounded-2xl border transition",
               selected === index
@@ -85,9 +87,10 @@ function ProductGallery({ images, name }: { images: GalleryImage[]; name: string
   );
 }
 function Rating({ product }: { product: StoreProduct }) {
+  const { t } = useLocale();
   return (
     <div className="flex items-center gap-2">
-      <div className="flex gap-0.5 text-amber-300" aria-label={`${product.rating} out of 5 stars`}>
+      <div className="flex gap-0.5 text-amber-300" aria-label={`${product.rating} ${t("product.ratingOutOfFive")}`}>
         {Array.from({ length: 5 }, (_, index) => (
           <Star key={index} className="h-4 w-4 fill-current" />
         ))}
@@ -95,7 +98,7 @@ function Rating({ product }: { product: StoreProduct }) {
       <span className="text-sm font-medium text-foreground">
         {Number(product.rating).toFixed(1)}
       </span>
-      <span className="text-sm text-muted-foreground">({product.reviews_count} reviews)</span>
+      <span className="text-sm text-muted-foreground">({product.reviews_count} {t("product.reviewsCount")})</span>
     </div>
   );
 }
@@ -108,11 +111,12 @@ function QuantitySelector({
   max: number;
   onChange: (quantity: number) => void;
 }) {
+  const { t } = useLocale();
   return (
     <div className="flex h-12 w-36 items-center justify-between rounded-full border border-white/15 bg-white/[0.02] px-2">
       <button
         type="button"
-        aria-label="Decrease quantity"
+        aria-label={t("product.decreaseQuantity")}
         onClick={() => onChange(Math.max(1, quantity - 1))}
         disabled={quantity <= 1}
         className="grid h-8 w-8 place-items-center rounded-full text-foreground/80 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40"
@@ -122,7 +126,7 @@ function QuantitySelector({
       <span className="text-sm font-semibold tabular-nums">{quantity}</span>
       <button
         type="button"
-        aria-label="Increase quantity"
+        aria-label={t("product.increaseQuantity")}
         onClick={() => onChange(Math.min(max, quantity + 1))}
         disabled={quantity >= max}
         className="grid h-8 w-8 place-items-center rounded-full text-foreground/80 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40"
@@ -141,6 +145,7 @@ function VariantSelector({
   selected: ProductVariant | null;
   onSelect: (variant: ProductVariant) => void;
 }) {
+  const { t } = useLocale();
   const colors = useMemo(() => {
     const seen = new Set<string>();
     const list: string[] = [];
@@ -190,7 +195,7 @@ function VariantSelector({
       {colors.length >= 2 && (
         <div>
           <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-            Color
+            {t("product.color")}
             {selected?.color ? <span className="text-foreground"> — {selected.color}</span> : null}
           </p>
           <div className="mt-3 flex flex-wrap gap-2.5">
@@ -202,7 +207,7 @@ function VariantSelector({
                   type="button"
                   onClick={() => selectColor(color)}
                   aria-pressed={active}
-                  aria-label={`Select color ${color}`}
+                  aria-label={`${t("product.selectColor")} ${color}`}
                   title={color}
                   className={cn(
                     "grid h-10 w-10 place-items-center rounded-full border-2 transition",
@@ -224,7 +229,7 @@ function VariantSelector({
       {sizes.length >= 2 && (
         <div>
           <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-            Size
+            {t("product.size")}
             {selected?.size ? <span className="text-foreground"> — {selected.size}</span> : null}
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
@@ -263,33 +268,36 @@ function VariantSelector({
 }
 function OrderActions({
   product,
+  variant,
   quantity,
   compact = false,
   inStock,
 }: {
   product: StoreProduct;
+  variant: ProductVariant | null;
   quantity: number;
   compact?: boolean;
   inStock: boolean;
 }) {
-  const { addItem } = useCart();
-  const addToCheckout = () => addItem(product, quantity);
+  const { addItem, startBuyNow } = useCart();
+  const { t } = useLocale();
+  const addToCart = () => {
+    if (addItem(product, quantity, variant)) toast.success(t("cart.added"));
+  };
+  const buyNow = () => startBuyNow(product, quantity, variant);
   return (
     <div className={cn("grid gap-3", compact ? "grid-cols-1" : "sm:grid-cols-[1fr_auto]")}>
       {inStock ? (
-        <Link
-          to="/checkout"
-          onClick={addToCheckout}
-          className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-foreground px-6 text-xs font-semibold uppercase tracking-[0.18em] text-background transition hover:bg-foreground/90"
-        >
+        <button type="button" onClick={addToCart} className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-foreground px-6 text-xs font-semibold uppercase tracking-[0.18em] text-background transition hover:bg-foreground/90">
           <MessageCircle className="h-4 w-4" />
-          Checkout
-        </Link>
+          {t("cart.addToCart")}
+        </button>
       ) : (
         <span className="inline-flex h-12 cursor-not-allowed items-center justify-center gap-2 rounded-full bg-white/10 px-6 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-          Out of Stock
+          {t("product.outOfStock")}
         </span>
       )}
+      {inStock && <Link to="/checkout" onClick={buyNow} className="inline-flex h-12 items-center justify-center rounded-full border border-white/15 px-6 text-xs font-semibold uppercase tracking-[0.18em] text-foreground transition hover:border-teal hover:text-teal">{t("cart.buyNow")}</Link>}
       {!compact && (
         <WishlistButton
           product={product}
@@ -301,6 +309,7 @@ function OrderActions({
   );
 }
 function ProductTabs({ product }: { product: StoreProduct }) {
+  const { language, t } = useLocale();
   const dimensions = [product.length, product.width, product.height]
     .filter((value) => value != null)
     .join(" × ");
@@ -311,52 +320,52 @@ function ProductTabs({ product }: { product: StoreProduct }) {
           value="description"
           className="rounded-full border border-transparent px-4 py-2.5 text-xs data-[state=active]:border-white/15 data-[state=active]:bg-white/[0.05]"
         >
-          Description
+          {t("product.description")}
         </TabsTrigger>
         <TabsTrigger
           value="specifications"
           className="rounded-full border border-transparent px-4 py-2.5 text-xs data-[state=active]:border-white/15 data-[state=active]:bg-white/[0.05]"
         >
-          Specifications
+          {t("product.specifications")}
         </TabsTrigger>
         <TabsTrigger
           value="reviews"
           className="rounded-full border border-transparent px-4 py-2.5 text-xs data-[state=active]:border-white/15 data-[state=active]:bg-white/[0.05]"
         >
-          Reviews
+          {t("product.reviews")}
         </TabsTrigger>
         <TabsTrigger
           value="shipping"
           className="rounded-full border border-transparent px-4 py-2.5 text-xs data-[state=active]:border-white/15 data-[state=active]:bg-white/[0.05]"
         >
-          Shipping
+          {t("product.shipping")}
         </TabsTrigger>
       </TabsList>
       <TabsContent
         value="description"
         className="max-w-2xl py-7 text-sm leading-7 text-muted-foreground"
       >
-        {product.description || product.short_description}
+        {localizedProductDescription(product, language) || product.short_description}
       </TabsContent>
       <TabsContent value="specifications" className="py-7">
         <dl className="grid max-w-2xl grid-cols-1 divide-y divide-white/10 text-sm sm:grid-cols-2 sm:divide-x sm:divide-y-0">
           <div className="py-4 sm:px-5 sm:first:pl-0">
-            <dt className="text-muted-foreground">Brand</dt>
+            <dt className="text-muted-foreground">{t("product.brand")}</dt>
             <dd className="mt-1 text-foreground">{product.brand || "QYVERO"}</dd>
           </div>
           <div className="py-4 sm:px-5">
-            <dt className="text-muted-foreground">Dimensions</dt>
-            <dd className="mt-1 text-foreground">{dimensions || "Not specified"}</dd>
+            <dt className="text-muted-foreground">{t("product.dimensions")}</dt>
+            <dd className="mt-1 text-foreground">{dimensions || t("product.notSpecified")}</dd>
           </div>
           <div className="py-4 sm:px-5 sm:pl-0">
-            <dt className="text-muted-foreground">Weight</dt>
+            <dt className="text-muted-foreground">{t("product.weight")}</dt>
             <dd className="mt-1 text-foreground">
-              {product.weight ? `${product.weight} kg` : "Not specified"}
+              {product.weight ? `${product.weight} kg` : t("product.notSpecified")}
             </dd>
           </div>
           <div className="py-4 sm:px-5">
-            <dt className="text-muted-foreground">Care</dt>
-            <dd className="mt-1 text-foreground">Wipe clean with a soft cloth</dd>
+            <dt className="text-muted-foreground">{t("product.care")}</dt>
+            <dd className="mt-1 text-foreground">{t("product.wipeClean")}</dd>
           </div>
         </dl>
       </TabsContent>
@@ -364,20 +373,21 @@ function ProductTabs({ product }: { product: StoreProduct }) {
         <ReviewsSection productId={product.id} />
       </TabsContent>
       <TabsContent value="shipping" className="py-7 text-sm leading-7 text-muted-foreground">
-        Orders are carefully packed and dispatched within 1–2 business days. Nationwide delivery is
-        available, with tracking shared once your order is on its way.
+        {t("product.shippingDescription")}
       </TabsContent>
     </Tabs>
   );
 }
 function RelatedCard({ product }: { product: StoreProduct }) {
+  const { language, t } = useLocale();
+  const name = localizedProductName(product, language);
   return (
     <article className="group overflow-hidden rounded-3xl border border-white/10 bg-white/[0.02] transition hover:-translate-y-1 hover:border-white/25">
       <div className="aspect-[4/3] bg-neutral-950">
         {product.images[0] && (
           <img
             src={product.images[0].image_url}
-            alt={product.images[0].alt_text ?? product.name}
+            alt={name}
             loading="lazy"
             decoding="async"
             sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw"
@@ -390,16 +400,16 @@ function RelatedCard({ product }: { product: StoreProduct }) {
       </div>
       <div className="p-5">
         <p className="text-[10px] uppercase tracking-[0.2em] text-teal">
-          {product.category?.name ?? "Collection"}
+          {product.category ? localizedCategoryName(product.category, language) : t("product.collection")}
         </p>
-        <h3 className="text-display mt-2 text-base font-medium">{product.name}</h3>
+        <h3 className="text-display mt-2 text-base font-medium">{name}</h3>
         <p className="mt-1 text-sm font-semibold text-teal">{product.price} EGP</p>
         <Link
           to="/products/$productId"
           params={{ productId: product.slug }}
           className="mt-4 inline-flex text-xs font-medium text-foreground/75 transition hover:text-teal"
         >
-          View product <ChevronRight className="ml-1 h-3.5 w-3.5" />
+          {t("product.viewProduct")} <ChevronRight className="ml-1 h-3.5 w-3.5" />
         </Link>
       </div>
     </article>
@@ -451,8 +461,8 @@ export function ProductDetailsPage({ productId }: { productId: string }) {
       <main className="min-h-screen bg-noise px-6 pb-32 pt-12">
         <div className="mx-auto max-w-7xl">
           <EmptyState
-            title="Product not found"
-            description="This product may no longer be available."
+            title={t("product.productNotFound")}
+            description={t("product.productUnavailable")}
           />
         </div>
       </main>
@@ -487,15 +497,15 @@ export function ProductDetailsPage({ productId }: { productId: string }) {
       />
       <div className="mx-auto w-full max-w-7xl px-6">
         <nav
-          aria-label="Breadcrumb"
+          aria-label={t("common.breadcrumb")}
           className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground"
         >
           <Link to="/" className="transition hover:text-foreground">
-            Home
+            {t("product.home")}
           </Link>
           <ChevronRight className="h-3.5 w-3.5" />
           <Link to="/products" className="transition hover:text-foreground">
-            Products
+            {t("product.products")}
           </Link>
           <ChevronRight className="h-3.5 w-3.5" />
           <span>{categoryName}</span>
@@ -546,7 +556,7 @@ export function ProductDetailsPage({ productId }: { productId: string }) {
                     ? `Only ${effectiveStock} left`
                     : "In Stock"}
               </span>
-              <span className="text-muted-foreground">— ready to dispatch</span>
+              <span className="text-muted-foreground">{t("product.readyToDispatch")}</span>
             </div>
             {sku && <p className="mt-3 text-xs text-muted-foreground">SKU: {sku}</p>}
             <VariantSelector
@@ -556,12 +566,12 @@ export function ProductDetailsPage({ productId }: { productId: string }) {
             />
             <p className="mt-7 text-sm leading-7 text-muted-foreground">{description}</p>
             <ul className="mt-6 grid gap-3 text-sm text-foreground/90">
-              {["Premium Material", "Modern Design", "Durable", "Lightweight"].map((item) => (
+              {["premiumMaterial", "modernDesign", "durable", "lightweight"].map((item) => (
                 <li key={item} className="flex items-center gap-3">
                   <span className="grid h-5 w-5 place-items-center rounded-full bg-teal/15 text-teal">
                     <Check className="h-3.5 w-3.5" />
                   </span>
-                  {item}
+                  {t(`product.${item}`)}
                 </li>
               ))}
             </ul>
@@ -584,7 +594,7 @@ export function ProductDetailsPage({ productId }: { productId: string }) {
               </div>
             </div>
             <div className="mt-7">
-              <OrderActions product={product} quantity={quantity} inStock={effectiveStock > 0} />
+              <OrderActions product={product} variant={selectedVariant} quantity={quantity} inStock={effectiveStock > 0} />
             </div>
           </section>
         </div>
@@ -614,7 +624,7 @@ export function ProductDetailsPage({ productId }: { productId: string }) {
         </section>
       </div>
       <div className="fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-background/90 px-4 py-3 backdrop-blur-xl md:hidden">
-        <OrderActions product={product} quantity={quantity} compact inStock={effectiveStock > 0} />
+        <OrderActions product={product} variant={selectedVariant} quantity={quantity} compact inStock={effectiveStock > 0} />
       </div>
     </main>
   );

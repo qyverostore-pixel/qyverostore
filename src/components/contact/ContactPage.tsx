@@ -12,6 +12,7 @@ import {
 import { useState, type ElementType, type FormEvent, type SVGProps } from "react";
 import { toast } from "sonner";
 import { createMessage } from "@/services/messages";
+import { cleanText, isValidEmail, isValidName } from "@/lib/validation";
 import {
   Accordion,
   AccordionContent,
@@ -20,6 +21,7 @@ import {
 } from "@/components/ui/accordion";
 import { useStorefrontSettings } from "@/providers/StorefrontSettingsProvider";
 import { emailUrl, externalUrl, whatsappUrl, type StorefrontSettings } from "@/services/store-settings";
+import { useLocale } from "@/providers/LocaleProvider";
 
 type ContactChannel = {
   name: string;
@@ -120,6 +122,7 @@ function ContactCard({ channel }: { channel: ContactChannel }) {
 }
 
 function ContactForm() {
+  const { t } = useLocale();
   const [sent, setSent] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
@@ -129,15 +132,17 @@ function ContactForm() {
     const formElement = event.currentTarget;
     const form = new FormData(formElement);
 
-    const name = String(form.get("fullName") ?? "").trim();
-    const email = String(form.get("email") ?? "").trim();
-    const subject = String(form.get("subject") ?? "").trim();
-    const message = String(form.get("message") ?? "").trim();
+    const name = cleanText(String(form.get("fullName") ?? ""));
+    const email = cleanText(String(form.get("email") ?? ""));
+    const subject = cleanText(String(form.get("subject") ?? ""));
+    const message = cleanText(String(form.get("message") ?? ""));
 
     if (!name || !email || !subject || !message) {
-      toast.error("Complete all contact fields");
+      toast.error(t("contact.completeFields"));
       return;
     }
+    if (!isValidName(name)) { toast.error(t("validation.validName")); return; }
+    if (!isValidEmail(email)) { toast.error(t("validation.validEmail")); return; }
 
     setSubmitting(true);
 
@@ -152,11 +157,11 @@ function ContactForm() {
       setSent(true);
       formElement.reset();
 
-      toast.success("Message sent", {
+      toast.success(t("contact.messageSent"), {
         description: "Our team will get back to you shortly.",
       });
     } catch (error) {
-      toast.error("Unable to send message", {
+      toast.error(t("contact.unableSend"), {
         description:
           error instanceof Error ? error.message : "Please try again.",
       });
@@ -172,12 +177,12 @@ function ContactForm() {
     <form onSubmit={handleSubmit} className="glass-card rounded-[2rem] p-6 sm:p-9">
       <div className="grid gap-5 sm:grid-cols-2">
         <label className="text-sm font-medium">
-          Full Name
+          {t("contact.fullName")}
           <input
             required
             name="fullName"
             autoComplete="name"
-            placeholder="Your name"
+            placeholder={t("contact.yourName")}
             className={inputClass}
           />
         </label>
@@ -194,16 +199,16 @@ function ContactForm() {
         </label>
       </div>
       <label className="mt-5 block text-sm font-medium">
-        Subject
-        <input required name="subject" placeholder="How can we help?" className={inputClass} />
+        {t("contact.subject")}
+        <input required name="subject" placeholder={t("contact.help")} className={inputClass} />
       </label>
       <label className="mt-5 block text-sm font-medium">
-        Message
+        {t("contact.message")}
         <textarea
           required
           name="message"
           rows={5}
-          placeholder="Tell us a little more..."
+          placeholder={t("contact.tellMore")}
           className="mt-2 w-full resize-none rounded-xl border border-white/15 bg-white/[0.025] px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground outline-none transition focus:border-teal focus:ring-2 focus:ring-teal/20"
         />
       </label>
@@ -219,7 +224,7 @@ function ContactForm() {
           className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-foreground px-6 text-xs font-semibold uppercase tracking-[0.18em] text-background transition hover:bg-foreground/90"
         >
           <Send className="h-4 w-4" />
-          {submitting ? "Sending…" : sent ? "Message Sent" : "Send Message"}
+          {submitting ? t("contact.sending") : sent ? t("contact.sent") : t("contact.send")}
         </button>
       </div>
     </form>
@@ -247,6 +252,7 @@ function BusinessInfo() {
 
 export function ContactPage() {
   const settings = useStorefrontSettings();
+  const { t } = useLocale();
   return (
     <main className="min-h-screen bg-noise pb-24 sm:pb-32">
       <section className="relative isolate overflow-hidden border-b border-white/10">
@@ -257,13 +263,13 @@ export function ContactPage() {
         <div className="mx-auto flex min-h-[28rem] max-w-7xl flex-col items-center justify-center px-6 py-20 text-center sm:min-h-[34rem]">
           <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-4 py-1.5 text-[10px] font-medium uppercase tracking-[0.35em] text-foreground/85 backdrop-blur">
             <span className="h-1.5 w-1.5 rounded-full bg-teal" />
-            Get in touch
+            {t("contact.eyebrow")}
           </span>
           <h1 className="text-display mt-8 text-5xl font-light leading-none sm:text-7xl">
-            Contact <span className="italic text-teal">QYVERO.</span>
+            {t("contact.title")}
           </h1>
           <p className="mt-6 text-base text-muted-foreground sm:text-lg">
-            We&apos;d love to hear from you.
+            {t("contact.description")}
           </p>
         </div>
       </section>

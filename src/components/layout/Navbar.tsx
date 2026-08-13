@@ -190,7 +190,7 @@ export function Navbar() {
               </IconButton>
               <Link
                 to="/wishlist"
-                aria-label="Wishlist"
+                aria-label={t("nav.wishlist")}
                 className="relative grid h-10 w-10 place-items-center rounded-full text-foreground/80 transition-colors hover:bg-white/5 hover:text-foreground"
               >
                 <Heart className="h-[18px] w-[18px]" />
@@ -201,8 +201,8 @@ export function Navbar() {
                 )}
               </Link>
               <Link
-                to="/checkout"
-                aria-label="Cart"
+                to="/cart"
+                aria-label={t("nav.cart")}
                 className="relative grid h-10 w-10 place-items-center rounded-full text-foreground/80 transition-colors hover:bg-white/5 hover:text-foreground"
               >
                 <ShoppingBag className="h-[18px] w-[18px]" />

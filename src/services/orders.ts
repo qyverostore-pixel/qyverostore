@@ -74,7 +74,7 @@ export async function createOrder(input: CreateOrderInput): Promise<CreateOrderR
     p_customer: input.customer,
     p_shipping: input.shipping,
     p_payment_method: input.payment_method,
-    p_items: input.items.map((item) => ({ product_id: item.productId, quantity: item.quantity })),
+    p_items: input.items.map((item) => ({ product_id: item.productId, variant_id: item.variantId, quantity: item.quantity })),
     p_coupon_code: input.coupon_code?.trim() || null,
   });
   fail(error);

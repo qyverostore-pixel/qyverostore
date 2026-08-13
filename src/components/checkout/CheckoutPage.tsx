@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { CreditCard, PackageOpen } from "lucide-react";
-import { useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -18,28 +18,29 @@ import { Textarea } from "@/components/ui/textarea";
 import { egyptGovernorates } from "@/data/egypt-addresses";
 import { useCart } from "@/hooks/use-cart";
 import { useAuth } from "@/providers/AuthProvider";
+import { useLocale } from "@/providers/LocaleProvider";
 import { createOrder, type PaymentMethod } from "@/services/orders";
 import { productKeys } from "@/hooks/use-products";
 import { useShippingQuote } from "@/hooks/use-shipping";
 import { validateCoupon, type CouponValidation } from "@/services/coupons";
 import { cn } from "@/lib/utils";
+import { cleanText, isValidEmail, isValidName, normalizeEgyptianPhone } from "@/lib/validation";
 
-const methods: Array<{ id: PaymentMethod; label: string; description: string }> = [
-  {
-    id: "cash_on_delivery",
-    label: "Cash on Delivery",
-    description: "Pay when your order arrives.",
-  },
-  { id: "vodafone_cash", label: "Vodafone Cash", description: "Payment instructions will be shared on WhatsApp." },
-  { id: "instapay", label: "InstaPay", description: "Payment instructions will be shared on WhatsApp." },
-];
 const money = (value: number) => `${value.toLocaleString()} EGP`;
 
 export function CheckoutPage() {
+  const { t } = useLocale();
+  const methods: Array<{ id: PaymentMethod; label: string; description: string }> = [
+    { id: "cash_on_delivery", label: t("checkout.cashOnDelivery"), description: t("checkout.cashOnDeliveryDescription") },
+    { id: "vodafone_cash", label: t("checkout.vodafoneCash"), description: t("checkout.paymentInstructions") },
+    { id: "instapay", label: t("checkout.instaPay"), description: t("checkout.paymentInstructions") },
+  ];
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { user, profile } = useAuth();
-  const { items, subtotal, updateQuantity, removeItem, clear } = useCart();
+  const { items, buyNowItem, updateQuantity, updateBuyNowQuantity, removeItem, clear, clearBuyNow } = useCart();
+  const checkoutItems = buyNowItem ? [buyNowItem] : items;
+  const subtotal = useMemo(() => checkoutItems.reduce((sum, item) => sum + item.price * item.quantity, 0), [checkoutItems]);
   const [customer, setCustomer] = useState({
     full_name: profile?.full_name ?? "",
     phone: profile?.phone ?? "",
@@ -54,11 +55,18 @@ export function CheckoutPage() {
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cash_on_delivery");
   const [couponCode, setCouponCode] = useState("");
   const [coupon, setCoupon] = useState<CouponValidation | null>(null);
+  useEffect(() => {
+    setCustomer((current) => ({
+      full_name: current.full_name || profile?.full_name || "",
+      phone: current.phone || profile?.phone || "",
+      email: current.email || user?.email || "",
+    }));
+  }, [profile?.full_name, profile?.phone, user?.email]);
   const { data: shippingQuote, isLoading: isLoadingShipping } = useShippingQuote(shipping.governorate, shipping.city);
   const shippingCost = Number(shippingQuote?.rate?.shipping_cost ?? 0);
   const discount = coupon?.valid ? coupon.discountAmount : 0;
   const total = useMemo(() => Math.max(0, subtotal - discount) + shippingCost, [subtotal, discount, shippingCost]);
-  const couponMutation = useMutation({ mutationFn: () => validateCoupon(couponCode, subtotal), onSuccess: (result) => { setCoupon(result); if (!result.valid) toast.error(result.reason ?? "Coupon is invalid"); else toast.success("Coupon applied"); }, onError: (error) => toast.error("Unable to validate coupon", { description: error instanceof Error ? error.message : "Please try again." }) });
+  const couponMutation = useMutation({ mutationFn: () => validateCoupon(couponCode, subtotal), onSuccess: (result) => { setCoupon(result); if (!result.valid) toast.error(result.reason ?? t("checkout.couponInvalid")); else toast.success(t("checkout.couponApplied")); }, onError: (error) => toast.error(t("checkout.unableValidateCoupon"), { description: error instanceof Error ? error.message : t("checkout.pleaseTryAgain") }) });
   const selectedGovernorate = useMemo(
     () => egyptGovernorates.find((governorate) => governorate.name === shipping.governorate),
     [shipping.governorate],
@@ -69,47 +77,57 @@ export function CheckoutPage() {
       await queryClient.invalidateQueries({ queryKey: ["admin", "orders"] });
       await queryClient.invalidateQueries({ queryKey: ["admin", "dashboard"] });
       await queryClient.invalidateQueries({ queryKey: productKeys.all });
-      clear();
-      toast.success("Order created", { description: order.orderNumber });
+      if (buyNowItem) clearBuyNow(); else clear();
+      toast.success(t("checkout.orderCreated"), { description: order.orderNumber });
       navigate({ to: "/order-success", search: { orderId: order.orderId } });
     },
     onError: (error) =>
-      toast.error("Unable to place order", {
-        description: error instanceof Error ? error.message : "Please try again.",
+      toast.error(t("checkout.unablePlaceOrder"), {
+        description: error instanceof Error ? error.message : t("checkout.pleaseTryAgain"),
       }),
   });
   const submit = (event: FormEvent) => {
     event.preventDefault();
-    if (
-      !customer.full_name.trim() ||
-      !customer.phone.trim() ||
-      !shipping.governorate ||
-      !shipping.city ||
-      !shipping.address.trim()
-    ) {
-      toast.error("Complete customer and shipping details");
+    const name = cleanText(customer.full_name);
+    const phone = normalizeEgyptianPhone(customer.phone);
+    const email = cleanText(customer.email);
+    const address = cleanText(shipping.address);
+    if (!isValidName(name)) {
+      toast.error(t("validation.validName"));
+      return;
+    }
+    if (!phone) {
+      toast.error(t("validation.validPhone"));
+      return;
+    }
+    if (email && !isValidEmail(email)) {
+      toast.error(t("validation.validEmail"));
+      return;
+    }
+    if (!shipping.governorate || !shipping.city || address.length < 5) {
+      toast.error(t("validation.validAddress"));
       return;
     }
     mutation.mutate({
-      customer,
-      shipping,
+      customer: { full_name: name, phone, email },
+      shipping: { ...shipping, address },
       payment_method: paymentMethod,
-      items,
+      items: checkoutItems,
       coupon_code: coupon?.valid ? couponCode : null,
     });
   };
 
-  if (!items.length)
+  if (!checkoutItems.length)
     return (
       <main className="min-h-screen bg-noise px-6 pb-32 pt-12">
         <div className="mx-auto max-w-5xl">
           <EmptyState
             icon={<PackageOpen className="size-6" />}
-            title="Your cart is empty"
-            description="Add products to checkout with QYVERO."
+            title={t("checkout.emptyCart")}
+            description={t("checkout.emptyCartDescription")}
             action={
               <Button type="button" variant="outline" asChild>
-                <Link to="/products">Browse products</Link>
+                <Link to="/products">{t("errors.browseProducts")}</Link>
               </Button>
             }
           />
@@ -126,17 +144,17 @@ export function CheckoutPage() {
         <div className="space-y-6">
           <section className="rounded-3xl border border-white/10 bg-white/[0.02] p-6">
             <p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-teal">
-              Checkout
+              {t("checkout.eyebrow")}
             </p>
             <h1 className="text-display mt-3 text-3xl font-light sm:text-4xl">
-              Complete your order.
+              {t("checkout.title")}
             </h1>
           </section>
           <section className="rounded-3xl border border-white/10 bg-white/[0.02] p-6">
-            <h2 className="font-medium">Customer information</h2>
+            <h2 className="font-medium">{t("checkout.customerInformation")}</h2>
             <div className="mt-5 grid gap-5 sm:grid-cols-2">
               <div>
-                <Label>Full name</Label>
+                <Label>{t("checkout.fullName")}</Label>
                 <Input
                   className="mt-2"
                   value={customer.full_name}
@@ -146,7 +164,7 @@ export function CheckoutPage() {
                 />
               </div>
               <div>
-                <Label>Phone</Label>
+                <Label>{t("checkout.phone")}</Label>
                 <Input
                   className="mt-2"
                   value={customer.phone}
@@ -156,7 +174,7 @@ export function CheckoutPage() {
                 />
               </div>
               <div className="sm:col-span-2">
-                <Label>Email optional</Label>
+                <Label>{t("checkout.emailOptional")}</Label>
                 <Input
                   type="email"
                   className="mt-2"
@@ -169,10 +187,10 @@ export function CheckoutPage() {
             </div>
           </section>
           <section className="rounded-3xl border border-white/10 bg-white/[0.02] p-6">
-            <h2 className="font-medium">Shipping</h2>
+            <h2 className="font-medium">{t("checkout.shipping")}</h2>
             <div className="mt-5 grid gap-5 sm:grid-cols-2">
               <div>
-                <Label>Governorate</Label>
+                <Label>{t("checkout.governorate")}</Label>
                 <Select
                   value={shipping.governorate}
                   onValueChange={(governorate) =>
@@ -180,7 +198,7 @@ export function CheckoutPage() {
                   }
                 >
                   <SelectTrigger className="mt-2">
-                    <SelectValue placeholder="Select governorate" />
+                    <SelectValue placeholder={t("checkout.selectGovernorate")} />
                   </SelectTrigger>
                   <SelectContent>
                     {egyptGovernorates.map((governorate) => (
@@ -192,14 +210,14 @@ export function CheckoutPage() {
                 </Select>
               </div>
               <div>
-                <Label>City</Label>
+                <Label>{t("checkout.city")}</Label>
                 <Select
                   value={shipping.city}
                   onValueChange={(city) => setShipping((current) => ({ ...current, city }))}
                   disabled={!selectedGovernorate}
                 >
                   <SelectTrigger className="mt-2">
-                    <SelectValue placeholder="Select city" />
+                    <SelectValue placeholder={t("checkout.selectCity")} />
                   </SelectTrigger>
                   <SelectContent>
                 {selectedGovernorate?.cities.map((city) => (
@@ -211,7 +229,7 @@ export function CheckoutPage() {
                 </Select>
               </div>
               <div className="sm:col-span-2">
-                <Label>Address</Label>
+                <Label>{t("checkout.address")}</Label>
                 <Textarea
                   className="mt-2 min-h-24"
                   value={shipping.address}
@@ -223,7 +241,7 @@ export function CheckoutPage() {
             </div>
           </section>
           <section className="rounded-3xl border border-white/10 bg-white/[0.02] p-6">
-            <h2 className="font-medium">Payment method</h2>
+            <h2 className="font-medium">{t("checkout.paymentMethod")}</h2>
             <div className="mt-5 grid gap-3 sm:grid-cols-2">
               {methods.map((method) => (
                 <button
@@ -245,16 +263,16 @@ export function CheckoutPage() {
               ))}
             </div>
           </section>
-          <section className="rounded-3xl border border-white/10 bg-white/[0.02] p-6"><h2 className="font-medium">Coupon</h2><div className="mt-4 flex gap-2"><Input value={couponCode} onChange={(event) => { setCouponCode(event.target.value.toUpperCase()); setCoupon(null); }} placeholder="Enter coupon code" /><Button type="button" variant="outline" disabled={!couponCode.trim() || couponMutation.isPending} onClick={() => couponMutation.mutate()}>{couponMutation.isPending ? "Checking..." : "Apply"}</Button></div>{coupon?.valid && <div className="mt-3 flex items-center justify-between text-sm text-teal"><span>{couponCode} applied</span><button type="button" className="text-xs text-muted-foreground" onClick={() => { setCoupon(null); setCouponCode(""); }}>Remove</button></div>}</section>
+          <section className="rounded-3xl border border-white/10 bg-white/[0.02] p-6"><h2 className="font-medium">{t("checkout.coupon")}</h2><div className="mt-4 flex gap-2"><Input value={couponCode} onChange={(event) => { setCouponCode(event.target.value.toUpperCase()); setCoupon(null); }} placeholder={t("checkout.enterCouponCode")} /><Button type="button" variant="outline" disabled={!couponCode.trim() || couponMutation.isPending} onClick={() => couponMutation.mutate()}>{couponMutation.isPending ? t("checkout.checking") : t("checkout.apply")}</Button></div>{coupon?.valid && <div className="mt-3 flex items-center justify-between text-sm text-teal"><span>{couponCode} {t("checkout.applied")}</span><button type="button" className="text-xs text-muted-foreground" onClick={() => { setCoupon(null); setCouponCode(""); }}>{t("checkout.remove")}</button></div>}</section>
         </div>
         <aside className="h-fit rounded-3xl border border-white/10 bg-white/[0.02] p-6 lg:sticky lg:top-24">
           <div className="flex items-center gap-2">
             <CreditCard className="size-4 text-teal" />
-            <h2 className="font-medium">Order summary</h2>
+            <h2 className="font-medium">{t("checkout.orderSummary")}</h2>
           </div>
           <div className="mt-5 space-y-4">
-            {items.map((item) => (
-              <div key={item.productId} className="flex gap-3">
+            {checkoutItems.map((item) => (
+              <div key={item.key} className="flex gap-3">
                 <div className="size-14 shrink-0 overflow-hidden rounded-2xl bg-neutral-950">
                   {item.image_url && (
                     <img src={item.image_url} alt={item.name} className="size-full object-cover" />
@@ -262,6 +280,7 @@ export function CheckoutPage() {
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium">{item.name}</p>
+                  {item.variantLabel && <p className="mt-1 text-xs text-muted-foreground">{item.variantLabel}</p>}
                   <p className="mt-1 text-xs text-muted-foreground">
                     {money(item.price)} × {item.quantity}
                   </p>
@@ -269,27 +288,27 @@ export function CheckoutPage() {
                     <button
                       type="button"
                       className="text-xs text-teal"
-                      onClick={() => updateQuantity(item.productId, item.quantity + 1)}
+                      onClick={() => buyNowItem ? updateBuyNowQuantity(item.quantity + 1) : updateQuantity(item.key, item.quantity + 1)}
                       disabled={item.quantity >= item.stock}
                     >
-                      Add
+                      {t("checkout.add")}
                     </button>
                     <button
                       type="button"
                       className="text-xs text-muted-foreground"
-                      onClick={() => updateQuantity(item.productId, item.quantity - 1)}
+                      onClick={() => buyNowItem ? updateBuyNowQuantity(item.quantity - 1) : updateQuantity(item.key, item.quantity - 1)}
                     >
-                      Remove one
+                      {t("checkout.removeOne")}
                     </button>
                     <button
                       type="button"
                       className="text-xs text-red-300"
-                      onClick={() => removeItem(item.productId)}
+                      onClick={() => buyNowItem ? clearBuyNow() : removeItem(item.key)}
                     >
-                      Delete
+                      {t("common.delete")}
                     </button>
                   </div>
-                  {item.quantity >= item.stock && <p className="mt-1 text-xs text-amber-300">Only {item.stock} available</p>}
+                  {item.quantity >= item.stock && <p className="mt-1 text-xs text-amber-300">{t("checkout.onlyAvailable")} {item.stock}</p>}
                 </div>
                 <p className="text-sm font-medium">{money(item.price * item.quantity)}</p>
               </div>
@@ -297,22 +316,22 @@ export function CheckoutPage() {
           </div>
           <div className="mt-6 space-y-3 border-t border-white/10 pt-5 text-sm">
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Subtotal</span>
+              <span className="text-muted-foreground">{t("checkout.subtotal")}</span>
               <span>{money(subtotal)}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Shipping</span>
-              <span>{shipping.governorate ? isLoadingShipping ? "Calculating..." : shippingQuote ? money(shippingCost) : "Unavailable" : "Select location"}</span>
+              <span className="text-muted-foreground">{t("checkout.shipping")}</span>
+              <span>{shipping.governorate ? isLoadingShipping ? t("checkout.calculating") : shippingQuote ? money(shippingCost) : t("checkout.unavailable") : t("checkout.selectLocation")}</span>
             </div>
-            {discount > 0 && <div className="flex justify-between text-teal"><span>Coupon discount</span><span>-{money(discount)}</span></div>}
-            {shippingQuote && <div className="flex justify-between text-xs text-muted-foreground"><span>Estimated delivery</span><span>{shippingQuote.rate?.estimated_delivery_days} business day{shippingQuote.rate?.estimated_delivery_days === 1 ? "" : "s"}</span></div>}
+            {discount > 0 && <div className="flex justify-between text-teal"><span>{t("checkout.couponDiscount")}</span><span>-{money(discount)}</span></div>}
+            {shippingQuote && <div className="flex justify-between text-xs text-muted-foreground"><span>{t("checkout.estimatedDelivery")}</span><span>{shippingQuote.rate?.estimated_delivery_days} {shippingQuote.rate?.estimated_delivery_days === 1 ? t("checkout.businessDay") : t("checkout.businessDays")}</span></div>}
             <div className="flex justify-between text-base font-semibold">
-              <span>Total</span>
+              <span>{t("checkout.total")}</span>
               <span className="text-teal">{money(total)}</span>
             </div>
           </div>
           <Button type="submit" disabled={mutation.isPending || isLoadingShipping || !shippingQuote} className="mt-6 w-full rounded-full">
-            {mutation.isPending ? "Placing order..." : "Place order"}
+            {mutation.isPending ? t("checkout.placingOrder") : t("checkout.placeOrder")}
           </Button>
         </aside>
       </form>
