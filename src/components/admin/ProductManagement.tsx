@@ -37,6 +37,7 @@ import {
   type ProductStatus,
 } from "@/services/products";
 import { useAuth } from "@/providers/AuthProvider";
+import { useLocale } from "@/providers/LocaleProvider";
 
 const money = (value: number) => `$${Number(value).toLocaleString()}`;
 const MAX_PRODUCT_IMAGES = 10;
@@ -54,9 +55,21 @@ const empty = {
   description: "",
   description_en: "",
   description_ar: "",
+  short_description: "",
   brand: "QYVERO",
   featured: false,
+  is_new: false,
+  is_best_seller: false,
+  is_on_sale: false,
+  is_active: true,
   status: "draft" as ProductStatus,
+  weight: "",
+  length: "",
+  width: "",
+  height: "",
+  rating: "0",
+  meta_title: "",
+  meta_description: "",
 };
 const statusLabel = (status: ProductStatus) =>
   status === "active" ? "Active" : status === "out_of_stock" ? "Out of stock" : "Draft";
@@ -193,6 +206,7 @@ export function ProductFormPage({ productId }: { productId?: string }) {
   const queryClient = useQueryClient();
   const inputRef = useRef<HTMLInputElement>(null);
   const { user } = useAuth();
+  const { direction } = useLocale();
   const { data: categories = [] } = useCategories();
   const { data: existing, isLoading } = useProduct(productId ?? "", Boolean(productId));
   const [form, setForm] = useState(empty);
@@ -232,9 +246,21 @@ export function ProductFormPage({ productId }: { productId?: string }) {
         description: existing.description ?? "",
         description_en: existing.description_en ?? existing.description ?? "",
         description_ar: existing.description_ar ?? "",
+        short_description: existing.short_description ?? "",
         brand: existing.brand ?? "",
         featured: existing.featured,
+        is_new: existing.is_new,
+        is_best_seller: existing.is_best_seller,
+        is_on_sale: existing.is_on_sale,
+        is_active: existing.is_active,
         status: existing.status,
+        weight: existing.weight ?? "",
+        length: existing.length != null ? String(existing.length) : "",
+        width: existing.width != null ? String(existing.width) : "",
+        height: existing.height != null ? String(existing.height) : "",
+        rating: String(existing.rating),
+        meta_title: existing.meta_title ?? "",
+        meta_description: existing.meta_description ?? "",
       });
   }, [existing, productId]);
   const source = form;
@@ -259,10 +285,18 @@ export function ProductFormPage({ productId }: { productId?: string }) {
       !Number.isFinite(values.stock) ||
       !Number.isFinite(values.low_stock_threshold) ||
       !Number.isFinite(values.compare_price) ||
+      !Number.isFinite(Number(values.rating)) ||
+      ![values.length, values.width, values.height].every(
+        (value) => value.trim() === "" || (Number.isFinite(Number(value)) && Number(value) >= 0),
+      ) ||
       values.price < 0 ||
       values.stock < 0 ||
       values.low_stock_threshold < 0 ||
-      values.compare_price < 0
+      values.compare_price < 0 ||
+      !Number.isInteger(values.stock) ||
+      !Number.isInteger(values.low_stock_threshold) ||
+      Number(values.rating) < 0 ||
+      Number(values.rating) > 5
     ) {
       toast.error("Complete all required product fields with valid values");
       return;
@@ -277,7 +311,7 @@ export function ProductFormPage({ productId }: { productId?: string }) {
       slug,
       sku: values.sku.trim(),
       brand: values.brand.trim() || null,
-      short_description: englishDescription || null,
+      short_description: values.short_description.trim() || null,
       description: englishDescription || null,
       description_en: englishDescription || null,
       description_ar: values.description_ar.trim() || null,
@@ -286,19 +320,19 @@ export function ProductFormPage({ productId }: { productId?: string }) {
       stock: values.stock,
       low_stock_threshold: values.low_stock_threshold,
       featured: values.featured,
-      is_new: false,
-      is_best_seller: false,
-      is_on_sale: Boolean(values.compare_price),
+      is_new: values.is_new,
+      is_best_seller: values.is_best_seller,
+      is_on_sale: values.is_on_sale,
       status: values.status,
-      is_active: true,
-      weight: null,
-      length: null,
-      width: null,
-      height: null,
-      rating: 0,
+      is_active: values.is_active,
+      weight: values.weight.trim() || null,
+      length: values.length.trim() === "" ? null : Number(values.length),
+      width: values.width.trim() === "" ? null : Number(values.width),
+      height: values.height.trim() === "" ? null : Number(values.height),
+      rating: Number(values.rating),
       reviews_count: 0,
-      meta_title: null,
-      meta_description: null,
+      meta_title: values.meta_title.trim() || null,
+      meta_description: values.meta_description.trim() || null,
       created_by: user.id,
       updated_by: user.id,
     };
@@ -383,11 +417,12 @@ export function ProductFormPage({ productId }: { productId?: string }) {
       <AdminBackLink />
       <form
         className="mt-6 grid gap-6 xl:grid-cols-[1fr_320px]"
+        dir={direction}
         onSubmit={(event) => void submit(event, "active")}
       >
         <div className="space-y-6">
           <section className="rounded-xl border border-white/10 bg-white/[0.025] p-5">
-            <h2 className="font-medium">Product information</h2>
+            <h2 className="font-medium">Basic information</h2>
             <div className="mt-5 grid gap-5 sm:grid-cols-2">
               <Field
                 label="Product name (English)"
@@ -403,6 +438,32 @@ export function ProductFormPage({ productId }: { productId?: string }) {
                 onChange={(value) => update("name_ar", value)}
               />
               <Field label="Slug" value={source.slug} onChange={(value) => update("slug", value)} />
+              <Field label="Brand" value={source.brand} onChange={(value) => update("brand", value)} />
+              <Field label="SKU" value={source.sku} onChange={(value) => update("sku", value)} />
+              <div>
+                <Label>Category</Label>
+                <select
+                  className="mt-2 h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+                  value={source.category_id}
+                  onChange={(event) => update("category_id", event.target.value)}
+                >
+                  <option value="">Select category</option>
+                  {categories.map((category) => (
+                    <option key={category.id} value={category.id}>
+                      {category.name_en ?? category.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          </section>
+          <section className="rounded-xl border border-white/10 bg-white/[0.025] p-5">
+            <h2 className="font-medium">Descriptions</h2>
+            <div className="mt-5 grid gap-5 sm:grid-cols-2">
+              <div className="sm:col-span-2">
+                <Label>Short description (English)</Label>
+                <Textarea className="mt-2 min-h-20" value={source.short_description} onChange={(event) => update("short_description", event.target.value)} />
+              </div>
               <div className="sm:col-span-2">
                 <Label>Description (English)</Label>
                 <Textarea
@@ -423,30 +484,10 @@ export function ProductFormPage({ productId }: { productId?: string }) {
                   onChange={(event) => update("description_ar", event.target.value)}
                 />
               </div>
-              <Field
-                label="Brand"
-                value={source.brand}
-                onChange={(value) => update("brand", value)}
-              />
-              <div>
-                <Label>Category</Label>
-                <select
-                  className="mt-2 h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
-                  value={source.category_id}
-                  onChange={(event) => update("category_id", event.target.value)}
-                >
-                  <option value="">Select category</option>
-                  {categories.map((category) => (
-                    <option key={category.id} value={category.id}>
-                      {category.name_en ?? category.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
             </div>
           </section>
           <section className="rounded-xl border border-white/10 bg-white/[0.025] p-5">
-            <h2 className="font-medium">Pricing & inventory</h2>
+            <h2 className="font-medium">Pricing</h2>
             <div className="mt-5 grid gap-5 sm:grid-cols-2">
               <Field
                 label="Price"
@@ -460,13 +501,18 @@ export function ProductFormPage({ productId }: { productId?: string }) {
                 value={source.compare_price}
                 onChange={(value) => update("compare_price", Number(value))}
               />
-              <Field
-                label="Stock"
-                type="number"
-                value={source.stock}
-                onChange={(value) => update("stock", Number(value))}
-              />
-              <Field label="SKU" value={source.sku} onChange={(value) => update("sku", value)} />
+            </div>
+          </section>
+          <section className="rounded-xl border border-white/10 bg-white/[0.025] p-5">
+            <h2 className="font-medium">Inventory</h2>
+            <div className="mt-5 grid gap-5 sm:grid-cols-2">
+              <Field label="Stock" type="number" step="1" min="0" value={source.stock} onChange={(value) => update("stock", Number(value))} />
+              <Field label="Low stock threshold" type="number" step="1" min="0" value={source.low_stock_threshold} onChange={(value) => update("low_stock_threshold", Number(value))} />
+              <Field label="Weight" placeholder="e.g. 250 g or 1.2 kg" value={source.weight} onChange={(value) => update("weight", value)} />
+              <Field label="Length" type="number" min="0" step="0.01" value={source.length} onChange={(value) => update("length", value)} />
+              <Field label="Width" type="number" min="0" step="0.01" value={source.width} onChange={(value) => update("width", value)} />
+              <Field label="Height" type="number" min="0" step="0.01" value={source.height} onChange={(value) => update("height", value)} />
+              <Field label="Rating" type="number" min="0" max="5" step="0.1" value={source.rating} onChange={(value) => update("rating", value)} />
             </div>
           </section>
           <section className="rounded-xl border border-white/10 bg-white/[0.025] p-5">
@@ -482,7 +528,7 @@ export function ProductFormPage({ productId }: { productId?: string }) {
                 setFiles(
                   Array.from(event.target.files ?? []).slice(
                     0,
-                    Math.max(0, 5 - (existing?.images.length ?? 0)),
+                    Math.max(0, MAX_PRODUCT_IMAGES - (existing?.images.length ?? 0)),
                   ),
                 )
               }
@@ -509,6 +555,14 @@ export function ProductFormPage({ productId }: { productId?: string }) {
                   >
                     <X className="size-4" />
                   </Button>
+                  <div className="absolute bottom-1 left-1 flex gap-1">
+                    <Button type="button" variant="ghost" size="icon" className="size-7 bg-black/60 text-white hover:bg-black/80" aria-label="Move image earlier" onClick={() => void moveImage(image.id, -1)}>
+                      <ArrowLeft className="size-3" />
+                    </Button>
+                    <Button type="button" variant="ghost" size="icon" className="size-7 bg-black/60 text-white hover:bg-black/80" aria-label="Move image later" onClick={() => void moveImage(image.id, 1)}>
+                      <ArrowRight className="size-3" />
+                    </Button>
+                  </div>
                 </div>
               ))}
               {files.map((file) => (
@@ -522,7 +576,7 @@ export function ProductFormPage({ productId }: { productId?: string }) {
                 </button>
               ))}
               {Array.from(
-                { length: Math.max(0, 4 - (existing?.images.length ?? 0) - files.length) },
+                { length: Math.max(0, MAX_PRODUCT_IMAGES - (existing?.images.length ?? 0) - files.length) },
                 (_, index) => (
                   <button
                     key={index}
@@ -550,6 +604,13 @@ export function ProductFormPage({ productId }: { productId?: string }) {
               </p>
             </section>
           )}
+          <section className="rounded-xl border border-white/10 bg-white/[0.025] p-5">
+            <h2 className="font-medium">SEO</h2>
+            <div className="mt-5 grid gap-5">
+              <Field label="Meta title" value={source.meta_title} onChange={(value) => update("meta_title", value)} />
+              <div><Label>Meta description</Label><Textarea className="mt-2 min-h-24" value={source.meta_description} onChange={(event) => update("meta_description", event.target.value)} /></div>
+            </div>
+          </section>
         </div>
         <aside className="space-y-6">
           <section className="rounded-xl border border-white/10 bg-white/[0.025] p-5">
@@ -564,6 +625,17 @@ export function ProductFormPage({ productId }: { productId?: string }) {
                 onCheckedChange={(value) => update("featured", value)}
               />
             </div>
+            {[
+              ["Active", "Make this product available in the catalog", "is_active"],
+              ["New", "Mark as a new arrival", "is_new"],
+              ["Best seller", "Highlight this product as a best seller", "is_best_seller"],
+              ["On sale", "Show sale styling independently of compare price", "is_on_sale"],
+            ].map(([label, help, key]) => (
+              <div className="mt-5 flex items-center justify-between" key={key}>
+                <div><p className="text-sm">{label}</p><p className="text-xs text-muted-foreground">{help}</p></div>
+                <Switch checked={source[key as "is_active" | "is_new" | "is_best_seller" | "is_on_sale"]} onCheckedChange={(value) => update(key as "is_active" | "is_new" | "is_best_seller" | "is_on_sale", value)} />
+              </div>
+            ))}
             <div className="mt-5">
               <Label>Status</Label>
               <select
@@ -609,11 +681,19 @@ function Field({
   label,
   value,
   type = "text",
+  step,
+  min,
+  max,
+  placeholder,
   onChange,
 }: {
   label: string;
   value: string | number;
   type?: string;
+  step?: string;
+  min?: string;
+  max?: string;
+  placeholder?: string;
   onChange: (value: string) => void;
 }) {
   return (
@@ -621,6 +701,10 @@ function Field({
       <Label>{label}</Label>
       <Input
         type={type}
+        step={step}
+        min={min}
+        max={max}
+        placeholder={placeholder}
         className="mt-2"
         value={value}
         onChange={(event) => onChange(event.target.value)}

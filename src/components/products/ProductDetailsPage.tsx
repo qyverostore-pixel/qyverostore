@@ -360,7 +360,7 @@ function ProductTabs({ product }: { product: StoreProduct }) {
           <div className="py-4 sm:px-5 sm:pl-0">
             <dt className="text-muted-foreground">{t("product.weight")}</dt>
             <dd className="mt-1 text-foreground">
-              {product.weight ? `${product.weight} kg` : t("product.notSpecified")}
+              {product.weight || t("product.notSpecified")}
             </dd>
           </div>
           <div className="py-4 sm:px-5">

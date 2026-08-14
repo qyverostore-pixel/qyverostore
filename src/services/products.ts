@@ -102,7 +102,8 @@ export type StoreProduct = {
   is_on_sale: boolean;
   status: ProductStatus;
   is_active: boolean;
-  weight: number | null;
+  /** Display value supplied by an administrator, e.g. "250 g" or "1.2 kg". */
+  weight: string | null;
   length: number | null;
   width: number | null;
   height: number | null;
