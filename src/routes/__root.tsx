@@ -162,9 +162,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" dir="ltr" suppressHydrationWarning>
       <head>
         <HeadContent />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try { const language = localStorage.getItem("qyvero-language"); if (language === "ar" || language === "en") { const root = document.documentElement; root.lang = language; root.dir = language === "ar" ? "rtl" : "ltr"; root.classList.toggle("rtl", language === "ar"); } } catch {}`,
+          }}
+        />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify([organizationSchema, websiteSchema]) }}

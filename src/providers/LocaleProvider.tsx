@@ -26,6 +26,12 @@ function getSavedLanguage(): Language {
   return saved === "ar" || saved === "en" ? saved : "en";
 }
 
+function applyDocumentLanguage(language: Language) {
+  document.documentElement.lang = language;
+  document.documentElement.dir = language === "ar" ? "rtl" : "ltr";
+  document.documentElement.classList.toggle("rtl", language === "ar");
+}
+
 const useIsomorphicLayoutEffect = typeof window === "undefined" ? useEffect : useLayoutEffect;
 
 function translate(language: Language, key: TranslationKey) {
@@ -44,14 +50,14 @@ export function LocaleProvider({ children }: { children: ReactNode }) {
   useIsomorphicLayoutEffect(() => {
     if (restoredRef.current) return;
     restoredRef.current = true;
-    setLanguageState(getSavedLanguage());
+    const savedLanguage = getSavedLanguage();
+    applyDocumentLanguage(savedLanguage);
+    setLanguageState(savedLanguage);
     setRestored(true);
   }, []);
   useIsomorphicLayoutEffect(() => {
     if (!restored) return;
-    document.documentElement.lang = language;
-    document.documentElement.dir = language === "ar" ? "rtl" : "ltr";
-    document.documentElement.classList.toggle("rtl", language === "ar");
+    applyDocumentLanguage(language);
     window.localStorage.setItem(STORAGE_KEY, language);
   }, [language, restored]);
   const value = useMemo(
@@ -64,6 +70,7 @@ export function LocaleProvider({ children }: { children: ReactNode }) {
     }),
     [language, setLanguage],
   );
+  if (!restored) return null;
   return <LocaleContext.Provider value={value}>{children}</LocaleContext.Provider>;
 }
 
