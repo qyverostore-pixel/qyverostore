@@ -64,7 +64,7 @@ function NavItem({ to, hash, label }: { to: string; hash?: string; label: string
       activeProps={{ className: "text-foreground" }}
       inactiveProps={{ className: "text-foreground/70" }}
       activeOptions={{ exact: to === "/" && !hash }}
-      className="group relative text-sm font-medium tracking-wide transition-colors hover:text-foreground"
+      className="group relative cursor-pointer text-sm font-medium tracking-wide transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal focus-visible:ring-offset-4 focus-visible:ring-offset-background"
     >
       {label}
       <span className="pointer-events-none absolute -bottom-1 left-0 h-px w-full origin-right scale-x-0 bg-teal transition-transform duration-300 ease-out group-hover:origin-left group-hover:scale-x-100 group-data-[status=active]:origin-left group-data-[status=active]:scale-x-100" />
@@ -86,7 +86,7 @@ function IconButton({
       type="button"
       aria-label={label}
       onClick={onClick}
-      className="grid h-10 w-10 place-items-center rounded-full text-foreground/80 transition-colors hover:bg-white/5 hover:text-foreground"
+      className="grid h-10 w-10 cursor-pointer place-items-center rounded-full text-foreground/80 transition-all duration-200 hover:scale-[1.03] hover:bg-white/5 hover:text-foreground active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal focus-visible:ring-offset-2 focus-visible:ring-offset-background"
     >
       {children}
     </button>
@@ -143,7 +143,7 @@ export function Navbar() {
     <>
       <header
         className={cn(
-          "fixed inset-x-0 top-0 z-50 transition-all duration-500",
+          "qy-navbar fixed inset-x-0 top-0 z-50 transition-all duration-500",
           scrolled
             ? "border-b border-white/10 bg-background/60 shadow-[0_10px_40px_-20px_rgba(0,0,0,0.8)] backdrop-blur-xl backdrop-saturate-150"
             : "border-b border-transparent bg-transparent",
@@ -186,7 +186,7 @@ export function Navbar() {
               <Link
                 to="/wishlist"
                 aria-label={t("nav.wishlist")}
-                className="relative grid h-10 w-10 place-items-center rounded-full text-foreground/80 transition-colors hover:bg-white/5 hover:text-foreground"
+                className="relative grid h-10 w-10 cursor-pointer place-items-center rounded-full text-foreground/80 transition-all duration-200 hover:scale-[1.03] hover:bg-white/5 hover:text-foreground active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal focus-visible:ring-offset-2 focus-visible:ring-offset-background"
               >
                 <Heart className="h-[18px] w-[18px]" />
                 {wishlist.length > 0 && (
@@ -198,7 +198,7 @@ export function Navbar() {
               <Link
                 to="/cart"
                 aria-label={t("nav.cart")}
-                className="relative grid h-10 w-10 place-items-center rounded-full text-foreground/80 transition-colors hover:bg-white/5 hover:text-foreground"
+                className="relative grid h-10 w-10 cursor-pointer place-items-center rounded-full text-foreground/80 transition-all duration-200 hover:scale-[1.03] hover:bg-white/5 hover:text-foreground active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal focus-visible:ring-offset-2 focus-visible:ring-offset-background"
               >
                 <ShoppingBag className="h-[18px] w-[18px]" />
                 {count > 0 && (
@@ -214,7 +214,7 @@ export function Navbar() {
                 <>
                   <Link
                     to="/profile"
-                    className="rounded-full px-4 py-2 text-sm font-medium text-foreground/80 transition hover:text-foreground"
+                    className="cursor-pointer rounded-full px-4 py-2 text-sm font-medium text-foreground/80 transition hover:text-foreground"
                   >
                     {t("nav.profile")}
                   </Link>
@@ -229,13 +229,13 @@ export function Navbar() {
                 <>
                   <Link
                     to="/auth/signin"
-                    className="rounded-full px-4 py-2 text-sm font-medium text-foreground/80 transition hover:text-foreground"
+                    className="cursor-pointer rounded-full px-4 py-2 text-sm font-medium text-foreground/80 transition hover:text-foreground"
                   >
                     {t("nav.signIn")}
                   </Link>
                   <Link
                     to="/auth/signup"
-                    className="rounded-full bg-foreground px-4 py-2 text-sm font-semibold text-background transition hover:bg-foreground/90"
+                    className="cursor-pointer rounded-full bg-foreground px-4 py-2 text-sm font-semibold text-background transition hover:bg-foreground/90"
                   >
                     {t("nav.createAccount")}
                   </Link>
@@ -248,7 +248,7 @@ export function Navbar() {
               aria-label={t("nav.openMenu")}
               aria-expanded={open}
               onClick={() => setOpen(true)}
-              className="grid h-10 w-10 shrink-0 place-items-center rounded-full text-foreground/90 transition hover:bg-white/5 lg:hidden"
+              className="grid h-10 w-10 shrink-0 cursor-pointer place-items-center rounded-full text-foreground/90 transition hover:bg-white/5 lg:hidden"
             >
               <Menu className="h-5 w-5" />
             </button>
@@ -286,7 +286,7 @@ export function Navbar() {
               type="button"
               aria-label={t("nav.closeMenu")}
               onClick={() => setOpen(false)}
-              className="grid h-10 w-10 place-items-center rounded-full text-foreground/80 transition hover:bg-white/5"
+              className="grid h-10 w-10 cursor-pointer place-items-center rounded-full text-foreground/80 transition hover:bg-white/5"
             >
               <X className="h-5 w-5" />
             </button>
@@ -302,7 +302,7 @@ export function Navbar() {
                 activeOptions={{ exact: l.to === "/" && !("hash" in l) }}
                 activeProps={{ className: "text-foreground bg-white/5" }}
                 inactiveProps={{ className: "text-foreground/80" }}
-                className="rounded-2xl px-4 py-4 text-text-display text-lg font-medium tracking-wide transition-colors hover:bg-white/5"
+                className="cursor-pointer rounded-2xl px-4 py-4 text-text-display text-lg font-medium tracking-wide transition-colors hover:bg-white/5"
                 style={{
                   animation: open
                     ? `qy-fade-up 0.5s ${0.05 * i + 0.1}s both cubic-bezier(0.22,1,0.36,1)`
@@ -318,11 +318,11 @@ export function Navbar() {
             <IconButton label={t("nav.search")} onClick={() => { setOpen(false); setSearchOpen(true); }}>
               <Search className="h-[18px] w-[18px]" />
             </IconButton>
-            <Link to="/wishlist" onClick={() => setOpen(false)} aria-label={t("nav.wishlist")} className="relative grid h-10 w-10 place-self-center place-items-center rounded-full text-foreground/80 transition-colors hover:bg-white/5 hover:text-foreground">
+            <Link to="/wishlist" onClick={() => setOpen(false)} aria-label={t("nav.wishlist")} className="relative grid h-10 w-10 cursor-pointer place-self-center place-items-center rounded-full text-foreground/80 transition-colors hover:bg-white/5 hover:text-foreground">
               <Heart className="h-[18px] w-[18px]" />
               {wishlist.length > 0 && <span className="absolute right-1 top-1 grid size-4 place-items-center rounded-full bg-teal text-[10px] font-semibold text-teal-foreground">{wishlist.length}</span>}
             </Link>
-            <Link to="/cart" onClick={() => setOpen(false)} aria-label={t("nav.cart")} className="relative grid h-10 w-10 place-self-center place-items-center rounded-full text-foreground/80 transition-colors hover:bg-white/5 hover:text-foreground">
+            <Link to="/cart" onClick={() => setOpen(false)} aria-label={t("nav.cart")} className="relative grid h-10 w-10 cursor-pointer place-self-center place-items-center rounded-full text-foreground/80 transition-colors hover:bg-white/5 hover:text-foreground">
               <ShoppingBag className="h-[18px] w-[18px]" />
               {count > 0 && <span className="absolute right-1 top-1 grid size-4 place-items-center rounded-full bg-teal text-[10px] font-semibold text-teal-foreground">{count}</span>}
             </Link>
@@ -334,7 +334,7 @@ export function Navbar() {
                 <Link
                   to="/profile"
                   onClick={() => setOpen(false)}
-                  className="rounded-full border border-white/15 px-4 py-3 text-center text-sm font-medium text-foreground transition hover:border-white/30"
+                  className="cursor-pointer rounded-full border border-white/15 px-4 py-3 text-center text-sm font-medium text-foreground transition hover:border-white/30"
                 >
                   {t("nav.profile")}
                 </Link>
@@ -353,14 +353,14 @@ export function Navbar() {
                 <Link
                   to="/auth/signin"
                   onClick={() => setOpen(false)}
-                  className="rounded-full border border-white/15 px-4 py-3 text-center text-sm font-medium text-foreground transition hover:border-white/30"
+                  className="cursor-pointer rounded-full border border-white/15 px-4 py-3 text-center text-sm font-medium text-foreground transition hover:border-white/30"
                 >
                   {t("nav.signIn")}
                 </Link>
                 <Link
                   to="/auth/signup"
                   onClick={() => setOpen(false)}
-                  className="rounded-full bg-foreground px-4 py-3 text-center text-sm font-semibold text-background transition hover:bg-foreground/90"
+                  className="cursor-pointer rounded-full bg-foreground px-4 py-3 text-center text-sm font-semibold text-background transition hover:bg-foreground/90"
                 >
                   {t("nav.createAccount")}
                 </Link>
@@ -378,7 +378,7 @@ export function Navbar() {
                   target="_blank"
                   rel="noreferrer"
                   aria-label={label}
-                  className="grid h-10 w-10 place-items-center rounded-full border border-white/15 text-foreground/80 transition hover:border-white/30 hover:text-foreground"
+                  className="grid h-10 w-10 cursor-pointer place-items-center rounded-full border border-white/15 text-foreground/80 transition hover:border-white/30 hover:text-foreground"
                 >
                   <Icon className="h-4 w-4" />
                 </a>

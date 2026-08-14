@@ -80,16 +80,16 @@
 }
 
 html.light {
-  --background: oklch(0.975 0.004 210); --foreground: oklch(0.19 0.01 245);
-  --card: oklch(1 0 0); --card-foreground: oklch(0.19 0.01 245);
-  --popover: oklch(1 0 0); --popover-foreground: oklch(0.19 0.01 245);
+  --background: oklch(0.978 0.005 210); --foreground: oklch(0.19 0.01 245);
+  --card: oklch(0.992 0.003 210); --card-foreground: oklch(0.19 0.01 245);
+  --popover: oklch(0.992 0.003 210); --popover-foreground: oklch(0.19 0.01 245);
   --primary: oklch(0.19 0.01 245); --primary-foreground: oklch(0.985 0 0);
   --secondary: oklch(0.94 0.008 210); --secondary-foreground: oklch(0.19 0.01 245);
   --muted: oklch(0.94 0.008 210); --muted-foreground: oklch(0.46 0.02 245);
   --accent: oklch(0.46 0.08 195); --accent-foreground: oklch(0.985 0 0);
   --teal: oklch(0.46 0.08 195); --teal-foreground: oklch(0.985 0 0);
-  --border: oklch(0.2 0.01 245 / 13%); --input: oklch(0.2 0.01 245 / 15%);
-  --ring: oklch(0.46 0.08 195); --glass: oklch(1 0 0 / 70%); --glass-border: oklch(0.2 0.01 245 / 12%);
+  --border: oklch(0.2 0.01 245 / 10%); --input: oklch(0.2 0.01 245 / 13%);
+  --ring: oklch(0.46 0.08 195); --glass: oklch(1 0 0 / 72%); --glass-border: oklch(0.2 0.01 245 / 9%);
 }
 
 @layer base {
@@ -108,8 +108,24 @@ html.light {
   html[dir="rtl"] body { font-family: Tahoma, Arial, sans-serif; }
 }
 
-html.light .bg-noise { background-image: radial-gradient(1200px 600px at 20% -10%, color-mix(in oklab, var(--color-teal) 16%, transparent), transparent 60%), linear-gradient(180deg, oklch(0.99 0.003 210), oklch(0.96 0.006 210)); }
-html.light .glass-card { box-shadow: 0 20px 60px -30px oklch(0.2 0.01 245 / 0.2); }
+html.light .bg-noise { background-image: radial-gradient(900px 580px at 18% 8%, color-mix(in oklab, var(--color-teal) 7%, transparent), transparent 62%), radial-gradient(780px 520px at 88% 82%, oklch(0.2 0.01 245 / 3%), transparent 66%), linear-gradient(180deg, oklch(0.992 0.003 210), oklch(0.967 0.006 210)); }
+html.light .glass-card { background: linear-gradient(180deg, oklch(1 0 0 / 78%), oklch(0.99 0.003 210 / 68%)); border-color: oklch(0.2 0.01 245 / 7%); box-shadow: 0 1px 0 oklch(1 0 0 / 80%) inset, 0 10px 30px oklch(0.2 0.01 245 / 4%); }
+html.light .glass-card:hover { border-color: color-mix(in oklab, var(--color-teal) 30%, oklch(0.2 0.01 245 / 8%)); box-shadow: 0 16px 40px oklch(0.2 0.01 245 / 7%), 0 0 24px color-mix(in oklab, var(--color-teal) 8%, transparent); }
+html.light .qy-navbar { background-color: oklch(1 0 0 / 82%); border-bottom-color: oklch(0.2 0.01 245 / 6%); box-shadow: 0 10px 30px -26px oklch(0.2 0.01 245 / 28%); backdrop-filter: blur(18px) saturate(140%); -webkit-backdrop-filter: blur(18px) saturate(140%); }
+html.light .qy-hero { background-image: radial-gradient(560px 360px at 50% 44%, color-mix(in oklab, var(--color-teal) 8%, transparent), transparent 70%), radial-gradient(820px 480px at 10% 8%, oklch(0.2 0.01 245 / 3%), transparent 72%), linear-gradient(180deg, oklch(0.992 0.003 210), oklch(0.972 0.006 210)); }
+html.light .qy-hero .border-white\/5, html.light .qy-hero .border-white\/\[0\.04\] { border-color: oklch(0.2 0.01 245 / 6%); }
+html.light .qy-hero .border-white\/10, html.light .qy-hero .border-white\/15 { border-color: oklch(0.2 0.01 245 / 10%); }
+html.light .qy-hero .bg-white\/5 { background-color: oklch(1 0 0 / 62%); }
+html.light .qy-hero-primary { box-shadow: 0 10px 24px -14px oklch(0.2 0.01 245 / 35%); }
+html.light .qy-hero-secondary { background: oklch(1 0 0 / 45%); }
+html.light .qy-brand-icon { border-color: color-mix(in oklab, var(--color-foreground) 72%, transparent); background: oklch(1 0 0 / 46%); }
+html.light .qy-brand-letter, html.light .qy-brand-wordmark { color: var(--color-foreground); }
+html[dir="rtl"] .text-display { letter-spacing: 0; }
+
+.qy-brand-icon { border-color: color-mix(in oklab, var(--color-foreground) 76%, transparent); }
+.qy-brand-letter, .qy-brand-wordmark { color: var(--color-foreground); }
+.qy-navbar :is(a, button) { transition-duration: 200ms; }
+.qy-navbar :is(a, button):focus-visible { outline: 2px solid var(--color-teal); outline-offset: 3px; }
 html[dir="rtl"] .rtl-flip { transform: scaleX(-1); }
 
 @utility glass-card {

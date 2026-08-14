@@ -94,7 +94,7 @@ function Hero() {
   ].filter((social) => social.href);
 
   return (
-    <section className="bg-noise relative isolate overflow-hidden">
+    <section className="qy-hero bg-noise relative isolate overflow-hidden">
       {/* geometric shapes */}
       <div
         aria-hidden
@@ -133,14 +133,14 @@ function Hero() {
         >
           <Link
             to="/products"
-            className="group inline-flex items-center gap-2 rounded-full bg-foreground px-6 py-3 text-sm font-semibold uppercase tracking-[0.2em] text-background transition hover:bg-foreground/90"
+            className="qy-hero-primary group inline-flex cursor-pointer items-center gap-2 rounded-full bg-foreground px-6 py-3 text-sm font-semibold uppercase tracking-[0.2em] text-background transition-all duration-200 hover:-translate-y-px hover:bg-foreground/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal focus-visible:ring-offset-2 focus-visible:ring-offset-background"
           >
             {t("home.exploreCollection")}
             <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
           </Link>
           <Link
             to="/contact"
-            className="inline-flex items-center gap-2 rounded-full border border-white/15 px-6 py-3 text-sm font-medium text-foreground transition hover:border-white/30 hover:bg-white/5"
+            className="qy-hero-secondary inline-flex cursor-pointer items-center gap-2 rounded-full border border-white/15 px-6 py-3 text-sm font-medium text-foreground transition-all duration-200 hover:-translate-y-px hover:border-white/30 hover:bg-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal focus-visible:ring-offset-2 focus-visible:ring-offset-background"
           >
             {t("home.contactUs")}
           </Link>
