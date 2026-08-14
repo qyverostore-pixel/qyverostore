@@ -3,7 +3,7 @@ import type { StoreProduct } from "@/services/products";
 import type { Language } from "@/i18n/translations";
 import { localizedProductDescription, localizedProductName } from "@/lib/localized-content";
 
-export const siteUrl = (import.meta.env.VITE_SITE_URL || "https://qyvero.com").replace(/\/$/, "");
+export const siteUrl = (import.meta.env.VITE_SITE_URL || "https://qyverostore.vercel.app").replace(/\/$/, "");
 export const siteName = "QYVERO";
 export const defaultDescription = "QYVERO is a luxury men's lifestyle brand for modern essentials, refined accessories, and everyday distinction.";
 export const absoluteUrl = (path = "/") => `${siteUrl}${path.startsWith("/") ? path : `/${path}`}`;

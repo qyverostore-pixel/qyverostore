@@ -8,7 +8,7 @@ type ServerEntry = {
 };
 
 let serverEntryPromise: Promise<ServerEntry> | undefined;
-const siteUrl = (import.meta.env.VITE_SITE_URL || "https://qyvero.com").replace(/\/$/, "");
+const siteUrl = (import.meta.env.VITE_SITE_URL || "https://qyverostore.vercel.app").replace(/\/$/, "");
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 const xml = (value: string) => value.replace(/[<>&"']/g, (character) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;", '"': "&quot;", "'": "&apos;" })[character] ?? character);
