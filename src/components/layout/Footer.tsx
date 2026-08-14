@@ -7,6 +7,8 @@ import { useStorefrontSettings } from "@/providers/StorefrontSettingsProvider";
 import { emailUrl, externalUrl, whatsappUrl } from "@/services/store-settings";
 import { Facebook, Instagram, Mail, MessageCircle, Music2 } from "lucide-react";
 import { useLocale } from "@/providers/LocaleProvider";
+import { useCategories } from "@/hooks/use-products";
+import { localizedCategoryName } from "@/lib/localized-content";
 
 function ColumnHeading({ children }: { children: React.ReactNode }) {
   return (
@@ -19,19 +21,21 @@ function ColumnHeading({ children }: { children: React.ReactNode }) {
 export function Footer() {
   const [email, setEmail] = useState(""); const [submitting, setSubmitting] = useState(false);
   const settings = useStorefrontSettings();
-  const { t } = useLocale();
+  const { language, t } = useLocale();
+  const { data: categories = [] } = useCategories();
   const quickLinks = [
     { to: "/", label: t("nav.home") }, { to: "/products", label: t("nav.products") },
     { to: "/", hash: "categories", label: t("nav.categories") }, { to: "/about", label: t("nav.about") },
     { to: "/contact", label: t("nav.contact") }, { to: "/connect", label: t("nav.connect") },
     { to: "/auth/signin", label: t("nav.signIn") },
   ] as const;
-  const categories = [
-    { label: t("footer.wallets"), slug: "wallets" }, { label: t("footer.watches"), slug: "watches" },
-    { label: t("footer.belts"), slug: "belts" }, { label: t("footer.perfumes"), slug: "perfumes" },
-    { label: t("footer.crossBags"), slug: "cross-bags" }, { label: t("footer.accessories"), slug: "accessories" },
-    { label: t("footer.tech"), slug: "tech" },
-  ];
+  const policyLinks = [
+    { to: "/policies", label: t("footer.policies") },
+    { to: "/privacy-policy", label: t("legal.privacyTitle") },
+    { to: "/terms-and-conditions", label: t("legal.termsTitle") },
+    { to: "/return-policy", label: t("legal.returnsTitle") },
+    { to: "/shipping-policy", label: t("legal.shippingTitle") },
+  ] as const;
   const contact = [
     { label: "WhatsApp", href: whatsappUrl(settings.whatsapp), Icon: MessageCircle },
     { label: "Email", href: emailUrl(settings.email), Icon: Mail },
@@ -47,7 +51,7 @@ export function Footer() {
         className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent"
       />
       <div className="mx-auto w-full max-w-7xl px-6 pb-10 pt-20">
-        <div className="grid grid-cols-1 gap-12 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-12 sm:grid-cols-2 lg:grid-cols-5">
           {/* Brand */}
           <div className="flex flex-col gap-5">
             <BrandMark size="md" showTagline />
@@ -93,7 +97,21 @@ export function Footer() {
                     className="group inline-flex items-center gap-2 text-sm text-foreground/75 transition-colors hover:text-foreground"
                   >
                     <span className="h-px w-4 bg-white/20 transition-all duration-300 group-hover:w-6 group-hover:bg-teal" />
-                    {category.label}
+                    {localizedCategoryName(category, language)}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="flex flex-col gap-5">
+            <ColumnHeading>{t("footer.customerService")}</ColumnHeading>
+            <ul className="flex flex-col gap-3">
+              {policyLinks.map((link) => (
+                <li key={link.to}>
+                  <Link to={link.to} className="group inline-flex items-center gap-2 text-sm text-foreground/75 transition-colors hover:text-foreground">
+                    <span className="h-px w-4 bg-white/20 transition-all duration-300 group-hover:w-6 group-hover:bg-teal" />
+                    {link.label}
                   </Link>
                 </li>
               ))}

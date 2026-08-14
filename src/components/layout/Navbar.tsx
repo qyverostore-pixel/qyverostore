@@ -97,7 +97,7 @@ export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
-  const { user, profile, signOut } = useAuth();
+  const { user, signOut } = useAuth();
   const { count } = useCart();
   const { data: wishlist = [] } = useWishlist(Boolean(user));
   const settings = useStorefrontSettings();
@@ -123,12 +123,7 @@ export function Navbar() {
     }
   };
 
-  const navLinks = [
-    ...NAV_LINKS.map((link) => ({ ...link, label: t(link.key) })),
-    ...(user && profile?.role === "admin"
-      ? [{ to: "/admin" as const, label: t("nav.admin") }]
-      : []),
-  ];
+  const navLinks = NAV_LINKS.map((link) => ({ ...link, label: t(link.key) }));
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12);
@@ -185,7 +180,7 @@ export function Navbar() {
               )}
             </IconButton>
             <div className="hidden items-center sm:flex">
-              <IconButton label="Search" onClick={() => setSearchOpen(true)}>
+              <IconButton label={t("nav.search")} onClick={() => setSearchOpen(true)}>
                 <Search className="h-[18px] w-[18px]" />
               </IconButton>
               <Link
@@ -318,6 +313,20 @@ export function Navbar() {
               </Link>
             ))}
           </nav>
+
+          <div className="grid grid-cols-3 gap-3 px-6 pb-2">
+            <IconButton label={t("nav.search")} onClick={() => { setOpen(false); setSearchOpen(true); }}>
+              <Search className="h-[18px] w-[18px]" />
+            </IconButton>
+            <Link to="/wishlist" onClick={() => setOpen(false)} aria-label={t("nav.wishlist")} className="relative grid h-10 w-10 place-self-center place-items-center rounded-full text-foreground/80 transition-colors hover:bg-white/5 hover:text-foreground">
+              <Heart className="h-[18px] w-[18px]" />
+              {wishlist.length > 0 && <span className="absolute right-1 top-1 grid size-4 place-items-center rounded-full bg-teal text-[10px] font-semibold text-teal-foreground">{wishlist.length}</span>}
+            </Link>
+            <Link to="/cart" onClick={() => setOpen(false)} aria-label={t("nav.cart")} className="relative grid h-10 w-10 place-self-center place-items-center rounded-full text-foreground/80 transition-colors hover:bg-white/5 hover:text-foreground">
+              <ShoppingBag className="h-[18px] w-[18px]" />
+              {count > 0 && <span className="absolute right-1 top-1 grid size-4 place-items-center rounded-full bg-teal text-[10px] font-semibold text-teal-foreground">{count}</span>}
+            </Link>
+          </div>
 
           <div className="grid grid-cols-2 gap-3 px-6 pb-6 pt-4">
             {user ? (

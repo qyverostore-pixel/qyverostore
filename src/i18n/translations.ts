@@ -182,6 +182,16 @@ export const translations = {
       returnsEyebrow: "Returns", returnsTitle: "Return Policy", returnsText: "If something is not right with your order, contact QYVERO within seven days of delivery. Our team will review the item and guide you through the available return options.",
       questions: "For questions about this policy, please contact us through the QYVERO contact page.", contactQyvero: "Contact QYVERO",
     },
+    policies: {
+      eyebrow: "QYVERO Policies",
+      title: "Policies, made clear.",
+      description: "Find the details that guide your QYVERO experience.",
+      readPolicy: "Read policy",
+      privacyDescription: "How we handle the information you share with us.",
+      termsDescription: "The terms that apply when you use the QYVERO store.",
+      returnsDescription: "Guidance for returns and refunds when something is not right.",
+      shippingDescription: "How we prepare and deliver your QYVERO order.",
+    },
     order: { placed: "Order placed.", received: "Your order has been received. You can follow its status from your account.", contactWhatsApp: "Contact QYVERO on WhatsApp", viewOrders: "View my orders", continueShopping: "Continue shopping" },
     wishlist: { memberSpace: "Member Space", title: "My Wishlist.", description: "Your saved QYVERO essentials, ready whenever you are.", loadError: "We couldn't load your wishlist.", retry: "Please try again in a moment.", noSaved: "No saved products", emptyDescription: "Save the pieces you love and return to them whenever you're ready.", explore: "Explore Products", addToCart: "Add to Cart", saved: "Saved", save: "Save to wishlist", remove: "Remove from wishlist" },
     products: { eyebrow: "The Collection", titleStart: "Products made for", titleAccent: "everyday distinction.", description: "Explore carefully selected accessories, tech, and essentials for modern everyday life.", search: "Search the collection", sort: "Sort products", newest: "Newest", priceLowHigh: "Price: Low to High", priceHighLow: "Price: High to Low", productFound: "product found", productsFound: "products found", clearFilters: "Clear filters", noProducts: "No products found", noProductsDescription: "Try a different search or clear your filters to explore the complete QYVERO collection.", resetFilters: "Reset filters", allProducts: "All Products", onlyLeft: "Only", left: "left", whatsapp: "WhatsApp", whatsappInterest: "Hi QYVERO, I'm interested in" },
@@ -400,6 +410,23 @@ export const translations = {
 } as const;
 
 Object.assign(translations.en.product, { premiumMaterial: "Premium Material", modernDesign: "Modern Design", durable: "Durable", lightweight: "Lightweight" });
+
+Object.assign(translations.en.nav, { followQyvero: "Follow QYVERO" });
+Object.assign(translations.ar.nav, { followQyvero: "تابع QYVERO" });
+Object.assign(translations.en.footer, { customerService: "Customer Service", policies: "Policies" });
+Object.assign(translations.ar.footer, { customerService: "خدمة العملاء", policies: "السياسات" });
+Object.assign(translations.ar, {
+  policies: {
+    eyebrow: "سياسات QYVERO",
+    title: "كل حاجة واضحة.",
+    description: "هتلاقي هنا التفاصيل اللي بتنظم تجربتك مع QYVERO.",
+    readPolicy: "اقرأ السياسة",
+    privacyDescription: "إزاي بنتعامل مع المعلومات اللي بتشاركهالنا.",
+    termsDescription: "الشروط اللي بتنطبق لما تستخدم متجر QYVERO.",
+    returnsDescription: "إرشادات الاسترجاع ورد الفلوس لو في حاجة مش مظبوطة.",
+    shippingDescription: "إزاي بنجهز ونوصل طلبك من QYVERO.",
+  },
+});
 
 Object.assign(translations.ar.product, { ratingOutOfFive: "من 5 نجوم", readyToDispatch: "— جاهز للشحن", premiumMaterial: "خامة بريميوم", modernDesign: "تصميم مودرن", durable: "متين", lightweight: "خفيف" });
 Object.assign(translations.ar.auth, { premium: "جودة عالية", modern: "مودرن", madeForYou: "متعمل عشانك", continueWithGoogle: "كمّل بجوجل", unableGoogle: "مش قادرين نكمّل بجوجل", hidePassword: "إخفاء الباسورد", showPassword: "إظهار الباسورد", accountRecovery: "استرجاع الحساب", recoveryTitle: "ارجع لمجموعتك.", recoverySubtitle: "اطلب لينك آمن لتغيير الباسورد واسترجاع حسابك على QYVERO.", recoveryInstruction: "اكتب إيميلك وهنبعتلك لينك الاسترجاع.", welcomeBack: "أهلاً برجوعك", leaveYour: "سيب", impression: "بصمتك", signInSubtitle: "سجّل دخول عشان تكمّل تسوق أساسيات بريميوم مختارة للراجل المودرن.", newToQyvero: "لسه جديد على QYVERO؟", createOne: "اعمل حساب", accountSecurity: "أمان الحساب", resetTitle: "أمّن ستايلك.", resetSubtitle: "اختار باسورد جديد لحسابك على QYVERO وخليه قوي ومميز.", security: "الأمان", enterFirstName: "اكتب اسمك الأول", enterLastName: "اكتب اسم العيلة", usernameHint: "من 3 لـ20 حرف أو رقم أو . أو _", validPhone: "اكتب رقم موبايل صح", acceptTerms: "لازم توافق عشان تكمّل", newStandard: "مستوى جديد", welcomeToThe: "أهلاً بيك في عيلة", family: "", signUpSubtitle: "اعمل حساب عشان تتسوق الأساسيات البريميوم وتتابع طلباتك وتوصل لدروبات الأعضاء.", alreadyHaveAccount: "عندك حساب بالفعل؟", agreeToThe: "أنا موافق على", termsOfService: "شروط الخدمة", and: "و" });

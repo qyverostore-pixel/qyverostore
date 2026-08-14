@@ -17,6 +17,7 @@ import { Route as CheckoutRouteImport } from './routes/checkout'
 import { Route as ConnectRouteImport } from './routes/connect'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as OrderSuccessRouteImport } from './routes/order-success'
+import { Route as PoliciesRouteImport } from './routes/policies'
 import { Route as PrivacyPolicyRouteImport } from './routes/privacy-policy'
 import { Route as ProductsRouteImport } from './routes/products'
 import { Route as ProfileRouteImport } from './routes/profile'
@@ -84,6 +85,11 @@ const ContactRoute = ContactRouteImport.update({
 const OrderSuccessRoute = OrderSuccessRouteImport.update({
   id: '/order-success',
   path: '/order-success',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PoliciesRoute = PoliciesRouteImport.update({
+  id: '/policies',
+  path: '/policies',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PrivacyPolicyRoute = PrivacyPolicyRouteImport.update({
@@ -237,6 +243,7 @@ export interface FileRoutesByFullPath {
   '/connect': typeof ConnectRoute
   '/contact': typeof ContactRoute
   '/order-success': typeof OrderSuccessRoute
+  '/policies': typeof PoliciesRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
   '/products': typeof ProductsRouteWithChildren
   '/profile': typeof ProfileRouteWithChildren
@@ -275,6 +282,7 @@ export interface FileRoutesByTo {
   '/connect': typeof ConnectRoute
   '/contact': typeof ContactRoute
   '/order-success': typeof OrderSuccessRoute
+  '/policies': typeof PoliciesRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
   '/reset-password': typeof ResetPasswordRoute
   '/return-policy': typeof ReturnPolicyRoute
@@ -311,6 +319,7 @@ export interface FileRoutesById {
   '/connect': typeof ConnectRoute
   '/contact': typeof ContactRoute
   '/order-success': typeof OrderSuccessRoute
+  '/policies': typeof PoliciesRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
   '/products': typeof ProductsRouteWithChildren
   '/profile': typeof ProfileRouteWithChildren
@@ -351,6 +360,7 @@ export interface FileRouteTypes {
     | '/connect'
     | '/contact'
     | '/order-success'
+    | '/policies'
     | '/privacy-policy'
     | '/products'
     | '/profile'
@@ -389,6 +399,7 @@ export interface FileRouteTypes {
     | '/connect'
     | '/contact'
     | '/order-success'
+    | '/policies'
     | '/privacy-policy'
     | '/reset-password'
     | '/return-policy'
@@ -424,6 +435,7 @@ export interface FileRouteTypes {
     | '/connect'
     | '/contact'
     | '/order-success'
+    | '/policies'
     | '/privacy-policy'
     | '/products'
     | '/profile'
@@ -463,6 +475,7 @@ export interface RootRouteChildren {
   ConnectRoute: typeof ConnectRoute
   ContactRoute: typeof ContactRoute
   OrderSuccessRoute: typeof OrderSuccessRoute
+  PoliciesRoute: typeof PoliciesRoute
   PrivacyPolicyRoute: typeof PrivacyPolicyRoute
   ProductsRoute: typeof ProductsRouteWithChildren
   ProfileRoute: typeof ProfileRouteWithChildren
@@ -532,6 +545,13 @@ declare module '@tanstack/react-router' {
       path: '/order-success'
       fullPath: '/order-success'
       preLoaderRoute: typeof OrderSuccessRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/policies': {
+      id: '/policies'
+      path: '/policies'
+      fullPath: '/policies'
+      preLoaderRoute: typeof PoliciesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/privacy-policy': {
@@ -813,6 +833,7 @@ const rootRouteChildren: RootRouteChildren = {
   ConnectRoute: ConnectRoute,
   ContactRoute: ContactRoute,
   OrderSuccessRoute: OrderSuccessRoute,
+  PoliciesRoute: PoliciesRoute,
   PrivacyPolicyRoute: PrivacyPolicyRoute,
   ProductsRoute: ProductsRouteWithChildren,
   ProfileRoute: ProfileRouteWithChildren,
