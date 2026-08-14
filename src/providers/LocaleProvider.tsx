@@ -21,7 +21,7 @@ const STORAGE_KEY = "qyvero-language";
 
 function translate(language: Language, key: TranslationKey) {
   const [group, item] = key.split(".") as [keyof typeof translations.en, string];
-  const value = translations[language][group] as Record<string, string>;
+  const value = (translations[language] as Record<string, Record<string, string>>)[group];
   return value?.[item] ?? (translations.en[group] as Record<string, string>)?.[item] ?? key;
 }
 

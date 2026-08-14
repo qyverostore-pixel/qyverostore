@@ -1,5 +1,6 @@
 import { forwardRef, useId, useState, type InputHTMLAttributes, type ReactNode } from "react";
 import { Eye, EyeOff } from "lucide-react";
+import { useLocale } from "@/providers/LocaleProvider";
 
 type Props = InputHTMLAttributes<HTMLInputElement> & {
   label: string;
@@ -12,6 +13,7 @@ export const TextField = forwardRef<HTMLInputElement, Props>(function TextField(
   { label, hint, error, icon, id, className = "", type = "text", ...rest },
   ref,
 ) {
+  const { t } = useLocale();
   const auto = useId();
   const inputId = id ?? auto;
   const isPassword = type === "password";
@@ -50,7 +52,7 @@ export const TextField = forwardRef<HTMLInputElement, Props>(function TextField(
             type="button"
             onClick={() => setVisible((v) => !v)}
             className="mr-2 grid h-8 w-8 place-items-center rounded-md text-muted-foreground transition hover:text-foreground"
-            aria-label={visible ? "Hide password" : "Show password"}
+            aria-label={visible ? t("auth.hidePassword") : t("auth.showPassword")}
           >
             {visible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
           </button>

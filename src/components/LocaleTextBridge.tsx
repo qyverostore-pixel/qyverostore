@@ -38,7 +38,7 @@ export function LocaleTextBridge() {
         );
       }
       for (const node of Array.from(element.childNodes)) {
-        if (node.nodeType !== Node.TEXT_NODE || !node.textContent || !clean(node.textContent))
+        if (!(node instanceof Text) || !node.textContent || !clean(node.textContent))
           continue;
         const original = originalText.get(node) ?? node.textContent;
         if (!originalText.has(node)) originalText.set(node, original);

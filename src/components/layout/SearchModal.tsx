@@ -4,18 +4,9 @@ import { useNavigate } from "@tanstack/react-router";
 import { Dialog, DialogContent, DialogOverlay, DialogPortal } from "@/components/ui/dialog";
 import { useProductSearch } from "@/hooks/use-search";
 import type { SearchProduct } from "@/services/search";
+import { useLocale } from "@/providers/LocaleProvider";
+import { localizedCategoryName, localizedProductName } from "@/lib/localized-content";
 
-const popular = [
-  "Wallet",
-  "Watch",
-  "Perfume",
-  "Belt",
-  "Headphones",
-  "Earbuds",
-  "Keyboard",
-  "Mouse",
-  "Cross Bag",
-];
 const RECENT_SEARCHES_KEY = "qyvero-recent-searches";
 const recentLimit = 8;
 
@@ -30,24 +21,26 @@ function readRecentSearches() {
 }
 
 function SearchResult({ product, highlighted, onSelect }: { product: SearchProduct; highlighted: boolean; onSelect: () => void }) {
+  const { language, t } = useLocale();
   const image = product.images[0];
   return <button type="button" onClick={onSelect} className={`flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left transition ${highlighted ? "bg-teal/10 text-foreground ring-1 ring-inset ring-teal/40" : "text-foreground/80 hover:bg-white/[0.05] hover:text-foreground"}`}>
     <div className="grid size-12 shrink-0 place-items-center overflow-hidden rounded-xl bg-white/[0.05] text-xs text-muted-foreground">
-      {image ? <img src={image.image_url} alt={image.alt_text ?? product.name} className="size-full object-cover" /> : <Search className="size-4" />}
+      {image ? <img src={image.image_url} alt={localizedProductName(product, language)} className="size-full object-cover" /> : <Search className="size-4" />}
     </div>
     <div className="min-w-0 flex-1">
-      <p className="truncate text-sm font-medium">{product.name}</p>
-      <p className="mt-1 truncate text-xs text-muted-foreground">{product.category?.name ?? "Collection"} · {Number(product.price).toLocaleString()} EGP</p>
+      <p className="truncate text-sm font-medium">{localizedProductName(product, language)}</p>
+      <p className="mt-1 truncate text-xs text-muted-foreground">{product.category ? localizedCategoryName(product.category, language) : t("product.collection")} · {Number(product.price).toLocaleString(language === "ar" ? "ar-EG" : "en-US")} {t("common.currency")}</p>
     </div>
     <div className="shrink-0 text-right text-xs text-muted-foreground">
       <span className="flex items-center justify-end gap-1 text-amber-300"><Star className="size-3 fill-current" />{Number(product.rating).toFixed(1)}</span>
-      <span className={`mt-1 block ${product.stock > 0 ? "text-teal" : "text-red-300"}`}>{product.stock > 0 ? "In stock" : "Out of stock"}</span>
+      <span className={`mt-1 block ${product.stock > 0 ? "text-teal" : "text-red-300"}`}>{product.stock > 0 ? t("product.inStock") : t("product.outOfStock")}</span>
     </div>
   </button>;
 }
 
 function SearchSkeleton() {
-  return <div className="space-y-1" aria-label="Searching products">
+  const { t } = useLocale();
+  return <div className="space-y-1" aria-label={t("search.searching")}>
     {Array.from({ length: 4 }, (_, index) => <div key={index} className="flex items-center gap-3 rounded-xl px-3 py-3"><div className="size-12 animate-pulse rounded-xl bg-white/[0.07]" /><div className="flex-1 space-y-2"><div className="h-3 w-2/5 animate-pulse rounded bg-white/[0.07]" /><div className="h-2.5 w-3/5 animate-pulse rounded bg-white/[0.05]" /></div></div>)}
   </div>;
 }
@@ -61,6 +54,8 @@ export function SearchModal({
 }) {
   const input = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
+  const { t } = useLocale();
+  const popular = [t("search.wallet"), t("search.watch"), t("search.perfume"), t("search.belt"), t("search.headphones"), t("search.earbuds"), t("search.keyboard"), t("search.mouse"), t("search.crossBag")];
   const [term, setTerm] = useState("");
   const [recent, setRecent] = useState(readRecentSearches);
   const [highlightedIndex, setHighlightedIndex] = useState(0);
@@ -125,8 +120,8 @@ export function SearchModal({
                 ref={input}
                 autoFocus
                 type="search"
-                placeholder="Search products..."
-                aria-label="Search products"
+                placeholder={t("search.placeholder")}
+                aria-label={t("search.searchProducts")}
                 value={term}
                 onChange={(event) => updateTerm(event.target.value)}
                 onKeyDown={onKeyDown}
@@ -134,7 +129,7 @@ export function SearchModal({
               />
               <button
                 type="button"
-                aria-label="Close search"
+                aria-label={t("search.closeSearch")}
                 onClick={() => onOpenChange(false)}
                 className="grid size-10 place-items-center rounded-full text-muted-foreground transition hover:bg-white/10 hover:text-foreground"
               >
@@ -146,11 +141,11 @@ export function SearchModal({
             {hasTerm ? <section>
               {isSearching ? <SearchSkeleton /> : results.length ? <div className="space-y-1">
                 {results.map((product, index) => <SearchResult key={product.id} product={product} highlighted={index === highlightedIndex} onSelect={() => selectProduct(product)} />)}
-              </div> : <div className="py-10 text-center"><span className="mx-auto grid size-12 place-items-center rounded-2xl border border-white/10 bg-white/[0.035] text-teal"><Search className="size-5" /></span><p className="mt-4 text-sm text-foreground">No products found</p></div>}
+              </div> : <div className="py-10 text-center"><span className="mx-auto grid size-12 place-items-center rounded-2xl border border-white/10 bg-white/[0.035] text-teal"><Search className="size-5" /></span><p className="mt-4 text-sm text-foreground">{t("search.noProducts")}</p></div>}
             </section> : <>
             <section>
               <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-teal">
-                Popular Searches
+                {t("search.popularSearches")}
               </p>
               <div className="mt-4 flex flex-wrap gap-2">
                 {popular.map((item) => (
@@ -167,7 +162,7 @@ export function SearchModal({
             </section>
             <section className="mt-8 border-t border-white/10 pt-6">
               <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-muted-foreground">
-                Recent Searches
+                {t("search.recentSearches")}
               </p>
               <div className="mt-3 space-y-1">
                 {recent.map((item) => (
@@ -189,7 +184,7 @@ export function SearchModal({
             <span className="grid size-5 place-items-center rounded border border-white/15 text-foreground/70">
               <CornerDownLeft className="size-3" />
             </span>
-            Press Enter to search
+            {t("search.pressEnter")}
           </div>
         </DialogContent>
       </DialogPortal>

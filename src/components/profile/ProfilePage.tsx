@@ -5,9 +5,12 @@ import { TextField } from "@/components/text-field";
 import { supabase } from "@/lib/supabase";
 import { User, Mail, Phone, Shield, Calendar, Lock, LogOut, Package } from "lucide-react";
 import { toast } from "sonner";
+import { useLocale } from "@/providers/LocaleProvider";
+import { localizedError } from "@/lib/localized-error";
 
 export function ProfilePage() {
   const { user, profile, loading, refreshProfile, signOut } = useAuth();
+  const { t } = useLocale();
   const navigate = useNavigate();
   const [profileForm, setProfileForm] = useState({ fullName: "", phone: "" });
   const [passwordForm, setPasswordForm] = useState({ password: "", confirmPassword: "" });
@@ -29,11 +32,11 @@ export function ProfilePage() {
   const handleSignOut = async () => {
     try {
       await signOut();
-      toast.success("Signed out successfully");
+      toast.success(t("profile.signedOut"));
       navigate({ to: "/auth/signin" });
     } catch (error) {
-      toast.error("Unable to sign out", {
-        description: error instanceof Error ? error.message : "Please try again.",
+      toast.error(t("profile.unableSignOut"), {
+        description: localizedError(error, t),
       });
     }
   };
@@ -44,9 +47,9 @@ export function ProfilePage() {
     const phone = profileForm.phone.trim();
     const errors: typeof profileErrors = {};
 
-    if (fullName.length < 2) errors.fullName = "Enter your full name";
-    if (fullName.length > 100) errors.fullName = "Use 100 characters or fewer";
-    if (phone && !/^[+\d][\d\s()-]{6,}$/.test(phone)) errors.phone = "Enter a valid phone number";
+    if (fullName.length < 2) errors.fullName = t("validation.validName");
+    if (fullName.length > 100) errors.fullName = t("validation.validName");
+    if (phone && !/^[+\d][\d\s()-]{6,}$/.test(phone)) errors.phone = t("validation.validPhone");
     setProfileErrors(errors);
     if (Object.keys(errors).length || !user) return;
 
@@ -59,10 +62,10 @@ export function ProfilePage() {
       if (error) throw error;
 
       await refreshProfile();
-      toast.success("Profile updated successfully");
+      toast.success(t("profile.profileUpdated"));
     } catch (error) {
-      toast.error("Unable to update profile", {
-        description: error instanceof Error ? error.message : "Please try again.",
+      toast.error(t("profile.unableProfile"), {
+        description: localizedError(error, t),
       });
     } finally {
       setSavingProfile(false);
@@ -72,8 +75,8 @@ export function ProfilePage() {
   const handlePasswordUpdate = async (event: FormEvent) => {
     event.preventDefault();
     const errors: typeof passwordErrors = {};
-    if (passwordForm.password.length < 8) errors.password = "Use at least 8 characters";
-    if (passwordForm.confirmPassword !== passwordForm.password) errors.confirmPassword = "Passwords do not match";
+    if (passwordForm.password.length < 8) errors.password = t("auth.minPassword");
+    if (passwordForm.confirmPassword !== passwordForm.password) errors.confirmPassword = t("auth.passwordsMatch");
     setPasswordErrors(errors);
     if (Object.keys(errors).length) return;
 
@@ -84,10 +87,10 @@ export function ProfilePage() {
 
       setPasswordForm({ password: "", confirmPassword: "" });
       setPasswordErrors({});
-      toast.success("Password updated successfully");
+      toast.success(t("auth.passwordUpdated"));
     } catch (error) {
-      toast.error("Unable to update password", {
-        description: error instanceof Error ? error.message : "Please try again.",
+      toast.error(t("auth.unableToUpdate"), {
+        description: localizedError(error, t),
       });
     } finally {
       setSavingPassword(false);
@@ -123,13 +126,13 @@ export function ProfilePage() {
           <div className="mb-10 text-center sm:text-left">
             <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-4 py-1.5 text-[10px] font-medium uppercase tracking-[0.35em] text-foreground/85 backdrop-blur">
               <span className="h-1.5 w-1.5 rounded-full bg-teal" />
-              Member Space
+              {t("profile.memberSpace")}
             </span>
             <h1 className="text-display mt-6 text-4xl font-light leading-none sm:text-5xl">
-              My <span className="italic text-teal">Account.</span>
+              <span className="italic text-teal">{t("profile.title")}</span>
             </h1>
             <p className="mt-3 text-sm text-muted-foreground">
-              Manage your personal information and preferences.
+              {t("profile.description")}
             </p>
           </div>
 
@@ -143,10 +146,10 @@ export function ProfilePage() {
                 </div>
                 <div className="min-w-0">
                   <h2 className="text-display text-2xl font-medium text-foreground truncate">
-                    {profile?.full_name || "QYVERO Member"}
+                    {profile?.full_name || t("profile.member")}
                   </h2>
                   <p className="mt-1 text-sm text-muted-foreground">
-                    Logged in as {user.email}
+                    {t("profile.loggedInAs")} {user.email}
                   </p>
                 </div>
               </div>
@@ -157,9 +160,9 @@ export function ProfilePage() {
                     <User className="h-5 w-5" />
                   </span>
                   <div>
-                    <p className="text-xs uppercase tracking-wider text-muted-foreground">Full Name</p>
+                    <p className="text-xs uppercase tracking-wider text-muted-foreground">{t("profile.fullName")}</p>
                     <p className="mt-1 text-sm font-medium text-foreground">
-                      {profile?.full_name || "Not specified"}
+                      {profile?.full_name || t("profile.notSpecified")}
                     </p>
                   </div>
                 </div>
@@ -169,7 +172,7 @@ export function ProfilePage() {
                     <Mail className="h-5 w-5" />
                   </span>
                   <div className="min-w-0">
-                    <p className="text-xs uppercase tracking-wider text-muted-foreground">Email Address</p>
+                    <p className="text-xs uppercase tracking-wider text-muted-foreground">{t("profile.emailAddress")}</p>
                     <p className="mt-1 text-sm font-medium text-foreground truncate">
                       {user.email}
                     </p>
@@ -181,9 +184,9 @@ export function ProfilePage() {
                     <Phone className="h-5 w-5" />
                   </span>
                   <div>
-                    <p className="text-xs uppercase tracking-wider text-muted-foreground">Phone Number</p>
+                    <p className="text-xs uppercase tracking-wider text-muted-foreground">{t("profile.phoneNumber")}</p>
                     <p className="mt-1 text-sm font-medium text-foreground">
-                      {profile?.phone || "Not specified"}
+                      {profile?.phone || t("profile.notSpecified")}
                     </p>
                   </div>
                 </div>
@@ -193,9 +196,9 @@ export function ProfilePage() {
                     <Shield className="h-5 w-5" />
                   </span>
                   <div>
-                    <p className="text-xs uppercase tracking-wider text-muted-foreground">Account Role</p>
+                    <p className="text-xs uppercase tracking-wider text-muted-foreground">{t("profile.accountRole")}</p>
                     <p className="mt-1 text-sm font-medium capitalize text-foreground">
-                      {profile?.role || "Customer"}
+                      {profile?.role || t("profile.customer")}
                     </p>
                   </div>
                 </div>
@@ -205,16 +208,16 @@ export function ProfilePage() {
             {/* Right Column: Actions & Details */}
             <div className="flex flex-col gap-6">
               <div className="rounded-[2rem] border border-white/10 bg-white/[0.02] p-6 space-y-6">
-                <h3 className="text-display text-lg font-medium">Overview</h3>
+                <h3 className="text-display text-lg font-medium">{t("profile.overview")}</h3>
                 
                 <div className="flex gap-3 items-center text-sm text-muted-foreground">
                   <Calendar className="h-4 w-4 text-teal" />
-                  <span>Joined {joinDate}</span>
+                  <span>{t("profile.joined")} {joinDate}</span>
                 </div>
 
                 <div className="flex gap-3 items-center text-sm text-muted-foreground">
                   <Shield className="h-4 w-4 text-teal" />
-                  <span>Status: Active</span>
+                  <span>{t("profile.active")}</span>
                 </div>
 
                 {profile?.role === "admin" && (
@@ -231,7 +234,7 @@ export function ProfilePage() {
                   className="w-full inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/5 text-sm font-medium text-foreground transition hover:border-teal hover:text-teal"
                 >
                   <User className="h-4 w-4" />
-                  Personal Information
+                  {t("profile.personalInformation")}
                 </button>
 
                 <button
@@ -239,7 +242,7 @@ export function ProfilePage() {
                   className="w-full inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/5 text-sm font-medium text-foreground transition hover:border-teal hover:text-teal"
                 >
                   <Package className="h-4 w-4" />
-                  My Orders
+                  {t("profile.myOrders")}
                 </button>
 
                 <button
@@ -247,7 +250,7 @@ export function ProfilePage() {
                   className="w-full inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-foreground px-4 text-sm font-semibold uppercase tracking-[0.15em] text-background transition hover:bg-foreground/90"
                 >
                   <LogOut className="h-4 w-4" />
-                  Logout
+                  {t("profile.logout")}
                 </button>
               </div>
             </div>
@@ -256,12 +259,12 @@ export function ProfilePage() {
           <div className="mt-6 grid gap-6 md:grid-cols-2">
             <form onSubmit={handleProfileUpdate} className="glass-card rounded-[2rem] p-6 sm:p-8">
               <div className="mb-6">
-                <h2 className="text-display text-xl font-medium text-foreground">Edit Profile</h2>
-                <p className="mt-1 text-sm text-muted-foreground">Keep your account details up to date.</p>
+                <h2 className="text-display text-xl font-medium text-foreground">{t("profile.editProfile")}</h2>
+                <p className="mt-1 text-sm text-muted-foreground">{t("profile.keepUpdated")}</p>
               </div>
               <div className="space-y-4">
                 <TextField
-                  label="Full Name"
+                  label={t("profile.fullName")}
                   autoComplete="name"
                   icon={<User />}
                   value={profileForm.fullName}
@@ -269,7 +272,7 @@ export function ProfilePage() {
                   error={profileErrors.fullName}
                 />
                 <TextField
-                  label="Phone Number"
+                  label={t("profile.phoneNumber")}
                   type="tel"
                   autoComplete="tel"
                   icon={<Phone />}
@@ -282,19 +285,19 @@ export function ProfilePage() {
                   disabled={savingProfile}
                   className="w-full inline-flex h-11 items-center justify-center rounded-xl bg-foreground px-4 text-sm font-semibold uppercase tracking-[0.15em] text-background transition hover:bg-foreground/90 disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  {savingProfile ? "Saving…" : "Save Changes"}
+                  {savingProfile ? t("common.loading") : t("profile.saveChanges")}
                 </button>
               </div>
             </form>
 
             <form onSubmit={handlePasswordUpdate} className="rounded-[2rem] border border-white/10 bg-white/[0.02] p-6 sm:p-8">
               <div className="mb-6">
-                <h2 className="text-display text-xl font-medium text-foreground">Change Password</h2>
-                <p className="mt-1 text-sm text-muted-foreground">Use at least 8 characters to secure your account.</p>
+                <h2 className="text-display text-xl font-medium text-foreground">{t("profile.changePassword")}</h2>
+                <p className="mt-1 text-sm text-muted-foreground">{t("profile.passwordHint")}</p>
               </div>
               <div className="space-y-4">
                 <TextField
-                  label="New Password"
+                  label={t("auth.newPassword")}
                   type="password"
                   autoComplete="new-password"
                   icon={<Lock />}
@@ -303,7 +306,7 @@ export function ProfilePage() {
                   error={passwordErrors.password}
                 />
                 <TextField
-                  label="Confirm Password"
+                  label={t("auth.confirmPassword")}
                   type="password"
                   autoComplete="new-password"
                   icon={<Lock />}
@@ -316,7 +319,7 @@ export function ProfilePage() {
                   disabled={savingPassword}
                   className="w-full inline-flex h-11 items-center justify-center rounded-xl border border-white/15 bg-white/5 px-4 text-sm font-medium text-foreground transition hover:border-teal hover:text-teal disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  {savingPassword ? "Updating…" : "Update Password"}
+                  {savingPassword ? t("common.loading") : t("profile.updatePassword")}
                 </button>
               </div>
             </form>

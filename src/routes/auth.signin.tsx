@@ -7,6 +7,7 @@ import { GoogleButton } from "@/components/google-button";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { useAuth } from "@/providers/AuthProvider";
+import { useLocale } from "@/providers/LocaleProvider";
 
 export const Route = createFileRoute("/auth/signin")({
   head: () => ({
@@ -29,6 +30,7 @@ export const Route = createFileRoute("/auth/signin")({
 function SignInPage() {
   const navigate = useNavigate();
   const { user, profile, loading } = useAuth();
+  const { t } = useLocale();
   const [form, setForm] = useState({ email: "", password: "", remember: true });
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
   const [submitting, setSubmitting] = useState(false);
@@ -47,8 +49,8 @@ function SignInPage() {
     ev.preventDefault();
     const e: typeof errors = {};
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email))
-      e.email = "Enter a valid email";
-    if (form.password.length < 8) e.password = "At least 8 characters";
+      e.email = t("auth.validEmail");
+    if (form.password.length < 8) e.password = t("auth.minPassword");
     setErrors(e);
     if (Object.keys(e).length) return;
 
@@ -59,12 +61,12 @@ function SignInPage() {
         password: form.password,
       });
       if (error) {
-        toast.error("Unable to sign in", { description: error.message });
+        toast.error(t("auth.unableToSignIn"), { description: error.message });
         return;
       }
-      toast.success("Signed in successfully");
+      toast.success(t("auth.signedIn"));
     } catch (error) {
-      toast.error("Unable to sign in", { description: error instanceof Error ? error.message : "Please try again." });
+      toast.error(t("auth.unableToSignIn"), { description: error instanceof Error ? error.message : t("common.tryAgain") });
     } finally {
       setSubmitting(false);
     }
@@ -76,30 +78,30 @@ function SignInPage() {
 
   return (
     <AuthLayout
-      eyebrow="Welcome back"
+      eyebrow={t("auth.welcomeBack")}
       title={
         <>
-          Leave your <span className="text-teal">impression</span>.
+          {t("auth.leaveYour")} <span className="text-teal">{t("auth.impression")}</span>.
         </>
       }
-      subtitle="Sign in to continue shopping premium essentials curated for the modern gentleman."
+      subtitle={t("auth.signInSubtitle")}
       side={<AuthSideVisual variant="signin" />}
     >
       <div className="glass-card rounded-3xl p-8 sm:p-10">
         <div className="mb-8">
           <p className="text-[11px] uppercase tracking-[0.4em] text-teal">
-            Sign in
+            {t("auth.signIn")}
           </p>
           <h1 className="mt-3 text-display text-3xl font-light text-foreground">
-            Welcome back.
+            {t("auth.welcomeBack")}.
           </h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            New to QYVERO?{" "}
+            {t("auth.newToQyvero")} {" "}
             <Link
               to="/auth/signup"
               className="text-foreground underline-offset-4 hover:underline"
             >
-              Create one
+              {t("auth.createOne")}
             </Link>
             .
           </p>
@@ -107,7 +109,7 @@ function SignInPage() {
 
         <form onSubmit={onSubmit} className="flex flex-col gap-4" noValidate>
           <TextField
-            label="Email"
+            label={t("auth.email")}
             type="email"
             placeholder="you@qyvero.com"
             autoComplete="email"
@@ -117,7 +119,7 @@ function SignInPage() {
             error={errors.email}
           />
           <TextField
-            label="Password"
+            label={t("auth.password")}
             type="password"
             placeholder="••••••••"
             autoComplete="current-password"
@@ -139,13 +141,13 @@ function SignInPage() {
                 }
                 className="h-4 w-4 rounded border-white/20 bg-white/5 accent-[color:var(--color-teal)]"
               />
-              Remember me
+              {t("auth.rememberMe")}
             </label>
             <Link
               to="/auth/forgot-password"
               className="text-foreground/80 underline-offset-4 hover:text-foreground hover:underline"
             >
-              Forgot password?
+              {t("auth.forgotPassword")}
             </Link>
           </div>
 
@@ -154,12 +156,12 @@ function SignInPage() {
             disabled={submitting}
             className="mt-2 inline-flex items-center justify-center rounded-xl bg-foreground px-4 py-3.5 text-sm font-semibold uppercase tracking-[0.2em] text-background transition-all hover:bg-foreground/90 active:scale-[0.99] disabled:opacity-60 cursor-pointer"
           >
-            {submitting ? "Signing in…" : "Login"}
+            {submitting ? t("auth.signingIn") : t("auth.login")}
           </button>
 
           <div className="my-1 flex items-center gap-3 text-[10px] uppercase tracking-[0.3em] text-muted-foreground/70">
             <span className="h-px flex-1 bg-white/10" />
-            or
+            {t("auth.or")}
             <span className="h-px flex-1 bg-white/10" />
           </div>
 

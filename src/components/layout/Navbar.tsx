@@ -115,10 +115,10 @@ export function Navbar() {
   const handleSignOut = async () => {
     try {
       await signOut();
-      toast.success("Signed out successfully");
-    } catch (error) {
-      toast.error("Unable to sign out", {
-        description: error instanceof Error ? error.message : "Please try again.",
+      toast.success(t("profile.signedOut"));
+    } catch {
+      toast.error(t("profile.unableSignOut"), {
+        description: t("common.tryAgain"),
       });
     }
   };
@@ -360,7 +360,7 @@ export function Navbar() {
           </div>
 
           <div className="border-t border-white/10 px-6 py-6">
-            <p className="text-[10px] uppercase tracking-[0.4em] text-teal">Follow QYVERO</p>
+            <p className="text-[10px] uppercase tracking-[0.4em] text-teal">{t("nav.followQyvero")}</p>
             <div className="mt-4 flex items-center gap-2">
               {socials.map(({ href, label, Icon }) => (
                 <a

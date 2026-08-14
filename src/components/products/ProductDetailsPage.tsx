@@ -530,11 +530,11 @@ export function ProductDetailsPage({ productId }: { productId: string }) {
             </div>
             <div className="mt-7 flex items-baseline gap-3">
               <span className="text-display text-3xl font-medium text-teal">
-                {effectivePrice} EGP
+                {effectivePrice} {t("common.currency")}
               </span>
               {product.compare_price && (
                 <span className="text-base text-muted-foreground line-through">
-                  {product.compare_price} EGP
+                  {product.compare_price} {t("common.currency")}
                 </span>
               )}
             </div>
@@ -551,14 +551,14 @@ export function ProductDetailsPage({ productId }: { productId: string }) {
               />
               <span className="font-medium text-foreground">
                 {effectiveStock === 0
-                  ? "Out of Stock"
+                  ? t("product.outOfStock")
                   : effectiveStock <= product.low_stock_threshold
-                    ? `Only ${effectiveStock} left`
-                    : "In Stock"}
+                    ? `${t("products.onlyLeft")} ${effectiveStock} ${t("products.left")}`
+                    : t("product.inStock")}
               </span>
               <span className="text-muted-foreground">{t("product.readyToDispatch")}</span>
             </div>
-            {sku && <p className="mt-3 text-xs text-muted-foreground">SKU: {sku}</p>}
+            {sku && <p className="mt-3 text-xs text-muted-foreground">{t("product.sku")}: {sku}</p>}
             <VariantSelector
               variants={activeVariants}
               selected={selectedVariant}
@@ -578,7 +578,7 @@ export function ProductDetailsPage({ productId }: { productId: string }) {
             <div className="mt-8 flex items-center justify-between gap-5">
               <div>
                 <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                  Quantity
+                  {t("product.quantity")}
                 </p>
                 <div className="mt-3">
                   <QuantitySelector
@@ -590,7 +590,7 @@ export function ProductDetailsPage({ productId }: { productId: string }) {
               </div>
               <div className="hidden items-center gap-2 text-xs text-muted-foreground sm:flex">
                 <Truck className="h-4 w-4 text-teal" />
-                Nationwide delivery
+                {t("product.nationwideDelivery")}
               </div>
             </div>
             <div className="mt-7">
@@ -603,17 +603,17 @@ export function ProductDetailsPage({ productId }: { productId: string }) {
           <div className="flex items-end justify-between gap-5">
             <div>
               <p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-teal">
-                You may also like
+                {t("product.related")}
               </p>
               <h2 className="text-display mt-3 text-3xl font-light sm:text-4xl">
-                Complete the edit.
+                {t("product.completeEdit")}
               </h2>
             </div>
             <Link
               to="/products"
               className="hidden text-sm text-foreground/75 transition hover:text-teal sm:block"
             >
-              View all products
+              {t("product.viewAllProducts")}
             </Link>
           </div>
           <div className="mt-10 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">

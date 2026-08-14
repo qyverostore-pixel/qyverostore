@@ -17,17 +17,20 @@ import { WishlistButton } from "@/components/wishlist/WishlistButton";
 import { Seo, breadcrumbSchema } from "@/lib/seo";
 import { useStorefrontSettings } from "@/providers/StorefrontSettingsProvider";
 import { whatsappUrl } from "@/services/store-settings";
+import { useLocale } from "@/providers/LocaleProvider";
+import { localizedCategoryName, localizedProductName } from "@/lib/localized-content";
 
 type SortOption = "newest" | "price-asc" | "price-desc";
 
 function ProductMedia({ product }: { product: StoreProduct }) {
+  const { language, t } = useLocale();
   const image = product.images[0];
   return (
     <div className="relative aspect-[4/3] overflow-hidden bg-gradient-to-br from-neutral-700 to-neutral-950">
       {image ? (
         <img
           src={image.image_url}
-          alt={image.alt_text ?? product.name}
+          alt={localizedProductName(product, language)}
           loading="lazy"
           decoding="async"
           sizes="(min-width: 1280px) 25vw, (min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
@@ -40,7 +43,7 @@ function ProductMedia({ product }: { product: StoreProduct }) {
         </span>
       )}
       <span className="absolute left-4 top-4 rounded-full border border-white/15 bg-black/25 px-3 py-1 text-[10px] font-medium uppercase tracking-[0.22em] text-foreground/90 backdrop-blur">
-        {product.category?.name ?? "Collection"}
+        {product.category ? localizedCategoryName(product.category, language) : t("product.collection")}
       </span>
     </div>
   );
@@ -48,6 +51,8 @@ function ProductMedia({ product }: { product: StoreProduct }) {
 
 function ProductCard({ product }: { product: StoreProduct }) {
   const settings = useStorefrontSettings();
+  const { language, t } = useLocale();
+  const name = localizedProductName(product, language);
   return (
     <article className="group relative flex flex-col overflow-hidden rounded-3xl border border-white/10 bg-white/[0.02] shadow-[0_20px_50px_-30px_rgba(0,0,0,.9)] transition-all duration-500 hover:-translate-y-1 hover:border-white/25 hover:bg-white/[0.04] hover:shadow-[0_30px_70px_-30px_rgba(0,0,0,1)]">
       <WishlistButton
@@ -57,31 +62,31 @@ function ProductCard({ product }: { product: StoreProduct }) {
       <ProductMedia product={product} />
       <div className="flex flex-1 flex-col p-5">
         <p className={cn("text-xs font-medium", product.stock === 0 ? "text-red-300" : product.stock <= product.low_stock_threshold ? "text-amber-300" : "text-teal")}>
-          {product.stock === 0 ? "Out of Stock" : product.stock <= product.low_stock_threshold ? `Only ${product.stock} left` : "In Stock"}
+          {product.stock === 0 ? t("product.outOfStock") : product.stock <= product.low_stock_threshold ? `${t("products.onlyLeft")} ${product.stock} ${t("products.left")}` : t("product.inStock")}
         </p>
         <div className="flex items-center gap-1 text-xs text-amber-300">
           <Star className="h-3.5 w-3.5 fill-current" />
           <span className="font-semibold">{Number(product.rating).toFixed(1)}</span>
           <span className="text-muted-foreground">({product.reviews_count})</span>
         </div>
-        <h2 className="text-display mt-3 text-lg font-medium text-foreground">{product.name}</h2>
-        <p className="mt-1 text-base font-semibold text-teal">${Number(product.price)}</p>
+        <h2 className="text-display mt-3 text-lg font-medium text-foreground">{name}</h2>
+        <p className="mt-1 text-base font-semibold text-teal">{Number(product.price)} {t("common.currency")}</p>
         <div className="mt-5 grid gap-2 sm:grid-cols-2">
           <Link
             to="/products/$productId"
             params={{ productId: product.slug }}
             className="rounded-full bg-foreground px-3 py-2.5 text-xs font-semibold uppercase tracking-[0.16em] text-background transition hover:bg-foreground/90"
           >
-            View Details
+            {t("home.viewDetails")}
           </Link>
           <a
-            href={whatsappUrl(settings.whatsapp, `Hi QYVERO, I'm interested in the ${product.name}.`)}
+            href={whatsappUrl(settings.whatsapp, `${t("products.whatsappInterest")} ${name}.`)}
             target="_blank"
             rel="noreferrer"
             className="inline-flex items-center justify-center gap-1.5 rounded-full border border-white/15 px-3 py-2.5 text-center text-xs font-medium text-foreground transition hover:border-teal hover:text-teal"
           >
             <MessageCircle className="h-3.5 w-3.5" />
-            WhatsApp
+            {t("products.whatsapp")}
           </a>
         </div>
       </div>
@@ -91,6 +96,7 @@ function ProductCard({ product }: { product: StoreProduct }) {
 
 export function ProductsPage() {
   const settings = useStorefrontSettings();
+  const { language, t } = useLocale();
   const location = useLocation();
   const categorySlug = new URLSearchParams(location.searchStr).get("category") ?? undefined;
   const [query, setQuery] = useState("");
@@ -109,7 +115,7 @@ export function ProductsPage() {
         .filter(
           (product) =>
             !query.trim() ||
-            `${product.name} ${product.category?.name ?? ""}`
+            `${product.name} ${product.name_en ?? ""} ${product.name_ar ?? ""} ${product.category?.name ?? ""} ${product.category?.name_en ?? ""} ${product.category?.name_ar ?? ""}`
               .toLowerCase()
               .includes(query.trim().toLowerCase()),
         )
@@ -132,13 +138,13 @@ export function ProductsPage() {
       <div className="mx-auto w-full max-w-7xl px-6">
         <div className="mx-auto max-w-2xl text-center">
           <p className="text-[11px] font-semibold uppercase tracking-[0.4em] text-teal">
-            The Collection
+            {t("products.eyebrow")}
           </p>
           <h1 className="text-display mt-4 text-4xl font-light leading-[1.05] text-foreground sm:text-6xl">
-            Products made for <span className="italic text-teal">everyday distinction.</span>
+            {t("products.titleStart")} <span className="italic text-teal">{t("products.titleAccent")}</span>
           </h1>
           <p className="mt-5 text-base leading-relaxed text-muted-foreground">
-            Explore carefully selected accessories, tech, and essentials for modern everyday life.
+            {t("products.description")}
           </p>
         </div>
         <div className="relative mx-auto mt-10 max-w-2xl">
@@ -147,8 +153,8 @@ export function ProductsPage() {
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             type="search"
-            aria-label="Search products"
-            placeholder="Search the collection"
+            aria-label={t("search.searchProducts")}
+            placeholder={t("products.search")}
             className="h-14 w-full rounded-full border border-white/15 bg-white/[0.03] pl-13 pr-5 text-sm text-foreground outline-none transition placeholder:text-muted-foreground focus:border-teal focus:ring-2 focus:ring-teal/25"
           />
         </div>
@@ -168,21 +174,21 @@ export function ProductsPage() {
                       : "border-white/10 bg-white/[0.02] text-foreground/75 hover:border-white/25 hover:text-foreground",
                   )}
                 >
-                  {name}
+                  {name === "All Products" ? t("products.allProducts") : localizedCategoryName(categories.find((item) => item.name === name)!, language)}
                 </button>
               ))}
             </div>
             <Select value={sort} onValueChange={(value) => setSort(value as SortOption)}>
               <SelectTrigger
-                aria-label="Sort products"
+                aria-label={t("products.sort")}
                 className="h-10 w-full rounded-full border-white/15 bg-white/[0.02] px-4 text-foreground sm:w-52"
               >
-                <SelectValue placeholder="Sort products" />
+                <SelectValue placeholder={t("products.sort")} />
               </SelectTrigger>
               <SelectContent className="border-white/10 bg-popover text-foreground">
-                <SelectItem value="newest">Newest</SelectItem>
-                <SelectItem value="price-asc">Price: Low to High</SelectItem>
-                <SelectItem value="price-desc">Price: High to Low</SelectItem>
+                <SelectItem value="newest">{t("products.newest")}</SelectItem>
+                <SelectItem value="price-asc">{t("products.priceLowHigh")}</SelectItem>
+                <SelectItem value="price-desc">{t("products.priceHighLow")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -190,7 +196,7 @@ export function ProductsPage() {
         <div className="mt-7 flex items-center justify-between gap-4">
           <p className="text-sm text-muted-foreground">
             <span className="font-semibold text-foreground">{visibleProducts.length}</span>{" "}
-            {visibleProducts.length === 1 ? "product" : "products"} found
+            {visibleProducts.length === 1 ? t("products.productFound") : t("products.productsFound")}
           </p>
           {(query || category !== "All Products") && (
             <button
@@ -201,7 +207,7 @@ export function ProductsPage() {
               }}
               className="text-xs font-medium text-teal transition hover:text-foreground"
             >
-              Clear filters
+              {t("products.clearFilters")}
             </button>
           )}
         </div>
@@ -218,8 +224,8 @@ export function ProductsPage() {
         ) : (
           <div className="mt-7">
             <EmptyState
-              title="No products found"
-              description="Try a different search or clear your filters to explore the complete QYVERO collection."
+              title={t("products.noProducts")}
+              description={t("products.noProductsDescription")}
               action={
                 <EmptyStateAction
                   onClick={() => {
@@ -227,7 +233,7 @@ export function ProductsPage() {
                     setCategory("All Products");
                   }}
                 >
-                  Reset filters
+                  {t("products.resetFilters")}
                 </EmptyStateAction>
               }
             />

@@ -3,13 +3,13 @@ import type { ProductImage, StoreCategory, StoreProduct } from "@/services/produ
 
 export type SearchProduct = Pick<
   StoreProduct,
-  "id" | "name" | "slug" | "sku" | "brand" | "short_description" | "description" | "price" | "stock" | "rating" | "reviews_count"
+  "id" | "name" | "name_en" | "name_ar" | "slug" | "sku" | "brand" | "short_description" | "description" | "price" | "stock" | "rating" | "reviews_count"
 > & {
-  category: Pick<StoreCategory, "id" | "name" | "slug"> | null;
+  category: Pick<StoreCategory, "id" | "name" | "name_en" | "name_ar" | "slug"> | null;
   images: Pick<ProductImage, "id" | "image_url" | "alt_text" | "sort_order" | "is_primary">[];
 };
 
-const searchProductSelect = "id,name,slug,sku,brand,short_description,description,price,stock,rating,reviews_count,category:categories(id,name,slug),images:product_images(id,image_url,alt_text,sort_order,is_primary)";
+const searchProductSelect = "id,name,name_en,name_ar,slug,sku,brand,short_description,description,price,stock,rating,reviews_count,category:categories(id,name,name_en,name_ar,slug),images:product_images(id,image_url,alt_text,sort_order,is_primary)";
 
 const escapeLike = (value: string) => value.replace(/[\\%_(),]/g, "\\$&");
 
@@ -21,7 +21,7 @@ export async function searchProducts(term: string, signal: AbortSignal): Promise
   const { data: categories, error: categoryError } = await supabase
     .from("categories")
     .select("id")
-    .ilike("name", pattern)
+    .or(`name.ilike.${pattern},name_en.ilike.${pattern},name_ar.ilike.${pattern}`)
     .abortSignal(signal);
 
   if (categoryError) throw new Error(categoryError.message);
@@ -29,6 +29,8 @@ export async function searchProducts(term: string, signal: AbortSignal): Promise
   const categoryIds = (categories ?? []).map((category) => category.id);
   const filters = [
     `name.ilike.${pattern}`,
+    `name_en.ilike.${pattern}`,
+    `name_ar.ilike.${pattern}`,
     `sku.ilike.${pattern}`,
     `brand.ilike.${pattern}`,
     `short_description.ilike.${pattern}`,

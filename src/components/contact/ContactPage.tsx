@@ -1,4 +1,5 @@
 import {
+  ArrowRight,
   Clock3,
   Facebook,
   Instagram,
@@ -40,29 +41,6 @@ function contactChannels(settings: StorefrontSettings): ContactChannel[] {
   ].filter((channel) => channel.href);
 }
 
-const faqs = [
-  [
-    "How can I place an order?",
-    "Choose a product and use its WhatsApp order button. Our team will confirm availability, delivery details, and payment with you directly.",
-  ],
-  [
-    "How long does delivery take?",
-    "Orders are prepared within 1–2 business days. Delivery times vary by location, and tracking details are shared once your order is dispatched.",
-  ],
-  [
-    "Do you ship nationwide?",
-    "Yes. QYVERO delivers across Egypt, so your selected essentials can reach you wherever you are.",
-  ],
-  [
-    "Can I ask about a product before ordering?",
-    "Absolutely. Message us on WhatsApp or Instagram and we will gladly help with product details, availability, and recommendations.",
-  ],
-  [
-    "How do I stay updated on new releases?",
-    "Follow QYVERO on Instagram and TikTok for new drops, product updates, and the stories behind the collection.",
-  ],
-] as const;
-
 function TikTokIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
@@ -97,6 +75,7 @@ function SectionHeading({
 
 function ContactCard({ channel }: { channel: ContactChannel }) {
   const { Icon } = channel;
+  const { t } = useLocale();
   return (
     <a
       href={channel.href}
@@ -114,8 +93,8 @@ function ContactCard({ channel }: { channel: ContactChannel }) {
       <p className="relative text-display mt-8 text-lg font-medium">{channel.name}</p>
       <p className="relative mt-1 truncate text-sm text-muted-foreground">{channel.handle}</p>
       <span className="relative mt-5 inline-flex text-xs font-medium text-foreground/70 transition group-hover:text-teal">
-        Connect with us{" "}
-        <span className="ml-1 transition-transform group-hover:translate-x-1">→</span>
+        {t("contact.connectWithUs")}
+        <ArrowRight className="ms-1 h-3 w-3 transition-transform group-hover:translate-x-1 rtl:rotate-180" />
       </span>
     </a>
   );
@@ -158,12 +137,11 @@ function ContactForm() {
       formElement.reset();
 
       toast.success(t("contact.messageSent"), {
-        description: "Our team will get back to you shortly.",
+        description: t("contact.teamReplySoon"),
       });
     } catch (error) {
       toast.error(t("contact.unableSend"), {
-        description:
-          error instanceof Error ? error.message : "Please try again.",
+        description: t("common.tryAgain"),
       });
     } finally {
       setSubmitting(false);
@@ -187,13 +165,13 @@ function ContactForm() {
           />
         </label>
         <label className="text-sm font-medium">
-          Email
+          {t("auth.email")}
           <input
             required
             name="email"
             type="email"
             autoComplete="email"
-            placeholder="you@example.com"
+            placeholder={t("contact.emailPlaceholder")}
             className={inputClass}
           />
         </label>
@@ -214,9 +192,7 @@ function ContactForm() {
       </label>
       <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <p aria-live="polite" className="text-sm text-muted-foreground">
-          {sent
-            ? "Thank you — your message is ready for our team."
-            : "We usually reply within one business day."}
+          {sent ? t("contact.thankYou") : t("contact.replyTime")}
         </p>
         <button
           type="submit"
@@ -232,10 +208,11 @@ function ContactForm() {
 }
 
 function BusinessInfo() {
+  const { t } = useLocale();
   const details = [
-    { Icon: Clock3, title: "Business Hours", text: "Daily, 10:00 AM – 10:00 PM" },
-    { Icon: MessageCircle, title: "Response Time", text: "Within 24 hours on business days" },
-    { Icon: Truck, title: "Delivery", text: "Nationwide shipping across Egypt" },
+    { Icon: Clock3, title: t("contact.businessHours"), text: t("contact.businessHoursValue") },
+    { Icon: MessageCircle, title: t("contact.responseTime"), text: t("contact.responseTimeValue") },
+    { Icon: Truck, title: t("contact.delivery"), text: t("contact.deliveryValue") },
   ];
   return (
     <div className="mt-10 grid gap-4 sm:grid-cols-3">
@@ -253,6 +230,13 @@ function BusinessInfo() {
 export function ContactPage() {
   const settings = useStorefrontSettings();
   const { t } = useLocale();
+  const faqs = [
+    [t("contact.faqOrderQuestion"), t("contact.faqOrderAnswer")],
+    [t("contact.faqDeliveryQuestion"), t("contact.faqDeliveryAnswer")],
+    [t("contact.faqNationwideQuestion"), t("contact.faqNationwideAnswer")],
+    [t("contact.faqProductQuestion"), t("contact.faqProductAnswer")],
+    [t("contact.faqUpdatesQuestion"), t("contact.faqUpdatesAnswer")],
+  ];
   return (
     <main className="min-h-screen bg-noise pb-24 sm:pb-32">
       <section className="relative isolate overflow-hidden border-b border-white/10">
@@ -276,9 +260,9 @@ export function ContactPage() {
       <section className="py-24 sm:py-32">
         <div className="mx-auto max-w-7xl px-6">
           <SectionHeading
-            eyebrow="Find us everywhere"
-            title="The easiest way to connect."
-            description="Reach out through the channel that feels most natural to you."
+            eyebrow={t("contact.findUs")}
+            title={t("contact.connectTitle")}
+            description={t("contact.connectDescription")}
           />
           <div className="mt-14 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
             {contactChannels(settings).map((channel) => (
@@ -291,9 +275,9 @@ export function ContactPage() {
         <div className="mx-auto grid max-w-7xl gap-12 px-6 lg:grid-cols-[.8fr_1.2fr] lg:gap-20">
           <div>
             <SectionHeading
-              eyebrow="Send a note"
-              title="Let's start a conversation."
-              description="Questions about an order, a product, or the brand? Leave us a message and our team will be in touch."
+              eyebrow={t("contact.sendNote")}
+              title={t("contact.noteTitle")}
+              description={t("contact.noteDescription")}
               align="left"
             />
             <div className="mt-8 flex items-start gap-3 text-sm text-muted-foreground">
@@ -301,7 +285,7 @@ export function ContactPage() {
                 <ShieldCheck className="h-4 w-4" />
               </span>
               <p className="pt-1">
-                Your message is handled with care and securely delivered to our team.
+                {t("contact.secureMessage")}
               </p>
             </div>
           </div>
@@ -315,14 +299,14 @@ export function ContactPage() {
         <div className="mx-auto grid max-w-7xl gap-12 px-6 lg:grid-cols-[.8fr_1.2fr] lg:gap-20">
           <div>
             <SectionHeading
-              eyebrow="Helpful answers"
-              title="Frequently asked questions."
-              description="A few quick answers before you reach out."
+              eyebrow={t("contact.helpfulAnswers")}
+              title={t("contact.faqTitle")}
+              description={t("contact.faqDescription")}
               align="left"
             />
             <div className="mt-8 flex items-center gap-3 text-sm text-muted-foreground">
               <MapPin className="h-5 w-5 text-teal" />
-              Based in Egypt, serving customers nationwide.
+              {t("contact.basedInEgypt")}
             </div>
           </div>
           <Accordion type="single" collapsible className="border-t border-white/10">

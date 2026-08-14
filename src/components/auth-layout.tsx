@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { BrandMark } from "./brand-mark";
+import { useLocale } from "@/providers/LocaleProvider";
 
 export function AuthLayout({
   children,
@@ -14,6 +15,7 @@ export function AuthLayout({
   subtitle: ReactNode;
   side: ReactNode;
 }) {
+  const { t } = useLocale();
   return (
     <div className="bg-noise min-h-screen">
       <div className="mx-auto grid min-h-screen w-full max-w-[1400px] grid-cols-1 lg:grid-cols-[1.05fr_1fr]">
@@ -33,11 +35,11 @@ export function AuthLayout({
                 {subtitle}
               </p>
               <div className="mt-10 flex items-center gap-6 text-[11px] uppercase tracking-[0.28em] text-white/50">
-                <span>Premium</span>
+                <span>{t("auth.premium")}</span>
                 <span className="h-px w-8 bg-white/20" />
-                <span>Modern</span>
+                <span>{t("auth.modern")}</span>
                 <span className="h-px w-8 bg-white/20" />
-                <span>Made for you</span>
+                <span>{t("auth.madeForYou")}</span>
               </div>
             </div>
           </div>

@@ -2,11 +2,14 @@ import type { ButtonHTMLAttributes } from "react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
+import { useLocale } from "@/providers/LocaleProvider";
+import { localizedError } from "@/lib/localized-error";
 
 export function GoogleButton(
   props: ButtonHTMLAttributes<HTMLButtonElement> & { label?: string },
 ) {
-  const { label = "Continue with Google", className = "", ...rest } = props;
+  const { t } = useLocale();
+  const { label = t("auth.continueWithGoogle"), className = "", ...rest } = props;
   const [signingIn, setSigningIn] = useState(false);
 
   async function signInWithGoogle() {
@@ -21,7 +24,7 @@ export function GoogleButton(
 
     if (error) {
       setSigningIn(false);
-      toast.error("Unable to continue with Google", { description: error.message });
+      toast.error(t("auth.unableGoogle"), { description: localizedError(error, t, "auth.unableGoogle") });
     }
   }
 

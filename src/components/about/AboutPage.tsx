@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { getSocialLink } from "@/data/social";
+import { useLocale } from "@/providers/LocaleProvider";
 import omarImage from "./images/omar.jpeg";
 import shaltatImage from "./images/shaltat.jpeg";
 import {
@@ -21,38 +22,6 @@ type SectionHeadingProps = {
   align?: "center" | "left";
 };
 
-const timeline = [
-  "Brand Started",
-  "First Collection",
-  "100 Customers",
-  "1000 Customers",
-  "Private Label",
-  "Global Brand",
-];
-
-const values = [
-  {
-    title: "Premium Quality",
-    description: "Considered materials and details that earn their place in your everyday.",
-    Icon: Gem,
-  },
-  {
-    title: "Innovation",
-    description: "A technology mindset applied to how products look, feel, and function.",
-    Icon: Lightbulb,
-  },
-  {
-    title: "Trust",
-    description: "Clear choices, honest standards, and a customer experience built to last.",
-    Icon: ShieldCheck,
-  },
-  {
-    title: "Modern Lifestyle",
-    description: "Objects designed for the pace, ambition, and taste of modern life.",
-    Icon: Sparkles,
-  },
-];
-
 function SectionHeading({ eyebrow, title, description, align = "center" }: SectionHeadingProps) {
   return (
     <div className={align === "center" ? "mx-auto max-w-2xl text-center" : "max-w-2xl"}>
@@ -68,6 +37,7 @@ function SectionHeading({ eyebrow, title, description, align = "center" }: Secti
 }
 
 function Hero() {
+  const { t } = useLocale();
   return (
     <section className="relative isolate overflow-hidden border-b border-white/10 bg-noise">
       <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
@@ -78,14 +48,13 @@ function Hero() {
       <div className="mx-auto flex min-h-[34rem] max-w-7xl flex-col items-center justify-center px-6 py-24 text-center sm:min-h-[40rem]">
         <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-4 py-1.5 text-[10px] font-medium uppercase tracking-[0.35em] text-foreground/85 backdrop-blur">
           <span className="h-1.5 w-1.5 rounded-full bg-teal" />
-          About QYVERO
+          {t("about.eyebrow")}
         </span>
         <h1 className="text-display mt-8 max-w-4xl text-5xl font-light leading-[0.98] sm:text-7xl md:text-[6.25rem]">
-          The vision behind <span className="italic text-teal">QYVERO.</span>
+          {t("about.heroTitle")} <span className="italic text-teal">QYVERO.</span>
         </h1>
         <p className="mt-7 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg">
-          A modern men&apos;s lifestyle brand, engineered around the things worth carrying every
-          day.
+          {t("about.heroDescription")}
         </p>
       </div>
     </section>
@@ -93,6 +62,7 @@ function Hero() {
 }
 
 function Story() {
+  const { t } = useLocale();
   return (
     <section className="py-24 sm:py-32">
       <div className="mx-auto grid max-w-7xl items-center gap-14 px-6 lg:grid-cols-2 lg:gap-24">
@@ -110,33 +80,21 @@ function Story() {
             <div className="relative grid h-36 w-36 place-items-center rounded-[2.5rem] border border-white/15 bg-black/20 text-teal shadow-2xl backdrop-blur">
               <CircuitBoard className="h-12 w-12" />
               <span className="absolute -bottom-14 whitespace-nowrap text-[10px] font-medium uppercase tracking-[0.4em] text-foreground/65">
-                Fashion meets technology
+                {t("about.fashionTech")}
               </span>
             </div>
           </div>
         </div>
         <div>
           <SectionHeading
-            eyebrow="Our beginning"
-            title="One vision, one standard."
+            eyebrow={t("about.beginning")}
+            title={t("about.storyTitle")}
             align="left"
           />
           <div className="mt-8 space-y-5 text-base leading-relaxed text-muted-foreground">
-            <p>
-              QYVERO began with two Computer Science students who saw the same gap in the things
-              men use every day: too much noise, too little intention.
-            </p>
-            <p>
-              The vision was simple: fashion and technology should speak the same
-              language—clean, purposeful, and quietly capable. What started as late-night ideas
-              about design, branding, and everyday carry evolved into a premium men's lifestyle
-              brand.
-            </p>
-            <p>
-              Today, QYVERO selects accessories and essentials with the precision of a product team
-              and the restraint of a timeless wardrobe. Every piece is here to make the everyday
-              feel more considered.
-            </p>
+            <p>{t("about.storyOne")}</p>
+            <p>{t("about.storyTwo")}</p>
+            <p>{t("about.storyThree")}</p>
           </div>
         </div>
       </div>
@@ -145,13 +103,15 @@ function Story() {
 }
 
 function Timeline() {
+  const { t } = useLocale();
+  const timeline = ["timelineBrandStarted", "timelineFirstCollection", "timeline100Customers", "timeline1000Customers", "timelinePrivateLabel", "timelineGlobalBrand"] as const;
   return (
     <section className="border-y border-white/10 bg-white/[0.015] py-24 sm:py-32">
       <div className="mx-auto max-w-7xl px-6">
         <SectionHeading
-          eyebrow="The roadmap"
-          title="Designed with the long view."
-          description="A small beginning, shaped by a clear ambition."
+          eyebrow={t("about.roadmap")}
+          title={t("about.timelineTitle")}
+          description={t("about.timelineDescription")}
         />
         <div className="mx-auto mt-16 max-w-3xl">
           <div className="relative space-y-0 before:absolute before:bottom-5 before:left-[1.1rem] before:top-5 before:w-px before:bg-gradient-to-b before:from-teal before:via-white/15 before:to-transparent sm:before:left-1/2">
@@ -169,11 +129,11 @@ function Timeline() {
                       2026
                     </p>
                   )}
-                  <p className="text-display text-xl font-medium text-foreground">{item}</p>
+                  <p className="text-display text-xl font-medium text-foreground">{t(`about.${item}`)}</p>
                   <p className="mt-1 text-sm text-muted-foreground">
                     {index === 0
-                      ? "The first line of the QYVERO story."
-                      : "The next chapter is being written with intention."}
+                      ? t("about.firstTimelineDescription")
+                      : t("about.nextTimelineDescription")}
                   </p>
                 </div>
               </div>
@@ -186,17 +146,18 @@ function Timeline() {
 }
 
 function Purpose() {
+  const { t } = useLocale();
   const items = [
     {
-      label: "Mission",
-      title: "Make the everyday more intentional.",
-      text: "To bring together premium design, useful innovation, and honest quality in objects that accompany modern men through their day.",
+      label: t("about.mission"),
+      title: t("about.missionTitle"),
+      text: t("about.missionText"),
       Icon: Sparkles,
     },
     {
-      label: "Vision",
-      title: "A globally recognised modern essential.",
-      text: "To build QYVERO into the reference for men who value quiet confidence, considered design, and a lifestyle that moves with the future.",
+      label: t("about.vision"),
+      title: t("about.visionTitle"),
+      text: t("about.visionText"),
       Icon: Globe2,
     },
   ];
@@ -230,10 +191,17 @@ function Purpose() {
 }
 
 function Values() {
+  const { t } = useLocale();
+  const values = [
+    { title: t("about.premiumQuality"), description: t("about.premiumQualityDescription"), Icon: Gem },
+    { title: t("about.innovation"), description: t("about.innovationDescription"), Icon: Lightbulb },
+    { title: t("about.trust"), description: t("about.trustDescription"), Icon: ShieldCheck },
+    { title: t("about.modernLifestyle"), description: t("about.modernLifestyleDescription"), Icon: Sparkles },
+  ];
   return (
     <section className="py-24 sm:py-32">
       <div className="mx-auto max-w-7xl px-6">
-        <SectionHeading eyebrow="What guides us" title="Principles in every detail." />
+        <SectionHeading eyebrow={t("about.valuesEyebrow")} title={t("about.valuesTitle")} />
         <div className="mt-16 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {values.map(({ title, description, Icon }) => (
             <article
@@ -302,31 +270,19 @@ function FounderCard({ role, name, tone, image, bio }: FounderCardProps) {
   );
 }
 
-const founders = [
-  {
-    role: "Founder & CEO",
-    name: "Omar Mahmoud",
-    tone: "from-teal/30 via-neutral-800 to-neutral-950",
-    image: omarImage,
-    bio: "Computer Science student, founder of QYVERO, and passionate about building a premium men's lifestyle brand through design and technology.",
-  },
-  {
-    role: "Co-Founder",
-    name: "Omar Shaltout",
-    tone: "from-neutral-800 via-neutral-900 to-teal/25",
-    image: shaltatImage,
-    bio: "Computer Science student and co-founder of QYVERO, driven by the same vision of turning technology and design into everyday essentials.",
-  },
-];
-
 function Founders() {
+  const { t } = useLocale();
+  const founders = [
+    { role: t("about.founderCeo"), name: "Omar Mahmoud", tone: "from-teal/30 via-neutral-800 to-neutral-950", image: omarImage, bio: t("about.omarMahmoudBio") },
+    { role: t("about.coFounder"), name: "Omar Shaltout", tone: "from-neutral-800 via-neutral-900 to-teal/25", image: shaltatImage, bio: t("about.omarShaltoutBio") },
+  ];
   return (
     <section className="py-24 sm:py-32">
       <div className="mx-auto max-w-5xl px-6">
         <SectionHeading
-          eyebrow="The people behind it"
-          title="Meet the founders."
-          description="The vision behind QYVERO."
+          eyebrow={t("about.foundersEyebrow")}
+          title={t("about.foundersTitle")}
+          description={t("about.foundersDescription")}
         />
 
         <div className="mt-16 flex flex-wrap justify-center gap-8">
@@ -339,6 +295,7 @@ function Founders() {
   );
 }
 function CallToAction() {
+  const { t } = useLocale();
   return (
     <section className="pb-24 pt-8 sm:pb-32">
       <div className="mx-auto max-w-5xl px-6">
@@ -352,21 +309,20 @@ function CallToAction() {
             className="absolute -bottom-24 -right-24 h-64 w-64 rounded-full bg-teal/15 blur-3xl"
           />
           <p className="relative text-[11px] font-semibold uppercase tracking-[0.4em] text-teal">
-            The journey continues
+            {t("about.ctaEyebrow")}
           </p>
           <h2 className="text-display relative mx-auto mt-5 max-w-2xl text-4xl font-light leading-tight sm:text-5xl">
-            Join our journey.
+            {t("about.ctaTitle")}
           </h2>
           <p className="relative mx-auto mt-5 max-w-lg text-base leading-relaxed text-muted-foreground">
-            Follow the evolution of QYVERO — new drops, ideas, and the details behind a more
-            considered everyday.
+            {t("about.ctaDescription")}
           </p>
           <div className="relative mt-10 flex flex-wrap justify-center gap-3">
             <Link
               to="/products"
               className="inline-flex items-center gap-2 rounded-full bg-foreground px-6 py-3 text-xs font-semibold uppercase tracking-[0.2em] text-background transition hover:bg-foreground/90"
             >
-              Explore products <ArrowRight className="h-4 w-4" />
+              {t("about.exploreProducts")} <ArrowRight className="h-4 w-4" />
             </Link>
             <a
               href={getSocialLink("Instagram").href}
@@ -375,7 +331,7 @@ function CallToAction() {
               className="inline-flex items-center gap-2 rounded-full border border-white/15 px-6 py-3 text-xs font-medium uppercase tracking-[0.18em] text-foreground transition hover:border-teal hover:text-teal"
             >
               <Instagram className="h-4 w-4" />
-              Follow us
+              {t("about.followUs")}
             </a>
           </div>
         </div>

@@ -11,6 +11,7 @@ import {
 import { BrandMark } from "@/components/brand-mark";
 import { useStorefrontSettings } from "@/providers/StorefrontSettingsProvider";
 import { emailUrl, externalUrl, whatsappUrl, type StorefrontSettings } from "@/services/store-settings";
+import { useLocale } from "@/providers/LocaleProvider";
 
 type Channel = {
   label: string;
@@ -18,13 +19,13 @@ type Channel = {
   Icon: LucideIcon;
 };
 
-function channelsFrom(settings: StorefrontSettings): Channel[] {
+function channelsFrom(settings: StorefrontSettings, whatsapp: string, email: string): Channel[] {
   return [
     { label: "Instagram", href: externalUrl(settings.instagram), Icon: Instagram },
     { label: "Facebook", href: externalUrl(settings.facebook), Icon: Facebook },
     { label: "TikTok", href: externalUrl(settings.tiktok), Icon: Music2 },
-    { label: "WhatsApp", href: whatsappUrl(settings.whatsapp), Icon: MessageCircle },
-    { label: "Email", href: emailUrl(settings.email), Icon: Mail },
+    { label: whatsapp, href: whatsappUrl(settings.whatsapp), Icon: MessageCircle },
+    { label: email, href: emailUrl(settings.email), Icon: Mail },
   ].filter((channel) => channel.href);
 }
 
@@ -49,7 +50,8 @@ function ChannelButton({ channel }: { channel: Channel }) {
 
 export function ConnectPage() {
   const settings = useStorefrontSettings();
-  const channels = channelsFrom(settings);
+  const { t } = useLocale();
+  const channels = channelsFrom(settings, t("connect.whatsapp"), t("connect.email"));
 
   return (
     <main className="bg-noise flex min-h-screen items-center px-6 py-28 sm:py-32">
@@ -58,11 +60,11 @@ export function ConnectPage() {
           <BrandMark size="lg" showTagline={false} />
         </div>
         <p className="mt-8 text-[11px] font-semibold uppercase tracking-[0.38em] text-teal">
-          Own your style.
+          {t("connect.tagline")}
         </p>
-        <h1 className="text-display mt-4 text-4xl font-light sm:text-5xl">Connect with QYVERO</h1>
+        <h1 className="text-display mt-4 text-4xl font-light sm:text-5xl">{t("connect.title")}</h1>
         <p className="mx-auto mt-4 max-w-sm text-sm leading-6 text-muted-foreground sm:text-base">
-          Stay connected with us through our official channels.
+          {t("connect.description")}
         </p>
 
         <div className="mt-10 grid gap-3 text-left">
@@ -73,7 +75,7 @@ export function ConnectPage() {
             <span className="grid size-10 shrink-0 place-items-center rounded-xl border border-white/10 bg-white/[0.035] text-teal transition-colors group-hover:border-teal/30 group-hover:bg-teal/10">
               <Globe className="size-5" />
             </span>
-            <span className="text-sm font-medium tracking-wide">Shop Website</span>
+            <span className="text-sm font-medium tracking-wide">{t("connect.shopWebsite")}</span>
           </Link>
           {channels.map((channel) => (
             <ChannelButton key={channel.label} channel={channel} />

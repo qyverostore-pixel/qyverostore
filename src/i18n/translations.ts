@@ -414,66 +414,6 @@ Object.assign(translations.ar, { brand: { tagline: "خليك على ستايلك
 export const literalTranslations: Record<string, Record<string, string>> = {
   en: {},
   ar: {
-    Home: "الرئيسية",
-    Categories: "الفئات",
-    Products: "المنتجات",
-    About: "من نحن",
-    Contact: "اتصل بنا",
-    Connect: "تواصل",
-    Search: "بحث",
-    Wishlist: "المفضلة",
-    Cart: "السلة",
-    Profile: "الملف الشخصي",
-    "Sign In": "تسجيل الدخول",
-    "Sign Up": "إنشاء حساب",
-    Logout: "تسجيل الخروج",
-    Save: "حفظ",
-    Cancel: "إلغاء",
-    Delete: "حذف",
-    Edit: "تعديل",
-    View: "عرض",
-    Back: "رجوع",
-    Close: "إغلاق",
-    Apply: "تطبيق",
-    Remove: "إزالة",
-    Filter: "تصفية",
-    "Loading...": "جارٍ التحميل…",
-    "Loading…": "جارٍ التحميل…",
-    "No results found": "ملقيناش حاجة",
-    "No products found": "ملقيناش منتجات",
-    "Browse products": "شوف المنتجات",
-    "Clear filters": "مسح الفلاتر",
-    "Reset filters": "إعادة ضبط الفلاتر",
-    "Product not found": "المنتج مش موجود",
-    "This product may no longer be available.": "المنتج ده ممكن يكون مش متاح دلوقتي.",
-    Description: "الوصف",
-    Specifications: "المواصفات",
-    Reviews: "التقييمات",
-    Shipping: "الشحن",
-    Quantity: "الكمية",
-    Checkout: "إتمام الشراء",
-    "Out of Stock": "الكمية خلصت",
-    "In Stock": "متوفر",
-    "View product": "شوف المنتج",
-    "View all products": "شوف كل المنتجات",
-    "You may also like": "ممكن يعجبك كمان",
-    "Complete the edit.": "كمّل اللوك بتاعك.",
-    "Customer information": "بيانات العميل",
-    "Full name": "الاسم بالكامل",
-    Phone: "التليفون",
-    "Email optional": "الإيميل (اختياري)",
-    Governorate: "المحافظة",
-    City: "المدينة",
-    Address: "العنوان",
-    "Payment method": "طريقة الدفع",
-    Coupon: "كوبون",
-    "Enter coupon code": "اكتب كود الكوبون",
-    "Checking...": "بنتحقق…",
-    "Order summary": "ملخص الطلب",
-    Subtotal: "المجموع الفرعي",
-    "Coupon discount": "خصم الكوبون",
-    "Estimated delivery": "التوصيل المتوقع",
-    Total: "الإجمالي",
     "Product information": "بيانات المنتج",
     "Pricing & inventory": "السعر والمخزون",
     Media: "الصور والوسائط",
@@ -558,7 +498,80 @@ export const literalTranslations: Record<string, Record<string, string>> = {
 };
 
 // Legacy customer-facing labels that are still rendered by dense existing markup.
-Object.assign(literalTranslations.ar, {
+Object.assign(translations.en.contact as Record<string, string>, {
+  connectWithUs: "Connect with us", teamReplySoon: "Our team will get back to you shortly.", emailPlaceholder: "you@example.com",
+  businessHours: "Business Hours", businessHoursValue: "Daily, 10:00 AM – 10:00 PM", responseTime: "Response Time", responseTimeValue: "Within 24 hours on business days", delivery: "Delivery", deliveryValue: "Nationwide shipping across Egypt",
+  findUs: "Find us everywhere", connectTitle: "The easiest way to connect.", connectDescription: "Reach out through the channel that feels most natural to you.", sendNote: "Send a note", noteTitle: "Let's start a conversation.", noteDescription: "Questions about an order, a product, or the brand? Leave us a message and our team will be in touch.", secureMessage: "Your message is handled with care and securely delivered to our team.", helpfulAnswers: "Helpful answers", faqTitle: "Frequently asked questions.", faqDescription: "A few quick answers before you reach out.", basedInEgypt: "Based in Egypt, serving customers nationwide.", thankYou: "Thank you — your message is ready for our team.", replyTime: "We usually reply within one business day.",
+});
+Object.assign(translations.ar.contact as Record<string, string>, {
+  connectWithUs: "كلّمنا", teamReplySoon: "فريقنا هيرد عليك قريب.", emailPlaceholder: "you@example.com",
+  businessHours: "مواعيد الشغل", businessHoursValue: "كل يوم من 10 صباحًا لـ10 مساءً", responseTime: "وقت الرد", responseTimeValue: "خلال 24 ساعة في أيام الشغل", delivery: "التوصيل", deliveryValue: "توصيل لكل محافظات مصر",
+  findUs: "هتلاقينا في كل مكان", connectTitle: "أسهل طريقة تتواصل بيها معانا.", connectDescription: "اختار الطريقة اللي تريحك وكلّمنا.", sendNote: "ابعتلنا رسالة", noteTitle: "خلّينا نتكلم.", noteDescription: "عندك سؤال عن طلب أو منتج أو البراند؟ ابعتلنا وفريقنا هيرد عليك.", secureMessage: "رسالتك بتوصل لفريقنا بأمان واهتمام.", helpfulAnswers: "إجابات مفيدة", faqTitle: "أسئلة بتتكرر كتير.", faqDescription: "شوية إجابات سريعة قبل ما تكلمنا.", basedInEgypt: "موجودين في مصر وبنوصل لكل المحافظات.", thankYou: "شكرًا، رسالتك وصلت لفريقنا.", replyTime: "غالبًا بنرد خلال يوم شغل.",
+});
+Object.assign(translations.en.common as Record<string, string>, { currency: "EGP" });
+Object.assign(translations.ar.common as Record<string, string>, { currency: "جنيه" });
+Object.assign(translations.en.product as Record<string, string>, { sku: "SKU", nationwideDelivery: "Nationwide delivery", completeEdit: "Complete the edit.", viewAllProducts: "View all products" });
+Object.assign(translations.ar.product as Record<string, string>, { sku: "الكود", nationwideDelivery: "توصيل لكل المحافظات", completeEdit: "كمّل اختياراتك.", viewAllProducts: "شوف كل المنتجات" });
+Object.assign(translations.en.nav as Record<string, string>, { followQyvero: "Follow QYVERO" });
+Object.assign(translations.ar.nav as Record<string, string>, { followQyvero: "تابع QYVERO" });
+Object.assign(translations.en.footer as Record<string, string>, { emailPlaceholder: "you@email.com" });
+Object.assign(translations.ar.footer as Record<string, string>, { emailPlaceholder: "you@email.com" });
+Object.assign(translations.en.common as Record<string, string>, {
+  close: "Close", more: "More", pagination: "Pagination", previous: "Previous", next: "Next",
+  previousPage: "Go to previous page", nextPage: "Go to next page", morePages: "More pages",
+  previousSlide: "Previous slide", nextSlide: "Next slide",
+});
+Object.assign(translations.ar.common as Record<string, string>, {
+  close: "إغلاق", more: "المزيد", pagination: "ترقيم الصفحات", previous: "السابق", next: "التالي",
+  previousPage: "روح للصفحة السابقة", nextPage: "روح للصفحة اللي جاية", morePages: "صفحات أكتر",
+  previousSlide: "السلايد اللي قبلها", nextSlide: "السلايد اللي بعدها",
+});
+Object.assign(translations.en.contact as Record<string, string>, {
+  faqOrderQuestion: "How can I place an order?",
+  faqOrderAnswer: "Choose a product and use its WhatsApp order button. Our team will confirm availability, delivery details, and payment with you directly.",
+  faqDeliveryQuestion: "How long does delivery take?",
+  faqDeliveryAnswer: "Orders are prepared within 1–2 business days. Delivery times vary by location, and tracking details are shared once your order is dispatched.",
+  faqNationwideQuestion: "Do you ship nationwide?",
+  faqNationwideAnswer: "Yes. QYVERO delivers across Egypt, so your selected essentials can reach you wherever you are.",
+  faqProductQuestion: "Can I ask about a product before ordering?",
+  faqProductAnswer: "Absolutely. Message us on WhatsApp or Instagram and we will gladly help with product details, availability, and recommendations.",
+  faqUpdatesQuestion: "How do I stay updated on new releases?",
+  faqUpdatesAnswer: "Follow QYVERO on Instagram and TikTok for new drops, product updates, and the stories behind the collection.",
+});
+Object.assign(translations.ar.contact as Record<string, string>, {
+  faqOrderQuestion: "إزاي أعمل طلب؟",
+  faqOrderAnswer: "اختار المنتج واضغط زر الطلب على WhatsApp. فريقنا هيأكد معاك التوفر والتوصيل والدفع مباشرة.",
+  faqDeliveryQuestion: "التوصيل بياخد قد إيه؟",
+  faqDeliveryAnswer: "بنجهّز الطلبات خلال يوم أو يومين شغل. مدة التوصيل بتختلف حسب المكان، وهتوصلك تفاصيل التتبع أول ما طلبك يتشحن.",
+  faqNationwideQuestion: "بتوصلوا لكل المحافظات؟",
+  faqNationwideAnswer: "أيوه، QYVERO بيوصل لكل أنحاء مصر عشان اختياراتك توصلك في أي مكان.",
+  faqProductQuestion: "ينفع أسأل عن المنتج قبل ما أطلب؟",
+  faqProductAnswer: "طبعًا. ابعتلنا على WhatsApp أو Instagram وهنساعدك في التفاصيل والتوفر والاختيار المناسب.",
+  faqUpdatesQuestion: "إزاي أعرف الإصدارات الجديدة؟",
+  faqUpdatesAnswer: "تابع QYVERO على Instagram وTikTok عشان تشوف الجديد وتحديثات المنتجات وحكايات الكوليكشن.",
+});
+Object.assign(translations.en.search as Record<string, string>, {
+  wallet: "Wallet", watch: "Watch", perfume: "Perfume", belt: "Belt", headphones: "Headphones",
+  earbuds: "Earbuds", keyboard: "Keyboard", mouse: "Mouse", crossBag: "Cross Bag",
+});
+Object.assign(translations.ar.search as Record<string, string>, {
+  wallet: "محفظة", watch: "ساعة", perfume: "برفان", belt: "حزام", headphones: "سماعات هيدفون",
+  earbuds: "سماعات أذن", keyboard: "كيبورد", mouse: "ماوس", crossBag: "شنطة كروس",
+});
+Object.assign(translations.en.auth as Record<string, string>, {
+  invalidCredentials: "Incorrect email or password.", emailRegistered: "An account already exists with this email.",
+  emailNotConfirmed: "Please confirm your email before signing in.", weakPassword: "Choose a stronger password.",
+});
+Object.assign(translations.ar.auth as Record<string, string>, {
+  invalidCredentials: "الإيميل أو الباسورد مش صح.", emailRegistered: "في حساب معمول بالإيميل ده بالفعل.",
+  emailNotConfirmed: "أكد إيميلك الأول قبل ما تسجل دخول.", weakPassword: "اختار باسورد أقوى.",
+});
+Object.assign(translations.en.errors as Record<string, string>, { rateLimited: "Too many attempts. Please try again shortly.", network: "We couldn't reach the server. Check your connection and try again.", sessionExpired: "Your session has expired. Please sign in again." });
+Object.assign(translations.ar.errors as Record<string, string>, { rateLimited: "محاولات كتير. جرّب تاني بعد شوية.", network: "مش قادرين نوصل للسيرفر. اتأكد من النت وجرّب تاني.", sessionExpired: "جلستك انتهت. سجل دخول تاني." });
+/* Obsolete customer storefront mappings retained here only as historical context.
+ * Their route components now resolve copy directly through useLocale()/t().
+ */
+/* Object.assign(literalTranslations.ar, {
   "Lost in the collection": "ضيعت الطريق في المنتجات",
   "This page is not here.": "الصفحة دي مش موجودة.",
   "The page you're looking for doesn't exist or has been moved.": "الصفحة اللي بتدور عليها مش موجودة أو اتنقلت.",
@@ -571,7 +584,7 @@ Object.assign(literalTranslations.ar, {
   "Get in touch": "كلمنا", "We'd love to hear from you.": "مبسوطين نسمع منك.", "Find us everywhere": "هتلاقينا في كل مكان", "The easiest way to connect.": "أسهل طريقة تكلمنا بيها.",
   "Send a note": "ابعتلنا رسالة", "Let's start a conversation.": "خلينا نتكلم.", "Full Name": "الاسم بالكامل", "Your name": "اسمك", Subject: "الموضوع", Message: "الرسالة", "How can we help?": "نقدر نساعدك إزاي؟", "Tell us a little more...": "قولنا تفاصيل أكتر...", "Send Message": "ابعت الرسالة", "Message Sent": "الرسالة اتبعتت", "Complete all contact fields": "كمّل كل بيانات التواصل", "Message sent": "الرسالة اتبعتت", "Unable to send message": "مش قادرين نبعت الرسالة",
   Checkout: "إتمام الطلب", "Complete your order.": "كمّل طلبك.", "Customer information": "بيانات العميل", "Full name": "الاسم بالكامل", Phone: "الموبايل", "Email optional": "الإيميل اختياري", "Payment method": "طريقة الدفع", Coupon: "كوبون", "Order summary": "ملخص الطلب", Subtotal: "الإجمالي الفرعي", Total: "الإجمالي", "Place order": "تأكيد الطلب", "Placing order...": "بنتأكد من الطلب...", "Your cart is empty": "السلة فاضية", "My Orders.": "طلباتي.", "No orders yet": "مفيش طلبات لسه", "Personal Information": "بياناتي الشخصية", "Order timeline": "حالة الطلب", "View Details": "شوف التفاصيل", "Shipping Information": "بيانات الشحن", "Payment Information": "بيانات الدفع", "Grand Total": "الإجمالي النهائي",
-});
+}); */
 
 export type Language = keyof typeof translations;
 export type TranslationKey = `${keyof typeof translations.en}.${string}`;

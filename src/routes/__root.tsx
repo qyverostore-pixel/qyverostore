@@ -19,6 +19,7 @@ import { StorefrontSettingsProvider } from "@/providers/StorefrontSettingsProvid
 import { LocaleProvider } from "@/providers/LocaleProvider";
 import { ThemeProvider } from "@/providers/ThemeProvider";
 import { LocaleTextBridge } from "@/components/LocaleTextBridge";
+import { useLocale } from "@/providers/LocaleProvider";
 import { defaultDescription, organizationSchema, websiteSchema } from "@/lib/seo";
 
 import appCss from "../styles.css?url";
@@ -26,31 +27,32 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 
 
 function NotFoundComponent() {
+  const { t } = useLocale();
   return (
     <div className="bg-noise flex min-h-screen items-center justify-center px-6">
       <div className="glass-card max-w-lg rounded-[2rem] p-9 text-center sm:p-12">
         <p className="text-[11px] font-semibold uppercase tracking-[0.4em] text-teal">
-          Lost in the collection
+          {t("errors.notFoundEyebrow")}
         </p>
         <h1 className="text-display mt-5 text-7xl font-light text-foreground sm:text-8xl">404</h1>
         <h2 className="text-display mt-4 text-2xl font-medium text-foreground">
-          This page is not here.
+          {t("errors.notFoundTitle")}
         </h2>
         <p className="mt-3 text-sm leading-6 text-muted-foreground">
-          The page you're looking for doesn't exist or has been moved.
+          {t("errors.notFoundDescription")}
         </p>
         <div className="mt-8 flex flex-wrap justify-center gap-3">
           <Link
             to="/"
             className="inline-flex items-center justify-center rounded-full bg-foreground px-5 py-2.5 text-sm font-medium text-background transition hover:bg-foreground/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal"
           >
-            Back to home
+            {t("errors.backHome")}
           </Link>
           <Link
             to="/products"
             className="inline-flex items-center justify-center rounded-full border border-white/15 px-5 py-2.5 text-sm font-medium transition hover:border-teal hover:text-teal focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal"
           >
-            Browse products
+            {t("errors.browseProducts")}
           </Link>
         </div>
       </div>
@@ -60,6 +62,7 @@ function NotFoundComponent() {
 
 function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   const router = useRouter();
+  const { t } = useLocale();
   useEffect(() => {
     reportLovableError(error, { boundary: "tanstack_root_error_component" });
   }, [error]);
@@ -68,10 +71,10 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
         <h1 className="text-xl font-semibold tracking-tight text-foreground">
-          This page didn't load
+          {t("errors.loadTitle")}
         </h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          Something went wrong on our end. You can try refreshing or head back home.
+          {t("errors.loadDescription")}
         </p>
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <button
@@ -81,13 +84,13 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
             }}
             className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
           >
-            Try again
+            {t("common.tryAgain")}
           </button>
           <Link
             to="/"
             className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
           >
-            Go home
+            {t("common.goHome")}
           </Link>
         </div>
       </div>

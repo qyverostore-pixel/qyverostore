@@ -66,7 +66,7 @@ export function CheckoutPage() {
   const shippingCost = Number(shippingQuote?.rate?.shipping_cost ?? 0);
   const discount = coupon?.valid ? coupon.discountAmount : 0;
   const total = useMemo(() => Math.max(0, subtotal - discount) + shippingCost, [subtotal, discount, shippingCost]);
-  const couponMutation = useMutation({ mutationFn: () => validateCoupon(couponCode, subtotal), onSuccess: (result) => { setCoupon(result); if (!result.valid) toast.error(result.reason ?? t("checkout.couponInvalid")); else toast.success(t("checkout.couponApplied")); }, onError: (error) => toast.error(t("checkout.unableValidateCoupon"), { description: error instanceof Error ? error.message : t("checkout.pleaseTryAgain") }) });
+  const couponMutation = useMutation({ mutationFn: () => validateCoupon(couponCode, subtotal), onSuccess: (result) => { setCoupon(result); if (!result.valid) toast.error(t("checkout.couponInvalid")); else toast.success(t("checkout.couponApplied")); }, onError: () => toast.error(t("checkout.unableValidateCoupon"), { description: t("checkout.pleaseTryAgain") }) });
   const selectedGovernorate = useMemo(
     () => egyptGovernorates.find((governorate) => governorate.name === shipping.governorate),
     [shipping.governorate],
@@ -81,9 +81,9 @@ export function CheckoutPage() {
       toast.success(t("checkout.orderCreated"), { description: order.orderNumber });
       navigate({ to: "/order-success", search: { orderId: order.orderId } });
     },
-    onError: (error) =>
+    onError: () =>
       toast.error(t("checkout.unablePlaceOrder"), {
-        description: error instanceof Error ? error.message : t("checkout.pleaseTryAgain"),
+        description: t("checkout.pleaseTryAgain"),
       }),
   });
   const submit = (event: FormEvent) => {

@@ -6,26 +6,7 @@ import { subscribeNewsletter } from "@/services/email";
 import { useStorefrontSettings } from "@/providers/StorefrontSettingsProvider";
 import { emailUrl, externalUrl, whatsappUrl } from "@/services/store-settings";
 import { Facebook, Instagram, Mail, MessageCircle, Music2 } from "lucide-react";
-
-const QUICK_LINKS = [
-  { to: "/", label: "Home" },
-  { to: "/products", label: "Products" },
-  { to: "/", hash: "categories", label: "Categories" },
-  { to: "/about", label: "About" },
-  { to: "/contact", label: "Contact" },
-  { to: "/connect", label: "Connect" },
-  { to: "/auth/signin", label: "Sign In" },
-] as const;
-
-const CATEGORIES = [
-  { label: "Wallets", slug: "wallets" },
-  { label: "Watches", slug: "watches" },
-  { label: "Belts", slug: "belts" },
-  { label: "Perfumes", slug: "perfumes" },
-  { label: "Cross Bags", slug: "cross-bags" },
-  { label: "Accessories", slug: "accessories" },
-  { label: "Tech", slug: "tech" },
-];
+import { useLocale } from "@/providers/LocaleProvider";
 
 function ColumnHeading({ children }: { children: React.ReactNode }) {
   return (
@@ -38,6 +19,19 @@ function ColumnHeading({ children }: { children: React.ReactNode }) {
 export function Footer() {
   const [email, setEmail] = useState(""); const [submitting, setSubmitting] = useState(false);
   const settings = useStorefrontSettings();
+  const { t } = useLocale();
+  const quickLinks = [
+    { to: "/", label: t("nav.home") }, { to: "/products", label: t("nav.products") },
+    { to: "/", hash: "categories", label: t("nav.categories") }, { to: "/about", label: t("nav.about") },
+    { to: "/contact", label: t("nav.contact") }, { to: "/connect", label: t("nav.connect") },
+    { to: "/auth/signin", label: t("nav.signIn") },
+  ] as const;
+  const categories = [
+    { label: t("footer.wallets"), slug: "wallets" }, { label: t("footer.watches"), slug: "watches" },
+    { label: t("footer.belts"), slug: "belts" }, { label: t("footer.perfumes"), slug: "perfumes" },
+    { label: t("footer.crossBags"), slug: "cross-bags" }, { label: t("footer.accessories"), slug: "accessories" },
+    { label: t("footer.tech"), slug: "tech" },
+  ];
   const contact = [
     { label: "WhatsApp", href: whatsappUrl(settings.whatsapp), Icon: MessageCircle },
     { label: "Email", href: emailUrl(settings.email), Icon: Mail },
@@ -45,7 +39,7 @@ export function Footer() {
     { label: "Facebook", href: externalUrl(settings.facebook), Icon: Facebook },
     { label: "TikTok", href: externalUrl(settings.tiktok), Icon: Music2 },
   ].filter((item) => item.href);
-  const subscribe = async (event: FormEvent) => { event.preventDefault(); setSubmitting(true); try { await subscribeNewsletter(email); setEmail(""); toast.success("You’re on the list."); } catch (error) { toast.error("Unable to subscribe", { description: error instanceof Error ? error.message : "Please try again." }); } finally { setSubmitting(false); } };
+  const subscribe = async (event: FormEvent) => { event.preventDefault(); setSubmitting(true); try { await subscribeNewsletter(email); setEmail(""); toast.success(t("footer.subscribed")); } catch { toast.error(t("footer.unableToSubscribe"), { description: t("common.tryAgain") }); } finally { setSubmitting(false); } };
   return (
     <footer className="relative mt-24 border-t border-white/10 bg-background">
       <div
@@ -58,22 +52,21 @@ export function Footer() {
           <div className="flex flex-col gap-5">
             <BrandMark size="md" showTagline />
             <p className="max-w-xs text-sm leading-relaxed text-muted-foreground">
-              Modern men's lifestyle brand combining fashion and technology —
-              crafted for the ones who own their style.
+              {t("footer.description")}
             </p>
           </div>
 
           <div className="flex flex-col gap-5">
-            <ColumnHeading>Newsletter</ColumnHeading>
-            <p className="text-sm leading-relaxed text-muted-foreground">New arrivals, private offers, and considered edits.</p>
-            <form onSubmit={subscribe} className="flex gap-2"><input required type="email" aria-label="Email address" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="you@email.com" className="h-10 min-w-0 flex-1 rounded-full border border-white/15 bg-white/[0.03] px-4 text-sm outline-none transition focus:border-teal" /><button disabled={submitting} className="rounded-full bg-teal px-4 text-xs font-semibold text-teal-foreground disabled:opacity-60">{submitting ? "…" : "Join"}</button></form>
+            <ColumnHeading>{t("footer.newsletter")}</ColumnHeading>
+            <p className="text-sm leading-relaxed text-muted-foreground">{t("footer.newsletterDescription")}</p>
+            <form onSubmit={subscribe} className="flex gap-2"><input required type="email" aria-label={t("footer.emailAddress")} value={email} onChange={(event) => setEmail(event.target.value)} placeholder={t("footer.emailPlaceholder")} className="h-10 min-w-0 flex-1 rounded-full border border-white/15 bg-white/[0.03] px-4 text-sm outline-none transition focus:border-teal" /><button disabled={submitting} className="rounded-full bg-teal px-4 text-xs font-semibold text-teal-foreground disabled:opacity-60">{submitting ? "…" : t("footer.join")}</button></form>
           </div>
 
           {/* Quick Links */}
           <div className="flex flex-col gap-5">
-            <ColumnHeading>Quick Links</ColumnHeading>
+            <ColumnHeading>{t("footer.quickLinks")}</ColumnHeading>
             <ul className="flex flex-col gap-3">
-              {QUICK_LINKS.map((l) => (
+              {quickLinks.map((l) => (
                 <li key={l.label}>
                   <Link
                     to={l.to}
@@ -90,9 +83,9 @@ export function Footer() {
 
           {/* Categories */}
           <div className="flex flex-col gap-5">
-            <ColumnHeading>Categories</ColumnHeading>
+            <ColumnHeading>{t("footer.categories")}</ColumnHeading>
             <ul className="flex flex-col gap-3">
-              {CATEGORIES.map((category) => (
+              {categories.map((category) => (
                 <li key={category.slug}>
                   <Link
                     to="/products"
@@ -109,7 +102,7 @@ export function Footer() {
 
           {/* Contact */}
           <div className="flex flex-col gap-5">
-            <ColumnHeading>Contact</ColumnHeading>
+            <ColumnHeading>{t("footer.contact")}</ColumnHeading>
             <ul className="flex flex-col gap-3">
               {contact.map(({ label, href, Icon }) => (
                 <li key={label}>
@@ -133,10 +126,10 @@ export function Footer() {
 
         <div className="mt-8 flex flex-col items-center justify-between gap-3 text-center sm:flex-row sm:text-left">
           <p className="text-xs tracking-[0.2em] text-muted-foreground uppercase">
-            © 2026 QYVERO. All Rights Reserved.
+            {t("footer.allRightsReserved")}
           </p>
           <p className="text-xs tracking-[0.2em] text-muted-foreground/80 uppercase">
-            Designed with passion for modern men.
+            {t("footer.designedForModernMen")}
           </p>
         </div>
       </div>

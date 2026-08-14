@@ -1,4 +1,5 @@
 import { Link } from "@tanstack/react-router";
+import { useLocale } from "@/providers/LocaleProvider";
 
 export function BrandMark({
   size = "md",
@@ -9,6 +10,7 @@ export function BrandMark({
   showTagline?: boolean;
   asLink?: boolean;
 }) {
+  const { t } = useLocale();
   const sizes = {
     sm: { logo: "h-8 w-8", text: "text-lg", tag: "text-[10px]" },
     md: { logo: "h-10 w-10", text: "text-2xl", tag: "text-[11px]" },
@@ -35,7 +37,7 @@ export function BrandMark({
           <span
             className={`mt-1.5 tracking-[0.4em] text-teal ${sizes.tag} uppercase`}
           >
-            Own your style.
+            {t("brand.tagline")}
           </span>
         )}
       </div>
