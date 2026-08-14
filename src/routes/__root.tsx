@@ -182,6 +182,7 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const hideChrome = pathname.startsWith("/auth") || pathname.startsWith("/admin");
+  const isAdminRoute = pathname.startsWith("/admin");
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -190,7 +191,7 @@ function RootComponent() {
           <AuthProvider>
             <StorefrontSettingsProvider>
               <PostLoginRedirect />
-              <LocaleTextBridge />
+              {isAdminRoute && <LocaleTextBridge />}
               {!hideChrome && <Navbar />}
               {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
               <PageTransition>
