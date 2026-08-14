@@ -6,17 +6,10 @@ import { TextField } from "@/components/text-field";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { useLocale } from "@/providers/LocaleProvider";
+import { seoHead } from "@/lib/seo";
 
 export const Route = createFileRoute("/reset-password")({
-  head: () => ({
-    meta: [
-      { title: "Reset Password - QYVERO" },
-      {
-        name: "description",
-        content: "Set a new password for your QYVERO account.",
-      },
-    ],
-  }),
+  head: () => seoHead({ title: "Reset password", description: "Set a new password for your QYVERO account.", path: "/reset-password", robots: "noindex,nofollow" }),
   component: ResetPasswordPage,
 });
 

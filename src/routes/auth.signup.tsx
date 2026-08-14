@@ -9,23 +9,10 @@ import { toast } from "sonner";
 import { useAuth } from "@/providers/AuthProvider";
 import { useLocale } from "@/providers/LocaleProvider";
 import { normalizeEgyptianPhone } from "@/lib/validation";
+import { seoHead } from "@/lib/seo";
 
 export const Route = createFileRoute("/auth/signup")({
-  head: () => ({
-    meta: [
-      { title: "Create your QYVERO account" },
-      {
-        name: "description",
-        content:
-          "Join QYVERO — a modern men's lifestyle brand built for quality, style and everyday essentials.",
-      },
-      { property: "og:title", content: "Create your QYVERO account" },
-      {
-        property: "og:description",
-        content: "Own your style. Sign up for QYVERO today.",
-      },
-    ],
-  }),
+  head: () => seoHead({ title: "Create an account", description: "Create a QYVERO customer account.", path: "/auth/signup", robots: "noindex,nofollow" }),
   component: SignUpPage,
 });
 

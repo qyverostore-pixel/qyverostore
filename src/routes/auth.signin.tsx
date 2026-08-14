@@ -8,22 +8,10 @@ import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { useAuth } from "@/providers/AuthProvider";
 import { useLocale } from "@/providers/LocaleProvider";
+import { seoHead } from "@/lib/seo";
 
 export const Route = createFileRoute("/auth/signin")({
-  head: () => ({
-    meta: [
-      { title: "Sign in to QYVERO" },
-      {
-        name: "description",
-        content: "Access your QYVERO account. Own your style.",
-      },
-      { property: "og:title", content: "Sign in to QYVERO" },
-      {
-        property: "og:description",
-        content: "Access your QYVERO account. Own your style.",
-      },
-    ],
-  }),
+  head: () => seoHead({ title: "Sign in", description: "Access your QYVERO account.", path: "/auth/signin", robots: "noindex,nofollow" }),
   component: SignInPage,
 });
 

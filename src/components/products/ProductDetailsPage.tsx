@@ -476,17 +476,19 @@ export function ProductDetailsPage({ productId }: { productId: string }) {
     <main className="min-h-screen bg-noise pb-32 pt-8 sm:pt-12">
       <Seo
         input={{
-          title: product.meta_title || product.name,
+          title: product.meta_title || name,
           description:
             product.meta_description ||
-            product.description ||
+            description ||
             product.short_description ||
-            `${product.name} by QYVERO.`,
+            `${name} by QYVERO.`,
           path: `/products/${product.slug}`,
           image: product.images[0]?.image_url,
-          keywords: `${product.name}, ${product.category?.name ?? "men's lifestyle"}, ${product.brand ?? "QYVERO"}`,
+          keywords: `${name}, ${categoryName}, ${product.brand ?? "QYVERO"}`,
+          language,
+          type: "product",
           structuredData: [
-            productSchema(product),
+            productSchema(product, language),
             breadcrumbSchema([
               { name: "Home", path: "/" },
               { name: "Products", path: "/products" },
