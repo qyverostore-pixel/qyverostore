@@ -3,7 +3,9 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useLayoutEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -19,6 +21,13 @@ type LocaleContextValue = {
 const LocaleContext = createContext<LocaleContextValue | null>(null);
 const STORAGE_KEY = "qyvero-language";
 
+function getSavedLanguage(): Language {
+  const saved = window.localStorage.getItem(STORAGE_KEY);
+  return saved === "ar" || saved === "en" ? saved : "en";
+}
+
+const useIsomorphicLayoutEffect = typeof window === "undefined" ? useEffect : useLayoutEffect;
+
 function translate(language: Language, key: TranslationKey) {
   const [group, item] = key.split(".") as [keyof typeof translations.en, string];
   const value = (translations[language] as Record<string, Record<string, string>>)[group];
@@ -27,19 +36,24 @@ function translate(language: Language, key: TranslationKey) {
 
 export function LocaleProvider({ children }: { children: ReactNode }) {
   const [language, setLanguageState] = useState<Language>("en");
+  const [restored, setRestored] = useState(false);
+  const restoredRef = useRef(false);
   const setLanguage = useCallback((next: Language) => {
     setLanguageState(next);
   }, []);
-  useEffect(() => {
-    const saved = window.localStorage.getItem(STORAGE_KEY);
-    if (saved === "ar" || saved === "en") setLanguageState(saved);
+  useIsomorphicLayoutEffect(() => {
+    if (restoredRef.current) return;
+    restoredRef.current = true;
+    setLanguageState(getSavedLanguage());
+    setRestored(true);
   }, []);
-  useEffect(() => {
+  useIsomorphicLayoutEffect(() => {
+    if (!restored) return;
     document.documentElement.lang = language;
     document.documentElement.dir = language === "ar" ? "rtl" : "ltr";
     document.documentElement.classList.toggle("rtl", language === "ar");
     window.localStorage.setItem(STORAGE_KEY, language);
-  }, [language]);
+  }, [language, restored]);
   const value = useMemo(
     () => ({
       language,
