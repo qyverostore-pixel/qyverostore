@@ -179,6 +179,13 @@ export function getEffectivePrice(product: StoreProduct, variant?: ProductVarian
 export function getEffectiveStock(product: StoreProduct, variant?: ProductVariant | null): number {
   return variant ? variant.stock : product.stock;
 }
+
+export function getEffectiveWeight(
+  product: StoreProduct,
+  variant?: ProductVariant | null,
+): string | number | null {
+  return variant?.weight ?? product.weight;
+}
 const fail = (error: { message: string } | null) => {
   if (error) throw new Error(error.message);
 };

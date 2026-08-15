@@ -13,7 +13,7 @@ import {
   Upload,
   X,
 } from "lucide-react";
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { AdminBackLink, AdminLayout } from "@/components/admin/AdminLayout";
@@ -29,12 +29,15 @@ import { Textarea } from "@/components/ui/textarea";
 import { useCategories, useProduct, useProducts, productKeys } from "@/hooks/use-products";
 import {
   createProduct,
+  createVariant,
   deleteProduct,
   deleteProductImages,
   reorderProductImages,
   updateProduct,
+  uploadVariantImages,
   type ProductInput,
   type ProductStatus,
+  type VariantInput,
 } from "@/services/products";
 import { useAuth } from "@/providers/AuthProvider";
 import { useLocale } from "@/providers/LocaleProvider";
@@ -79,6 +82,67 @@ const createSlug = (name: string) =>
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/(^-|-$)/g, "");
+
+type VariantOptionName = "Color" | "Size";
+type VariantOptionGroup = { name: VariantOptionName; values: string[]; value: string };
+type NewVariantDraft = {
+  key: string;
+  color: string | null;
+  size: string | null;
+  price: string;
+  stock: string;
+  sku: string;
+  weight: string;
+  image: File | null;
+};
+type NewVariantSetup = {
+  enabled: boolean;
+  groups: VariantOptionGroup[];
+  variants: NewVariantDraft[];
+};
+
+const emptyVariantSetup: NewVariantSetup = { enabled: false, groups: [], variants: [] };
+const variantKey = (color: string | null, size: string | null) =>
+  `${(color ?? "").trim().toLowerCase()}__${(size ?? "").trim().toLowerCase()}`;
+const skuPart = (value: string) =>
+  value
+    .trim()
+    .toUpperCase()
+    .replace(/[^A-Z0-9]+/g, "")
+    .slice(0, 6) || "VAR";
+const generatedVariantSku = (baseSku: string, color: string | null, size: string | null) =>
+  [skuPart(baseSku), color && skuPart(color), size && skuPart(size)].filter(Boolean).join("-");
+
+function buildVariantDrafts(
+  groups: VariantOptionGroup[],
+  current: NewVariantDraft[],
+  defaults: Pick<NewVariantDraft, "price" | "stock" | "sku" | "weight">,
+) {
+  const configured = groups.filter((group) => group.values.length > 0);
+  if (!configured.length) return [];
+  const combinations = configured.reduce<Array<Record<VariantOptionName, string | null>>>(
+    (rows, group) =>
+      rows.flatMap((row) => group.values.map((value) => ({ ...row, [group.name]: value }))),
+    [{} as Record<VariantOptionName, string | null>],
+  );
+  return combinations.map((combination) => {
+    const color = combination.Color ?? null;
+    const size = combination.Size ?? null;
+    const existing = current.find((variant) => variant.key === variantKey(color, size));
+    return (
+      existing ?? {
+        key: variantKey(color, size),
+        color,
+        size,
+        price: defaults.price,
+        stock: defaults.stock,
+        sku: generatedVariantSku(defaults.sku, color, size),
+        weight: defaults.weight,
+        image: null,
+      }
+    );
+  });
+}
 
 export function ProductsPage() {
   const { data: products = [], isLoading } = useProducts(true);
@@ -210,6 +274,7 @@ export function ProductFormPage({ productId }: { productId?: string }) {
   const { data: categories = [] } = useCategories();
   const { data: existing, isLoading } = useProduct(productId ?? "", Boolean(productId));
   const [form, setForm] = useState(empty);
+  const [variantSetup, setVariantSetup] = useState<NewVariantSetup>(emptyVariantSetup);
   const [files, setFiles] = useState<File[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [removingImageId, setRemovingImageId] = useState<string | null>(null);
@@ -301,6 +366,33 @@ export function ProductFormPage({ productId }: { productId?: string }) {
       toast.error("Complete all required product fields with valid values");
       return;
     }
+    if (!productId && variantSetup.enabled) {
+      if (!variantSetup.variants.length) {
+        toast.error("Add at least one option value to generate variants");
+        return;
+      }
+      const skuSet = new Set<string>();
+      for (const variant of variantSetup.variants) {
+        const price = Number(variant.price);
+        const stock = Number(variant.stock);
+        const weight = variant.weight.trim() === "" ? null : Number(variant.weight);
+        const sku = variant.sku.trim().toLowerCase();
+        if (
+          !sku ||
+          skuSet.has(sku) ||
+          !Number.isFinite(price) ||
+          price < 0 ||
+          !Number.isFinite(stock) ||
+          stock < 0 ||
+          !Number.isInteger(stock) ||
+          (weight !== null && (!Number.isFinite(weight) || weight < 0))
+        ) {
+          toast.error("Complete each generated variant with a unique SKU and valid values");
+          return;
+        }
+        skuSet.add(sku);
+      }
+    }
     setSubmitting(true);
     const englishDescription = values.description_en.trim() || values.description.trim();
     const input: ProductInput = {
@@ -348,7 +440,26 @@ export function ProductFormPage({ productId }: { productId?: string }) {
         const created = await createProduct(input, files);
         await queryClient.invalidateQueries({ queryKey: productKeys.all });
         if (created) {
-          toast.success("Product created. You can now add variants.", {
+          if (variantSetup.enabled) {
+            for (const [index, variant] of variantSetup.variants.entries()) {
+              const variantInput: VariantInput = {
+                product_id: created.id,
+                color: variant.color,
+                size: variant.size,
+                sku: variant.sku.trim(),
+                price_override: Number(variant.price),
+                stock: Number(variant.stock),
+                barcode: null,
+                weight: variant.weight.trim() === "" ? null : Number(variant.weight),
+                is_default: index === 0,
+                is_active: true,
+              };
+              const savedVariant = await createVariant(variantInput);
+              if (variant.image) await uploadVariantImages(savedVariant.id, [variant.image]);
+            }
+            await queryClient.invalidateQueries({ queryKey: productKeys.all });
+          }
+          toast.success(variantSetup.enabled ? "Product and variants created" : "Product created", {
             description: englishName,
           });
           navigate({ to: "/admin/products/$productId/edit", params: { productId: created.id } });
@@ -596,13 +707,16 @@ export function ProductFormPage({ productId }: { productId?: string }) {
           {existing ? (
             <VariantManagement product={existing} />
           ) : (
-            <section className="rounded-xl border border-white/10 bg-white/[0.025] p-5">
-              <h2 className="font-medium">Variants</h2>
-              <p className="mt-1 text-xs text-muted-foreground">
-                Save this product first, then come back here to manage color, size, and stock
-                variants.
-              </p>
-            </section>
+            <NewProductVariants
+              setup={variantSetup}
+              onChange={setVariantSetup}
+              defaults={{
+                price: "",
+                stock: "0",
+                sku: source.sku,
+                weight: "",
+              }}
+            />
           )}
           <section className="rounded-xl border border-white/10 bg-white/[0.025] p-5">
             <h2 className="font-medium">SEO</h2>
@@ -675,6 +789,175 @@ export function ProductFormPage({ productId }: { productId?: string }) {
         </aside>
       </form>
     </AdminLayout>
+  );
+}
+
+function NewProductVariants({
+  setup,
+  onChange,
+  defaults,
+}: {
+  setup: NewVariantSetup;
+  onChange: (setup: NewVariantSetup) => void;
+  defaults: Pick<NewVariantDraft, "price" | "stock" | "sku" | "weight">;
+}) {
+  const availableGroups = (["Color", "Size"] as const).filter(
+    (name) => !setup.groups.some((group) => group.name === name),
+  );
+  const variantCount = useMemo(() => setup.variants.length, [setup.variants.length]);
+  const updateGroups = (groups: VariantOptionGroup[]) =>
+    onChange({
+      ...setup,
+      groups,
+      variants: buildVariantDrafts(groups, setup.variants, defaults),
+    });
+  const addGroup = (name: VariantOptionName) =>
+    updateGroups([...setup.groups, { name, values: [], value: "" }]);
+  const addValue = (name: VariantOptionName) => {
+    const group = setup.groups.find((candidate) => candidate.name === name);
+    const value = group?.value.trim() ?? "";
+    if (!value || group?.values.some((candidate) => candidate.toLowerCase() === value.toLowerCase()))
+      return;
+    updateGroups(
+      setup.groups.map((candidate) =>
+        candidate.name === name
+          ? { ...candidate, values: [...candidate.values, value], value: "" }
+          : candidate,
+      ),
+    );
+  };
+  const updateVariant = (key: string, patch: Partial<NewVariantDraft>) =>
+    onChange({
+      ...setup,
+      variants: setup.variants.map((variant) =>
+        variant.key === key ? { ...variant, ...patch } : variant,
+      ),
+    });
+
+  return (
+    <section className="rounded-xl border border-white/10 bg-white/[0.025] p-5">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h2 className="font-medium">Variants</h2>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Create color and size combinations with their own price, inventory, SKU, weight, and image.
+          </p>
+        </div>
+        <Switch
+          checked={setup.enabled}
+          onCheckedChange={(enabled) =>
+            onChange(enabled ? { ...setup, enabled: true } : { ...setup, enabled: false })
+          }
+          aria-label="Enable variants"
+        />
+      </div>
+      {setup.enabled && (
+        <div className="mt-5 space-y-5">
+          <div className="flex flex-wrap gap-2">
+            {availableGroups.map((name) => (
+              <Button key={name} type="button" variant="outline" size="sm" onClick={() => addGroup(name)}>
+                <Plus className="size-3.5" /> Add {name}
+              </Button>
+            ))}
+          </div>
+          {!setup.groups.length && (
+            <p className="rounded-lg border border-dashed border-white/15 p-4 text-sm text-muted-foreground">
+              Add Color or Size, then enter the values you want to sell.
+            </p>
+          )}
+          {setup.groups.map((group) => (
+            <div key={group.name} className="rounded-lg border border-white/10 p-4">
+              <div className="flex items-center justify-between gap-3">
+                <Label>{group.name}</Label>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="text-red-300 hover:text-red-200"
+                  onClick={() => updateGroups(setup.groups.filter((candidate) => candidate.name !== group.name))}
+                >
+                  <Trash2 className="size-3.5" /> Remove
+                </Button>
+              </div>
+              <div className="mt-3 flex gap-2">
+                <Input
+                  value={group.value}
+                  placeholder={`Add a ${group.name.toLowerCase()} value`}
+                  onChange={(event) =>
+                    updateGroups(
+                      setup.groups.map((candidate) =>
+                        candidate.name === group.name ? { ...candidate, value: event.target.value } : candidate,
+                      ),
+                    )
+                  }
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter") {
+                      event.preventDefault();
+                      addValue(group.name);
+                    }
+                  }}
+                />
+                <Button type="button" variant="outline" onClick={() => addValue(group.name)}>
+                  Add
+                </Button>
+              </div>
+              {group.values.length > 0 && (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {group.values.map((value) => (
+                    <span key={value} className="inline-flex items-center gap-1 rounded-full border border-white/15 px-2.5 py-1 text-xs">
+                      {value}
+                      <button
+                        type="button"
+                        aria-label={`Remove ${value}`}
+                        className="text-muted-foreground hover:text-red-300"
+                        onClick={() =>
+                          updateGroups(
+                            setup.groups.map((candidate) =>
+                              candidate.name === group.name
+                                ? { ...candidate, values: candidate.values.filter((item) => item !== value) }
+                                : candidate,
+                            ),
+                          )
+                        }
+                      >
+                        <X className="size-3" />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
+          {variantCount > 0 && (
+            <div>
+              <div className="mb-3 flex items-center justify-between">
+                <h3 className="text-sm font-medium">Generated variants</h3>
+                <span className="text-xs text-muted-foreground">{variantCount} combination{variantCount === 1 ? "" : "s"}</span>
+              </div>
+              <div className="space-y-3">
+                {setup.variants.map((variant) => (
+                  <div key={variant.key} className="grid gap-3 rounded-lg border border-white/10 p-4 sm:grid-cols-2 lg:grid-cols-5">
+                    <p className="self-center text-sm font-medium lg:col-span-1">
+                      {[variant.color, variant.size].filter(Boolean).join(" / ")}
+                    </p>
+                    <Field label="Price" type="number" min="0" step="0.01" value={variant.price} onChange={(price) => updateVariant(variant.key, { price })} />
+                    <Field label="Stock" type="number" min="0" step="1" value={variant.stock} onChange={(stock) => updateVariant(variant.key, { stock })} />
+                    <Field label="SKU" value={variant.sku} onChange={(sku) => updateVariant(variant.key, { sku })} />
+                    <div>
+                      <Label>Weight (kg)</Label>
+                      <Input className="mt-2" type="number" min="0" step="0.001" value={variant.weight} onChange={(event) => updateVariant(variant.key, { weight: event.target.value })} />
+                      <Label className="mt-3 block">Image</Label>
+                      <Input className="mt-2 h-auto py-1.5 text-xs" type="file" accept="image/*" onChange={(event) => updateVariant(variant.key, { image: event.target.files?.[0] ?? null })} />
+                      {variant.image && <p className="mt-1 truncate text-[10px] text-muted-foreground">{variant.image.name}</p>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </section>
   );
 }
 function Field({

@@ -8,9 +8,9 @@ import { ProductDetailsSkeleton } from "@/components/ui/loading-skeletons";
 import { cn } from "@/lib/utils";
 import { useProduct, useRelatedProducts } from "@/hooks/use-products";
 import {
-  getDefaultVariant,
   getEffectivePrice,
   getEffectiveStock,
+  getEffectiveWeight,
   type ProductVariant,
   type StoreProduct,
 } from "@/services/products";
@@ -308,7 +308,13 @@ function OrderActions({
     </div>
   );
 }
-function ProductTabs({ product }: { product: StoreProduct }) {
+function ProductTabs({
+  product,
+  variant,
+}: {
+  product: StoreProduct;
+  variant: ProductVariant | null;
+}) {
   const { language, t } = useLocale();
   const dimensions = [product.length, product.width, product.height]
     .filter((value) => value != null)
@@ -360,7 +366,7 @@ function ProductTabs({ product }: { product: StoreProduct }) {
           <div className="py-4 sm:px-5 sm:pl-0">
             <dt className="text-muted-foreground">{t("product.weight")}</dt>
             <dd className="mt-1 text-foreground">
-              {product.weight || t("product.notSpecified")}
+              {getEffectiveWeight(product, variant) ?? t("product.notSpecified")}
             </dd>
           </div>
           <div className="py-4 sm:px-5">
@@ -422,21 +428,29 @@ export function ProductDetailsPage({ productId }: { productId: string }) {
   const [selectedVariantId, setSelectedVariantId] = useState<string | null>(null);
   const { language, t } = useLocale();
 
-  // Auto-select the default variant whenever a (new) product loads. For a
-  // product that only has its auto-created default variant, this resolves
-  // to the same price/stock/images the page already showed before variants
-  // existed, so nothing changes visually.
-  useEffect(() => {
-    setSelectedVariantId(product ? (getDefaultVariant(product)?.id ?? null) : null);
-  }, [product?.id]);
-
   const activeVariants = useMemo(
     () => product?.variants.filter((variant) => variant.is_active) ?? [],
     [product],
   );
+  // A product remains a simple product unless it has a real option value.
+  // This deliberately ignores legacy/default rows with no color or size so
+  // product-level price, stock, and weight stay authoritative in that case.
+  const optionVariants = useMemo(
+    () =>
+      activeVariants.filter(
+        (variant) => Boolean(variant.color?.trim()) || Boolean(variant.size?.trim()),
+      ),
+    [activeVariants],
+  );
+  const defaultVariant =
+    optionVariants.find((variant) => variant.is_default) ?? optionVariants[0] ?? null;
+
+  useEffect(() => {
+    setSelectedVariantId(defaultVariant?.id ?? null);
+  }, [product?.id, defaultVariant?.id]);
+
   const selectedVariant =
-    activeVariants.find((variant) => variant.id === selectedVariantId) ??
-    (product ? getDefaultVariant(product) : null);
+    optionVariants.find((variant) => variant.id === selectedVariantId) ?? defaultVariant;
   const effectivePrice = product ? getEffectivePrice(product, selectedVariant) : 0;
   const effectiveStock = product ? getEffectiveStock(product, selectedVariant) : 0;
   const sku = selectedVariant?.sku ?? product?.sku ?? null;
@@ -562,7 +576,7 @@ export function ProductDetailsPage({ productId }: { productId: string }) {
             </div>
             {sku && <p className="mt-3 text-xs text-muted-foreground">{t("product.sku")}: {sku}</p>}
             <VariantSelector
-              variants={activeVariants}
+              variants={optionVariants}
               selected={selectedVariant}
               onSelect={(variant) => setSelectedVariantId(variant.id)}
             />
@@ -600,7 +614,7 @@ export function ProductDetailsPage({ productId }: { productId: string }) {
             </div>
           </section>
         </div>
-        <ProductTabs product={product} />
+        <ProductTabs product={product} variant={selectedVariant} />
         <section className="mt-20 sm:mt-28">
           <div className="flex items-end justify-between gap-5">
             <div>
