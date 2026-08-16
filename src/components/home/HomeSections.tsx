@@ -207,8 +207,14 @@ function Categories() {
                 aria-hidden
                 className={`pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-teal/20 opacity-0 blur-3xl transition-opacity duration-500 group-hover:opacity-100 ${isGiftCategory ? "h-64 w-64 opacity-70" : ""}`}
               />
-              <div className={`flex items-start justify-between ${isGiftCategory ? "lg:order-2 lg:absolute lg:inset-y-0 lg:right-10 lg:justify-center" : ""}`}>
-                <span className={`grid place-items-center rounded-2xl border border-teal/20 bg-teal/[0.07] text-teal transition-colors group-hover:border-teal/60 group-hover:bg-teal/10 ${isGiftCategory ? "h-16 w-16 lg:h-20 lg:w-20" : "h-12 w-12"}`}>
+              <div className="flex items-start justify-between">
+                <span
+                  className={`grid place-items-center rounded-2xl border border-teal/20 bg-teal/[0.07] text-teal transition-colors group-hover:border-teal/60 group-hover:bg-teal/10 ${
+                    isGiftCategory
+                      ? "h-16 w-16 lg:absolute lg:inset-y-0 lg:right-10 lg:my-auto lg:h-20 lg:w-20"
+                      : "h-12 w-12"
+                  }`}
+                >
                   <Icon className={isGiftCategory ? "h-8 w-8 lg:h-10 lg:w-10" : "h-5 w-5"} />
                 </span>
                 <ArrowUpRight className="h-5 w-5 text-foreground/40 transition-all duration-500 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-teal" />
@@ -233,7 +239,6 @@ function Categories() {
     </section>
   );
 }
-
 /* ---------- featured products ---------- */
 
 function ProductCard({ product }: { product: StoreProduct }) {
