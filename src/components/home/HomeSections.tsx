@@ -3,10 +3,6 @@ import type { SVGProps } from "react";
 import {
   ArrowRight,
   ArrowUpRight,
-  Wallet,
-  Watch,
-  Sparkles,
-  Cpu,
   ShieldCheck,
   Truck,
   Instagram,
@@ -14,11 +10,7 @@ import {
   Mail,
   MessageCircle,
   Star,
-  Gem,
-  Dumbbell,
-  Shirt,
 } from "lucide-react";
-import { PiBeltFill } from "react-icons/pi";
 import { useState } from "react";
 import { BrandMark } from "@/components/brand-mark";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -32,6 +24,7 @@ import {
   localizedCategoryName,
   localizedProductName,
 } from "@/lib/localized-content";
+import { getCategoryIcon } from "@/lib/category-icons";
 
 /* ---------- shared bits ---------- */
 
@@ -180,55 +173,57 @@ function Hero() {
 
 /* ---------- categories ---------- */
 
-const categoryIcons = { wallets: Wallet, watches: Watch, belts: PiBeltFill, perfumes: Sparkles, accessories: Gem, tech: Cpu, gym: Dumbbell, clothing: Shirt };
-
-function categoryIcon(icon: string | null, slug: string) {
-  const key = (icon || slug).toLowerCase();
-  return Object.entries(categoryIcons).find(([name]) => key.includes(name))?.[1] ?? Sparkles;
-}
-
 function Categories() {
   const { data: categories = [] } = useCategories();
   const { language, t } = useLocale();
+  const orderedCategories = [...categories].sort(
+    (first, second) =>
+      Number(first.slug === "for-her-gifts") - Number(second.slug === "for-her-gifts"),
+  );
   return (
     <section id="categories" className="relative py-24 sm:py-32">
       <div className="mx-auto w-full max-w-7xl px-6">
         <SectionHeading
           eyebrow={t("home.featuredCategories")}
-          title={t("home.craftedForEveryEssential")}
+          title={t("home.shopByCategory")}
           description={t("home.categoriesDescription")}
         />
 
-        <div className="mt-16 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-          {categories.map((category) => {
+        <div className="mt-12 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {orderedCategories.map((category) => {
             const { slug, icon } = category;
             const name = localizedCategoryName(category, language);
             const description = localizedCategoryDescription(category, language);
-            const Icon = categoryIcon(icon, slug);
+            const Icon = getCategoryIcon(icon, slug);
+            const isGiftCategory = slug === "for-her-gifts";
             return (
             <Link
               key={slug}
               to="/products"
               search={{ category: slug }}
-              className="group relative overflow-hidden rounded-3xl border border-white/10 bg-white/[0.02] p-6 transition-all duration-500 hover:-translate-y-1 hover:border-white/25 hover:bg-white/[0.04] active:scale-[0.98]"
+              className={`group relative flex min-h-60 flex-col overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-white/[0.055] via-white/[0.025] to-transparent p-6 transition-all duration-500 hover:-translate-y-1 hover:border-teal/50 hover:bg-white/[0.055] active:scale-[0.98] ${isGiftCategory ? "sm:col-span-2 lg:col-span-4 lg:min-h-72 lg:p-10" : ""}`}
             >
               <div
                 aria-hidden
-                className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-teal/20 opacity-0 blur-3xl transition-opacity duration-500 group-hover:opacity-100"
+                className={`pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-teal/20 opacity-0 blur-3xl transition-opacity duration-500 group-hover:opacity-100 ${isGiftCategory ? "h-64 w-64 opacity-70" : ""}`}
               />
-              <div className="flex items-start justify-between">
-                <span className="grid h-12 w-12 place-items-center rounded-2xl border border-white/10 bg-white/[0.03] text-foreground transition-colors group-hover:border-teal/50 group-hover:text-teal">
-                  <Icon className="h-5 w-5" />
+              <div className={`flex items-start justify-between ${isGiftCategory ? "lg:order-2 lg:absolute lg:inset-y-0 lg:right-10 lg:justify-center" : ""}`}>
+                <span className={`grid place-items-center rounded-2xl border border-teal/20 bg-teal/[0.07] text-teal transition-colors group-hover:border-teal/60 group-hover:bg-teal/10 ${isGiftCategory ? "h-16 w-16 lg:h-20 lg:w-20" : "h-12 w-12"}`}>
+                  <Icon className={isGiftCategory ? "h-8 w-8 lg:h-10 lg:w-10" : "h-5 w-5"} />
                 </span>
                 <ArrowUpRight className="h-5 w-5 text-foreground/40 transition-all duration-500 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-teal" />
               </div>
-              <div className="mt-10">
-                <p className="text-display text-lg font-medium text-foreground">
+              <div className={`relative mt-auto ${isGiftCategory ? "max-w-xl lg:mt-auto" : "mt-10"}`}>
+                <p className={`text-display font-medium text-foreground ${isGiftCategory ? "text-2xl sm:text-3xl" : "text-lg"}`}>
                   {name}
                 </p>
-                <p className="mt-1 text-xs uppercase tracking-[0.25em] text-muted-foreground">
+                <p className={`mt-2 leading-relaxed text-muted-foreground ${isGiftCategory ? "max-w-lg text-sm" : "text-xs"}`}>
                   {description?.trim() || t("home.shopCollection")}
                 </p>
+                <span className="mt-5 inline-flex items-center gap-2 text-xs font-medium tracking-[0.16em] text-teal transition-colors group-hover:text-foreground">
+                  {t("home.shopNow")}
+                  <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1 rtl:group-hover:-translate-x-1" />
+                </span>
               </div>
             </Link>
             );

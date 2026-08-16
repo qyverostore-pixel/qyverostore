@@ -89,9 +89,11 @@ export const translations = {
 
       featuredCategories: "Featured Categories",
       craftedForEveryEssential: "Crafted for every essential",
+      shopByCategory: "Shop by Category",
       categoriesDescription:
-        "Explore curated collections that define the modern gentleman.",
+        "Explore our curated collection of premium essentials.",
       shopCollection: "Shop Collection",
+      shopNow: "Shop Now",
 
       featuredProducts: "Featured Products",
       handpickedEssentials: "Handpicked essentials",
@@ -299,9 +301,11 @@ export const translations = {
 
       featuredCategories: "الفئات المميزة",
       craftedForEveryEssential: "كل اللي محتاجه في مكان واحد",
+      shopByCategory: "تسوق حسب الفئة",
       categoriesDescription:
-        "اختار من مجموعات متظبطة بعناية عشان تكمل ستايلك.",
+        "اكتشف مجموعتنا المختارة بعناية من المنتجات الفاخرة",
       shopCollection: "شوف المجموعة",
+      shopNow: "تسوق الآن",
 
       featuredProducts: "منتجات مختارة",
       handpickedEssentials: "اختياراتنا ليك",
