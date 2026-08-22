@@ -1074,6 +1074,7 @@ export function SettingsPage() {
     facebook: "",
     instagram: "",
     tiktok: "",
+    youtube: "",
     primary: "",
     secondary: "",
     logo_url: "",
@@ -1172,8 +1173,10 @@ export function SettingsPage() {
         <section className="rounded-xl border border-white/10 bg-white/[0.025] p-5">
           <h2 className="font-medium">Social profiles</h2>
           <div className="mt-5 grid gap-5 sm:grid-cols-3">
-            {field("Facebook", "facebook")} {field("Instagram", "instagram")}{" "}
-            {field("TikTok", "tiktok")}  {field("YouTube", "youtube")}
+            {field("Facebook", "facebook")}
+            {field("Instagram", "instagram")}
+            {field("TikTok", "tiktok")}
+            {field("YouTube", "youtube")}
           </div>
         </section>
         <section className="rounded-xl border border-white/10 bg-white/[0.025] p-5">

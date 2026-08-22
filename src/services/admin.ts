@@ -43,6 +43,7 @@ export type StoreSettings = {
   facebook: string;
   instagram: string;
   tiktok: string;
+  youtube: string;
   primary: string;
   secondary: string;
   logo_url: string;
@@ -129,7 +130,7 @@ export async function getAdminCustomers() {
 }
 
 export async function getStoreSettings() {
-  const { data, error } = await supabase.from("store_settings").select("brand,whatsapp,email,facebook,instagram,tiktok,primary_color,secondary_color,logo_url,logo_storage_path,vodafone_cash_number,instapay_account,cod_deposit_percentage").eq("id", true).maybeSingle();
+  const { data, error } = await supabase.from("store_settings").select("brand,whatsapp,email,facebook,instagram,tiktok,youtube,primary_color,secondary_color,logo_url,logo_storage_path,vodafone_cash_number,instapay_account,cod_deposit_percentage").eq("id", true).maybeSingle();
   fail(error);
   return {
     brand: data?.brand ?? "",
@@ -138,6 +139,7 @@ export async function getStoreSettings() {
     facebook: data?.facebook ?? "",
     instagram: data?.instagram ?? "",
     tiktok: data?.tiktok ?? "",
+    youtube: data?.youtube ?? "",
     primary: data?.primary_color ?? "",
     secondary: data?.secondary_color ?? "",
     logo_url: data?.logo_url ?? "",
@@ -161,6 +163,7 @@ export async function saveStoreSettings(input: StoreSettings) {
     facebook: input.facebook || null,
     instagram: input.instagram || null,
     tiktok: input.tiktok || null,
+    youtube: input.youtube || null,
     primary_color: input.primary || null,
     secondary_color: input.secondary || null,
     logo_url: input.logo_url || null,

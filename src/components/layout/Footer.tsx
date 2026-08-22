@@ -5,7 +5,7 @@ import { BrandMark } from "@/components/brand-mark";
 import { subscribeNewsletter } from "@/services/email";
 import { useStorefrontSettings } from "@/providers/StorefrontSettingsProvider";
 import { emailUrl, externalUrl, whatsappUrl } from "@/services/store-settings";
-import { Facebook, Instagram, Mail, MessageCircle, Music2 } from "lucide-react";
+import { Facebook, Instagram, Mail, MessageCircle, Music2, Youtube } from "lucide-react";
 import { useLocale } from "@/providers/LocaleProvider";
 import { useCategories } from "@/hooks/use-products";
 import { localizedCategoryName } from "@/lib/localized-content";
@@ -42,6 +42,7 @@ export function Footer() {
     { label: "Instagram", href: externalUrl(settings.instagram), Icon: Instagram },
     { label: "Facebook", href: externalUrl(settings.facebook), Icon: Facebook },
     { label: "TikTok", href: externalUrl(settings.tiktok), Icon: Music2 },
+    { label: "YouTube", href: externalUrl(settings.youtube), Icon: Youtube },
   ].filter((item) => item.href);
   const subscribe = async (event: FormEvent) => { event.preventDefault(); setSubmitting(true); try { await subscribeNewsletter(email); setEmail(""); toast.success(t("footer.subscribed")); } catch { toast.error(t("footer.unableToSubscribe"), { description: t("common.tryAgain") }); } finally { setSubmitting(false); } };
   return (
@@ -52,7 +53,6 @@ export function Footer() {
       />
       <div className="mx-auto w-full max-w-7xl px-6 pb-10 pt-20">
         <div className="grid grid-cols-1 gap-12 sm:grid-cols-2 lg:grid-cols-5">
-          {/* Brand */}
           <div className="flex flex-col gap-5">
             <BrandMark size="md" showTagline />
             <p className="max-w-xs text-sm leading-relaxed text-muted-foreground">
@@ -66,7 +66,6 @@ export function Footer() {
             <form onSubmit={subscribe} className="flex gap-2"><input required type="email" aria-label={t("footer.emailAddress")} value={email} onChange={(event) => setEmail(event.target.value)} placeholder={t("footer.emailPlaceholder")} className="h-10 min-w-0 flex-1 rounded-full border border-white/15 bg-white/[0.03] px-4 text-sm outline-none transition focus:border-teal" /><button disabled={submitting} className="rounded-full bg-teal px-4 text-xs font-semibold text-teal-foreground disabled:opacity-60">{submitting ? "…" : t("footer.join")}</button></form>
           </div>
 
-          {/* Quick Links */}
           <div className="flex flex-col gap-5">
             <ColumnHeading>{t("footer.quickLinks")}</ColumnHeading>
             <ul className="flex flex-col gap-3">
@@ -85,7 +84,6 @@ export function Footer() {
             </ul>
           </div>
 
-          {/* Categories */}
           <div className="flex flex-col gap-5">
             <ColumnHeading>{t("footer.categories")}</ColumnHeading>
             <ul className="flex flex-col gap-3">
@@ -118,13 +116,12 @@ export function Footer() {
             </ul>
           </div>
 
-          {/* Contact */}
           <div className="flex flex-col gap-5">
             <ColumnHeading>{t("footer.contact")}</ColumnHeading>
             <ul className="flex flex-col gap-3">
               {contact.map(({ label, href, Icon }) => (
                 <li key={label}>
-                  <a
+                  
                     href={href}
                     aria-label={label}
                     className="group inline-flex items-center gap-3 text-sm text-foreground/75 transition-colors hover:text-foreground"
