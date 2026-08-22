@@ -9,6 +9,7 @@ import {
   Send,
   ShieldCheck,
   Truck,
+  Youtube,
 } from "lucide-react";
 import { useState, type ElementType, type FormEvent, type SVGProps } from "react";
 import { toast } from "sonner";
@@ -30,7 +31,6 @@ type ContactChannel = {
   href: string;
   Icon: ElementType<SVGProps<SVGSVGElement>>;
 };
-
 function contactChannels(settings: StorefrontSettings): ContactChannel[] {
   return [
     { name: "WhatsApp", handle: settings.whatsapp, href: whatsappUrl(settings.whatsapp), Icon: MessageCircle },
@@ -38,8 +38,10 @@ function contactChannels(settings: StorefrontSettings): ContactChannel[] {
     { name: "Instagram", handle: settings.instagram, href: externalUrl(settings.instagram), Icon: Instagram },
     { name: "Facebook", handle: settings.facebook, href: externalUrl(settings.facebook), Icon: Facebook },
     { name: "TikTok", handle: settings.tiktok, href: externalUrl(settings.tiktok), Icon: TikTokIcon },
+    { name: "YouTube", handle: settings.youtube, href: externalUrl(settings.youtube), Icon: Youtube },
   ].filter((channel) => channel.href);
 }
+
 
 function TikTokIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
