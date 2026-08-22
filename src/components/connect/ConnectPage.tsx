@@ -6,6 +6,7 @@ import {
   Mail,
   MessageCircle,
   Music2,
+  Youtube,
   type LucideIcon,
 } from "lucide-react";
 import { BrandMark } from "@/components/brand-mark";
@@ -24,6 +25,7 @@ function channelsFrom(settings: StorefrontSettings, whatsapp: string, email: str
     { label: "Instagram", href: externalUrl(settings.instagram), Icon: Instagram },
     { label: "Facebook", href: externalUrl(settings.facebook), Icon: Facebook },
     { label: "TikTok", href: externalUrl(settings.tiktok), Icon: Music2 },
+    { label: "YouTube", href: externalUrl(settings.youtube), Icon: Youtube },
     { label: whatsapp, href: whatsappUrl(settings.whatsapp), Icon: MessageCircle },
     { label: email, href: emailUrl(settings.email), Icon: Mail },
   ].filter((channel) => channel.href);
