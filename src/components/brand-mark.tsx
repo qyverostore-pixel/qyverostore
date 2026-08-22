@@ -31,7 +31,7 @@ export function BrandMark({
       </div>
       <div className="flex flex-col leading-none">
         <span className={`text-display qy-brand-wordmark font-medium tracking-[0.28em] ${sizes.text}`}>
-          QYVERO
+          {t("brand.name")}
         </span>
         {showTagline && (
           <span

@@ -6,6 +6,7 @@ export type StorefrontSettings = {
   facebook: string;
   instagram: string;
   tiktok: string;
+  youtube: string;
 };
 
 export const storefrontSettingsKey = ["storefront", "settings"] as const;
@@ -16,12 +17,13 @@ export const defaultStorefrontSettings: StorefrontSettings = {
   facebook: "",
   instagram: "",
   tiktok: "",
+  youtube: "",
 };
 
 export async function getStorefrontSettings(): Promise<StorefrontSettings> {
   const { data, error } = await supabase
     .from("store_settings")
-    .select("whatsapp,email,facebook,instagram,tiktok")
+    .select("whatsapp,email,facebook,instagram,tiktok,youtube")
     .eq("id", true)
     .maybeSingle();
 
@@ -33,6 +35,7 @@ export async function getStorefrontSettings(): Promise<StorefrontSettings> {
     facebook: data?.facebook?.trim() || "",
     instagram: data?.instagram?.trim() || "",
     tiktok: data?.tiktok?.trim() || "",
+    youtube: data?.youtube?.trim() || "",
   };
 }
 

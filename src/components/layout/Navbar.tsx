@@ -11,6 +11,7 @@ import {
   Moon,
   Sun,
   Languages,
+  User,
 } from "lucide-react";
 import { BrandMark } from "@/components/brand-mark";
 import { cn } from "@/lib/utils";
@@ -179,6 +180,16 @@ export function Navbar() {
                 <Moon className="h-[18px] w-[18px]" />
               )}
             </IconButton>
+
+            {/* Sign in / account — visible on mobile & tablet where the text buttons are hidden */}
+            <Link
+              to={user ? "/profile" : "/auth/signin"}
+              aria-label={user ? t("nav.profile") : t("nav.signIn")}
+              className="grid h-10 w-10 cursor-pointer place-items-center rounded-full text-foreground/80 transition-all duration-200 hover:scale-[1.03] hover:bg-white/5 hover:text-foreground active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal focus-visible:ring-offset-2 focus-visible:ring-offset-background lg:hidden"
+            >
+              <User className="h-[18px] w-[18px]" />
+            </Link>
+
             <div className="hidden items-center sm:flex">
               <IconButton label={t("nav.search")} onClick={() => setSearchOpen(true)}>
                 <Search className="h-[18px] w-[18px]" />
