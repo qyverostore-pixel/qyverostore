@@ -11,7 +11,8 @@ import { useLocale } from "@/providers/LocaleProvider";
 import { seoHead } from "@/lib/seo";
 
 export const Route = createFileRoute("/auth/signin")({
-  validateSearch: (search: Record<string, unknown>) => ({ redirect: search.redirect === "/checkout" ? "/checkout" : undefined }),
+  validateSearch: (search: Record<string, unknown>): { redirect?: "/checkout" } =>
+    search.redirect === "/checkout" ? { redirect: "/checkout" } : {},
   head: () => seoHead({ title: "Sign in", description: "Access your QYVERO account.", path: "/auth/signin", robots: "noindex,nofollow" }),
   component: SignInPage,
 });

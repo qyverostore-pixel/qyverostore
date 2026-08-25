@@ -135,7 +135,7 @@ export function ProductsPage() {
   return (
     <main className="min-h-screen bg-noise pb-24 pt-12 sm:pb-32 sm:pt-20">
       <Seo input={{ title: seoTitle, description: seoDescription, path: selectedCategory ? `/products?category=${selectedCategory.slug}` : "/products", structuredData: breadcrumbSchema([{ name: "Home", path: "/" }, { name: selectedCategory?.name ?? "Products", path: selectedCategory ? `/products?category=${selectedCategory.slug}` : "/products" }]) }} />
-      <div className="mx-auto w-full max-w-7xl px-6">
+      <div className="mx-auto w-full max-w-7xl px-4 sm:px-6">
         <div className="mx-auto max-w-2xl text-center">
           <p className="text-[11px] font-semibold uppercase tracking-[0.4em] text-teal">
             {t("products.eyebrow")}
@@ -216,7 +216,7 @@ export function ProductsPage() {
             <ProductsSkeleton />
           </div>
         ) : visibleProducts.length ? (
-          <div className="mt-7 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="mt-7 grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4">
             {visibleProducts.map((product) => (
               <ProductCard key={product.id} product={product} />
             ))}

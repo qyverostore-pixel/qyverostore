@@ -511,7 +511,7 @@ export function ProductDetailsPage({ productId }: { productId: string }) {
           ],
         }}
       />
-      <div className="mx-auto w-full max-w-7xl px-6">
+      <div className="mx-auto w-full max-w-7xl px-4 sm:px-6">
         <nav
           aria-label={t("common.breadcrumb")}
           className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground"

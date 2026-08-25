@@ -140,11 +140,11 @@ export function CheckoutPage() {
       </main>
     );
 
-  if (loading) return <main className="min-h-screen bg-noise px-6 pb-32 pt-12" />;
+  if (loading) return <main className="min-h-screen bg-noise px-4 pb-32 pt-12 sm:px-6" />;
 
   if (!user) {
     return (
-      <main className="min-h-screen bg-noise px-6 pb-32 pt-12">
+      <main className="min-h-screen bg-noise px-4 pb-32 pt-12 sm:px-6">
         <div className="mx-auto max-w-5xl">
           <EmptyState
             icon={<LockKeyhole className="size-6" />}
@@ -161,7 +161,7 @@ export function CheckoutPage() {
     <main className="min-h-screen bg-noise pb-24 pt-12 sm:pb-32 sm:pt-20">
       <form
         onSubmit={submit}
-        className="mx-auto grid w-full max-w-7xl gap-8 px-6 lg:grid-cols-[minmax(0,1fr)_380px]"
+        className="mx-auto grid w-full max-w-7xl gap-8 px-4 sm:px-6 lg:grid-cols-[minmax(0,1fr)_380px]"
       >
         <div className="space-y-6">
           <section className="rounded-3xl border border-white/10 bg-white/[0.02] p-6">
@@ -287,9 +287,9 @@ export function CheckoutPage() {
               ))}
             </div>
           </section>
-          <section className="rounded-3xl border border-white/10 bg-white/[0.02] p-6"><h2 className="font-medium">{t("checkout.coupon")}</h2><div className="mt-4 flex gap-2"><Input value={couponCode} onChange={(event) => { setCouponCode(event.target.value.toUpperCase()); setCoupon(null); }} placeholder={t("checkout.enterCouponCode")} /><Button type="button" variant="outline" disabled={!couponCode.trim() || couponMutation.isPending} onClick={() => couponMutation.mutate()}>{couponMutation.isPending ? t("checkout.checking") : t("checkout.apply")}</Button></div>{coupon?.valid && <div className="mt-3 flex items-center justify-between text-sm text-teal"><span>{couponCode} {t("checkout.applied")}</span><button type="button" className="text-xs text-muted-foreground" onClick={() => { setCoupon(null); setCouponCode(""); }}>{t("checkout.remove")}</button></div>}</section>
+          <section className="rounded-3xl border border-white/10 bg-white/[0.02] p-5 sm:p-6"><h2 className="font-medium">{t("checkout.coupon")}</h2><div className="mt-4 flex flex-col gap-2 sm:flex-row"><Input value={couponCode} onChange={(event) => { setCouponCode(event.target.value.toUpperCase()); setCoupon(null); }} placeholder={t("checkout.enterCouponCode")} /><Button type="button" variant="outline" className="w-full sm:w-auto" disabled={!couponCode.trim() || couponMutation.isPending} onClick={() => couponMutation.mutate()}>{couponMutation.isPending ? t("checkout.checking") : t("checkout.apply")}</Button></div>{coupon?.valid && <div className="mt-3 flex items-center justify-between text-sm text-teal"><span>{couponCode} {t("checkout.applied")}</span><button type="button" className="text-xs text-muted-foreground" onClick={() => { setCoupon(null); setCouponCode(""); }}>{t("checkout.remove")}</button></div>}</section>
         </div>
-        <aside className="h-fit rounded-3xl border border-white/10 bg-white/[0.02] p-6 lg:sticky lg:top-24">
+        <aside className="h-fit rounded-3xl border border-white/10 bg-white/[0.02] p-5 sm:p-6 lg:sticky lg:top-24">
           <div className="flex items-center gap-2">
             <CreditCard className="size-4 text-teal" />
             <h2 className="font-medium">{t("checkout.orderSummary")}</h2>

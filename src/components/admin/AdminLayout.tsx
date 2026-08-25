@@ -60,6 +60,17 @@ export function AdminLayout({
     }
     if (profile?.role !== "admin") navigate({ to: "/", replace: true });
   }, [loading, navigate, profile, user]);
+  useEffect(() => {
+    document.body.style.overflow = open ? "hidden" : "";
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setOpen(false);
+    };
+    window.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.body.style.overflow = "";
+      window.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [open]);
   if (loading) return null;
   if (!user || profile?.role !== "admin") {
     return null;

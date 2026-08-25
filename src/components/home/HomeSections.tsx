@@ -100,7 +100,7 @@ function Hero() {
         <div className="absolute -left-16 bottom-16 h-56 w-56 rotate-12 rounded-3xl border border-white/5" />
       </div>
 
-      <div className="mx-auto flex min-h-[calc(100svh-5rem)] w-full max-w-7xl flex-col items-center justify-center px-6 py-24 text-center">
+      <div className="mx-auto flex min-h-[calc(100svh-4rem)] w-full max-w-7xl flex-col items-center justify-center px-4 py-16 text-center sm:min-h-[calc(100svh-5rem)] sm:px-6 sm:py-24">
         <span className="animate-fade-up inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-[10px] font-medium uppercase tracking-[0.4em] text-foreground/85 backdrop-blur">
           <span className="h-1.5 w-1.5 rounded-full bg-teal" />
           {t("home.newMensLifestyleBrand")}
@@ -182,7 +182,7 @@ function Categories() {
   );
   return (
     <section id="categories" className="relative py-24 sm:py-32">
-      <div className="mx-auto w-full max-w-7xl px-6">
+      <div className="mx-auto w-full max-w-7xl px-4 sm:px-6">
         <SectionHeading
           eyebrow={t("home.featuredCategories")}
           title={t("home.shopByCategory")}
@@ -353,7 +353,7 @@ function FeaturedProducts() {
   const { t } = useLocale();
   return (
     <section className="relative py-24 sm:py-32">
-      <div className="mx-auto w-full max-w-7xl px-6">
+      <div className="mx-auto w-full max-w-7xl px-4 sm:px-6">
         <div className="flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-end">
           <SectionHeading
             eyebrow={t("home.featuredProducts")}
@@ -412,7 +412,7 @@ function WhyQyvero() {
 
   return (
     <section className="relative py-24 sm:py-32">
-      <div className="mx-auto w-full max-w-7xl px-6">
+      <div className="mx-auto w-full max-w-7xl px-4 sm:px-6">
         <SectionHeading
           eyebrow={t("home.whyQyvero")}
           title={t("home.builtOnStandards")}
@@ -451,7 +451,7 @@ function BrandStory() {
   const { t } = useLocale();
   return (
     <section className="relative py-24 sm:py-32">
-      <div className="mx-auto w-full max-w-7xl px-6">
+      <div className="mx-auto w-full max-w-7xl px-4 sm:px-6">
         <div className="glass-card grid grid-cols-1 gap-12 overflow-hidden rounded-[2rem] p-8 sm:p-14 lg:grid-cols-2 lg:p-20">
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-[0.4em] text-teal">
@@ -553,7 +553,7 @@ function Newsletter() {
   const { t } = useLocale();
   return (
     <section className="relative pb-24 pt-8 sm:pb-32">
-      <div className="mx-auto w-full max-w-4xl px-6">
+      <div className="mx-auto w-full max-w-4xl px-4 sm:px-6">
         <div className="glass-card relative overflow-hidden rounded-[2rem] p-10 text-center sm:p-16">
           <div
             aria-hidden

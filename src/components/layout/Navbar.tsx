@@ -11,7 +11,6 @@ import {
   Moon,
   Sun,
   Languages,
-  User,
 } from "lucide-react";
 import { BrandMark } from "@/components/brand-mark";
 import { cn } from "@/lib/utils";
@@ -140,6 +139,14 @@ export function Navbar() {
     };
   }, [open]);
 
+  useEffect(() => {
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setOpen(false);
+    };
+    window.addEventListener("keydown", closeOnEscape);
+    return () => window.removeEventListener("keydown", closeOnEscape);
+  }, []);
+
   return (
     <>
       <header
@@ -150,9 +157,9 @@ export function Navbar() {
             : "border-b border-transparent bg-transparent",
         )}
       >
-        <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between gap-6 px-6 sm:h-20">
+        <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between gap-6 px-4 sm:px-6 sm:h-20">
           {/* Left: Logo */}
-          <div className="flex min-w-0 items-center">
+          <div className="hidden min-w-0 items-center lg:flex">
             <BrandMark size="sm" />
           </div>
 
@@ -169,7 +176,7 @@ export function Navbar() {
           </nav>
 
           {/* Right: Actions */}
-          <div className="flex items-center gap-1 sm:gap-2">
+          <div className="hidden items-center gap-1 sm:gap-2 lg:flex">
             <IconButton label={t("common.language")} onClick={toggleLanguage}>
               <Languages className="h-[18px] w-[18px]" />
             </IconButton>
@@ -181,16 +188,7 @@ export function Navbar() {
               )}
             </IconButton>
 
-            {/* Sign in / account — visible on mobile & tablet where the text buttons are hidden */}
-            <Link
-              to={user ? "/profile" : "/auth/signin"}
-              aria-label={user ? t("nav.profile") : t("nav.signIn")}
-              className="grid h-10 w-10 cursor-pointer place-items-center rounded-full text-foreground/80 transition-all duration-200 hover:scale-[1.03] hover:bg-white/5 hover:text-foreground active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal focus-visible:ring-offset-2 focus-visible:ring-offset-background lg:hidden"
-            >
-              <User className="h-[18px] w-[18px]" />
-            </Link>
-
-            <div className="hidden items-center sm:flex">
+            <div className="flex items-center">
               <IconButton label={t("nav.search")} onClick={() => setSearchOpen(true)}>
                 <Search className="h-[18px] w-[18px]" />
               </IconButton>
@@ -254,15 +252,31 @@ export function Navbar() {
               )}
             </div>
 
+          </div>
+
+          {/* A deliberate three-part mobile header: no desktop controls are squeezed into it. */}
+          <div className="grid w-full grid-cols-[2.75rem_minmax(0,1fr)_2.75rem] items-center lg:hidden">
             <button
               type="button"
               aria-label={t("nav.openMenu")}
               aria-expanded={open}
+              aria-controls="qyvero-mobile-menu"
               onClick={() => setOpen(true)}
-              className="grid h-10 w-10 shrink-0 cursor-pointer place-items-center rounded-full text-foreground/90 transition hover:bg-white/5 lg:hidden"
+              className="grid size-11 cursor-pointer place-items-center rounded-full text-foreground/90 transition hover:bg-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal"
             >
-              <Menu className="h-5 w-5" />
+              <Menu className="size-5" />
             </button>
+            <div className="min-w-0 justify-self-center">
+              <BrandMark size="sm" />
+            </div>
+            <Link
+              to="/cart"
+              aria-label={t("nav.cart")}
+              className="relative grid size-11 justify-self-end place-items-center rounded-full text-foreground/90 transition hover:bg-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal"
+            >
+              <ShoppingBag className="size-5" />
+              {count > 0 && <span className="absolute right-0 top-0 grid size-4 place-items-center rounded-full bg-teal text-[10px] font-semibold text-teal-foreground">{count}</span>}
+            </Link>
           </div>
         </div>
       </header>
@@ -286,9 +300,13 @@ export function Navbar() {
           )}
         />
         <aside
+          id="qyvero-mobile-menu"
+          role="dialog"
+          aria-modal="true"
+          aria-label={t("nav.openMenu")}
           className={cn(
-            "absolute right-0 top-0 flex h-full w-full max-w-sm flex-col border-l border-white/10 bg-background/95 backdrop-blur-xl transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]",
-            open ? "translate-x-0" : "translate-x-full",
+            "absolute right-0 top-0 flex h-full w-full max-w-sm flex-col border-l border-white/10 bg-background/95 backdrop-blur-xl transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] rtl:left-0 rtl:right-auto rtl:border-l-0 rtl:border-r",
+            open ? "translate-x-0" : "translate-x-full rtl:-translate-x-full",
           )}
         >
           <div className="flex items-center justify-between px-6 py-5">
