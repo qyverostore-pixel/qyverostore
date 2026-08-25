@@ -6,6 +6,7 @@ export type City = {
 
 export type Governorate = {
   name: string;
+  nameAr?: string;
   cities: City[];
 };
 
@@ -40,3 +41,17 @@ export const egyptGovernorates: Governorate[] = [
   { name: "North Sinai", cities: cities(["Arish", "Bir El Abd", "Rafah", "Sheikh Zuweid", "Nakhl", "Hassana"]) },
   { name: "Sohag", cities: cities(["Sohag", "Akhmim", "Girga", "Tahta", "Tama", "El Balyana", "Maragha"]) },
 ];
+
+const governorateNamesAr: Record<string, string> = {
+  Cairo: "القاهرة", Giza: "الجيزة", Alexandria: "الإسكندرية", Dakahlia: "الدقهلية",
+  "Red Sea": "البحر الأحمر", Beheira: "البحيرة", Faiyum: "الفيوم", Gharbia: "الغربية",
+  Ismailia: "الإسماعيلية", Monufia: "المنوفية", Minya: "المنيا", Qalyubia: "القليوبية",
+  "New Valley": "الوادي الجديد", Suez: "السويس", Aswan: "أسوان", Assiut: "أسيوط",
+  "Beni Suef": "بني سويف", "Port Said": "بورسعيد", Damietta: "دمياط", Sharqia: "الشرقية",
+  "South Sinai": "جنوب سيناء", "Kafr El Sheikh": "كفر الشيخ", Matrouh: "مطروح", Luxor: "الأقصر",
+  Qena: "قنا", "North Sinai": "شمال سيناء", Sohag: "سوهاج",
+};
+
+egyptGovernorates.forEach((governorate) => {
+  governorate.nameAr = governorateNamesAr[governorate.name] ?? governorate.name;
+});

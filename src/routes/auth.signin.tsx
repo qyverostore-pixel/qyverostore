@@ -11,11 +11,13 @@ import { useLocale } from "@/providers/LocaleProvider";
 import { seoHead } from "@/lib/seo";
 
 export const Route = createFileRoute("/auth/signin")({
+  validateSearch: (search: Record<string, unknown>) => ({ redirect: search.redirect === "/checkout" ? "/checkout" : undefined }),
   head: () => seoHead({ title: "Sign in", description: "Access your QYVERO account.", path: "/auth/signin", robots: "noindex,nofollow" }),
   component: SignInPage,
 });
 
 function SignInPage() {
+  const { redirect: redirectTo } = Route.useSearch();
   const navigate = useNavigate();
   const { user, profile, loading } = useAuth();
   const { t } = useLocale();
@@ -28,10 +30,10 @@ function SignInPage() {
       if (profile?.role === "admin") {
         navigate({ to: "/admin", replace: true });
       } else {
-        navigate({ to: "/", replace: true });
+        navigate({ to: redirectTo ?? "/", replace: true });
       }
     }
-  }, [loading, navigate, user, profile]);
+  }, [loading, navigate, user, profile, redirectTo]);
 
   async function onSubmit(ev: FormEvent) {
     ev.preventDefault();

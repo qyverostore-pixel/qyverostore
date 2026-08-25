@@ -617,5 +617,16 @@ Object.assign(translations.ar.errors as Record<string, string>, { rateLimited: "
   Checkout: "إتمام الطلب", "Complete your order.": "كمّل طلبك.", "Customer information": "بيانات العميل", "Full name": "الاسم بالكامل", Phone: "الموبايل", "Email optional": "الإيميل اختياري", "Payment method": "طريقة الدفع", Coupon: "كوبون", "Order summary": "ملخص الطلب", Subtotal: "الإجمالي الفرعي", Total: "الإجمالي", "Place order": "تأكيد الطلب", "Placing order...": "بنتأكد من الطلب...", "Your cart is empty": "السلة فاضية", "My Orders.": "طلباتي.", "No orders yet": "مفيش طلبات لسه", "Personal Information": "بياناتي الشخصية", "Order timeline": "حالة الطلب", "View Details": "شوف التفاصيل", "Shipping Information": "بيانات الشحن", "Payment Information": "بيانات الدفع", "Grand Total": "الإجمالي النهائي",
 }); */
 
+Object.assign(translations.en.checkout as Record<string, string>, {
+  signInRequired: "You need to sign in first to complete your purchase.",
+  signInRequiredDescription: "Sign in to your account to continue and complete your order.",
+  signInToContinue: "Sign in",
+});
+Object.assign(translations.ar.checkout as Record<string, string>, {
+  signInRequired: "يجب تسجيل الدخول أولًا لإتمام عملية الشراء.",
+  signInRequiredDescription: "سجّل الدخول إلى حسابك للمتابعة وإتمام طلبك.",
+  signInToContinue: "تسجيل الدخول",
+});
+
 export type Language = keyof typeof translations;
 export type TranslationKey = `${keyof typeof translations.en}.${string}`;

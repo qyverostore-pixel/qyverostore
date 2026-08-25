@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "@tanstack/react-router";
-import { CreditCard, PackageOpen } from "lucide-react";
+import { CreditCard, LockKeyhole, PackageOpen } from "lucide-react";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -29,7 +29,7 @@ import { cleanText, isValidEmail, isValidName, normalizeEgyptianPhone } from "@/
 const money = (value: number) => `${value.toLocaleString()} EGP`;
 
 export function CheckoutPage() {
-  const { t } = useLocale();
+  const { t, language, direction } = useLocale();
   const methods: Array<{ id: PaymentMethod; label: string; description: string }> = [
     { id: "cash_on_delivery", label: t("checkout.cashOnDelivery"), description: t("checkout.cashOnDeliveryDescription") },
     { id: "vodafone_cash", label: t("checkout.vodafoneCash"), description: t("checkout.paymentInstructions") },
@@ -37,7 +37,7 @@ export function CheckoutPage() {
   ];
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { user, profile } = useAuth();
+  const { user, profile, loading } = useAuth();
   const { items, buyNowItem, updateQuantity, updateBuyNowQuantity, removeItem, clear, clearBuyNow } = useCart();
   const checkoutItems = buyNowItem ? [buyNowItem] : items;
   const subtotal = useMemo(() => checkoutItems.reduce((sum, item) => sum + item.price * item.quantity, 0), [checkoutItems]);
@@ -88,6 +88,11 @@ export function CheckoutPage() {
   });
   const submit = (event: FormEvent) => {
     event.preventDefault();
+    if (loading) return;
+    if (!user) {
+      toast.error(t("checkout.signInRequired"));
+      return;
+    }
     const name = cleanText(customer.full_name);
     const phone = normalizeEgyptianPhone(customer.phone);
     const email = cleanText(customer.email);
@@ -134,6 +139,23 @@ export function CheckoutPage() {
         </div>
       </main>
     );
+
+  if (loading) return <main className="min-h-screen bg-noise px-6 pb-32 pt-12" />;
+
+  if (!user) {
+    return (
+      <main className="min-h-screen bg-noise px-6 pb-32 pt-12">
+        <div className="mx-auto max-w-5xl">
+          <EmptyState
+            icon={<LockKeyhole className="size-6" />}
+            title={t("checkout.signInRequired")}
+            description={t("checkout.signInRequiredDescription")}
+            action={<Button type="button" asChild><Link to="/auth/signin" search={{ redirect: "/checkout" }}>{t("checkout.signInToContinue")}</Link></Button>}
+          />
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-screen bg-noise pb-24 pt-12 sm:pb-32 sm:pt-20">
@@ -192,6 +214,7 @@ export function CheckoutPage() {
               <div>
                 <Label>{t("checkout.governorate")}</Label>
                 <Select
+                  dir={direction}
                   value={shipping.governorate}
                   onValueChange={(governorate) =>
                     setShipping((current) => ({ ...current, governorate, city: "" }))
@@ -203,7 +226,7 @@ export function CheckoutPage() {
                   <SelectContent>
                     {egyptGovernorates.map((governorate) => (
                       <SelectItem key={governorate.name} value={governorate.name}>
-                        {governorate.name}
+                        {language === "ar" ? governorate.nameAr ?? governorate.name : governorate.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -212,6 +235,7 @@ export function CheckoutPage() {
               <div>
                 <Label>{t("checkout.city")}</Label>
                 <Select
+                  dir={direction}
                   value={shipping.city}
                   onValueChange={(city) => setShipping((current) => ({ ...current, city }))}
                   disabled={!selectedGovernorate}
