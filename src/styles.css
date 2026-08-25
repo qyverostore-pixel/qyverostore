@@ -187,3 +187,17 @@ html[dir="rtl"] .rtl-flip { transform: scaleX(-1); }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: 0.01ms !important; }
 }
+
+@media (max-width: 350px) {
+  .space,
+  aside {
+    width: 330px;
+  }
+}
+
+@media (min-width: 351px) and (max-width: 649px) {
+  .space,
+  aside {
+    width: 90%;
+  }
+}
