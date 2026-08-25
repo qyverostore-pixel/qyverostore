@@ -305,11 +305,11 @@ export function Navbar() {
           aria-modal="true"
           aria-label={t("nav.openMenu")}
           className={cn(
-            "absolute right-0 top-0 flex h-full w-full max-w-sm flex-col border-l border-white/10 bg-background/95 backdrop-blur-xl transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] rtl:left-0 rtl:right-auto rtl:border-l-0 rtl:border-r",
+            "absolute right-0 top-0 flex h-full w-full max-w-sm flex-col overflow-y-auto overscroll-contain border-l border-white/10 bg-background/95 backdrop-blur-xl transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] rtl:left-0 rtl:right-auto rtl:border-l-0 rtl:border-r",
             open ? "translate-x-0" : "translate-x-full rtl:-translate-x-full",
           )}
         >
-          <div className="flex items-center justify-between px-6 py-5">
+          <div className="flex shrink-0 items-center justify-between px-6 py-5">
             <BrandMark size="sm" />
             <button
               type="button"
@@ -321,7 +321,28 @@ export function Navbar() {
             </button>
           </div>
 
-          <nav className="flex flex-1 flex-col gap-1 px-4 pt-6">
+          <section className="shrink-0 border-y border-white/10 px-6 py-4">
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={toggleLanguage}
+                className="flex min-h-11 min-w-0 items-center justify-center gap-2 rounded-full border border-white/15 px-3 text-center text-xs font-medium leading-tight text-foreground/85 transition hover:border-teal hover:text-teal focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal"
+              >
+                <Languages className="size-4 shrink-0" />
+                {t("common.language")}
+              </button>
+              <button
+                type="button"
+                onClick={toggleTheme}
+                className="flex min-h-11 min-w-0 items-center justify-center gap-2 rounded-full border border-white/15 px-3 text-center text-xs font-medium leading-tight text-foreground/85 transition hover:border-teal hover:text-teal focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal"
+              >
+                {theme === "dark" ? <Sun className="size-4 shrink-0" /> : <Moon className="size-4 shrink-0" />}
+                {t("common.theme")}
+              </button>
+            </div>
+          </section>
+
+          <nav className="flex shrink-0 flex-col gap-1 px-4 pt-4">
             {navLinks.map((l, i) => (
               <Link
                 key={l.label}

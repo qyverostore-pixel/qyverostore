@@ -16,8 +16,8 @@ export function OrderSuccessPage({ orderId }: { orderId?: string }) {
     enabled: Boolean(orderId),
   });
   return (
-    <main className="min-h-screen bg-noise px-6 pb-24 pt-12 sm:pb-32 sm:pt-20">
-      <section className="mx-auto max-w-2xl rounded-3xl border border-white/10 bg-white/[0.02] p-8 text-center sm:p-12">
+    <main className="min-h-screen bg-noise px-4 pb-24 pt-12 sm:px-6 sm:pb-32 sm:pt-20">
+      <section className="mx-auto max-w-2xl rounded-3xl border border-white/10 bg-white/[0.02] p-5 text-center sm:p-12">
         <CheckCircle2 className="mx-auto size-12 text-teal" />
         <h1 className="text-display mt-6 text-3xl font-light sm:text-4xl">{t("order.placed")}</h1>
         <p className="mx-auto mt-3 max-w-md text-sm text-muted-foreground">
