@@ -254,8 +254,8 @@ export function Navbar() {
 
           </div>
 
-          {/* A deliberate three-part mobile header: no desktop controls are squeezed into it. */}
-          <div className="grid w-full grid-cols-[2.75rem_minmax(0,1fr)_2.75rem] items-center lg:hidden">
+          {/* Mobile actions remain in the header, with the brand protected in the center. */}
+          <div className="grid w-full grid-cols-[2.75rem_2.5rem_minmax(0,1fr)_2.5rem_2.75rem] items-center lg:hidden">
             <button
               type="button"
               aria-label={t("nav.openMenu")}
@@ -266,9 +266,25 @@ export function Navbar() {
             >
               <Menu className="size-5" />
             </button>
+            <button
+              type="button"
+              aria-label={t("common.language")}
+              onClick={toggleLanguage}
+              className="grid size-10 cursor-pointer place-items-center rounded-full text-foreground/80 transition hover:bg-white/5 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal"
+            >
+              <Languages className="size-[18px]" />
+            </button>
             <div className="min-w-0 justify-self-center">
               <BrandMark size="sm" />
             </div>
+            <button
+              type="button"
+              aria-label={t("common.theme")}
+              onClick={toggleTheme}
+              className="grid size-10 cursor-pointer place-items-center rounded-full text-foreground/80 transition hover:bg-white/5 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal"
+            >
+              {theme === "dark" ? <Sun className="size-[18px]" /> : <Moon className="size-[18px]" />}
+            </button>
             <Link
               to="/cart"
               aria-label={t("nav.cart")}
@@ -320,27 +336,6 @@ export function Navbar() {
               <X className="h-5 w-5" />
             </button>
           </div>
-
-          <section className="shrink-0 border-y border-white/10 px-6 py-4">
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                type="button"
-                onClick={toggleLanguage}
-                className="flex min-h-11 min-w-0 items-center justify-center gap-2 rounded-full border border-white/15 px-3 text-center text-xs font-medium leading-tight text-foreground/85 transition hover:border-teal hover:text-teal focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal"
-              >
-                <Languages className="size-4 shrink-0" />
-                {t("common.language")}
-              </button>
-              <button
-                type="button"
-                onClick={toggleTheme}
-                className="flex min-h-11 min-w-0 items-center justify-center gap-2 rounded-full border border-white/15 px-3 text-center text-xs font-medium leading-tight text-foreground/85 transition hover:border-teal hover:text-teal focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal"
-              >
-                {theme === "dark" ? <Sun className="size-4 shrink-0" /> : <Moon className="size-4 shrink-0" />}
-                {t("common.theme")}
-              </button>
-            </div>
-          </section>
 
           <nav className="flex shrink-0 flex-col gap-1 px-4 pt-4">
             {navLinks.map((l, i) => (
